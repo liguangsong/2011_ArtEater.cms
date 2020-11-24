@@ -1,0 +1,234 @@
+.login{
+    width: 100%;
+    height: 100%;
+    background-image: url('../../assets/images/login-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    .usertype-ul{
+        position: absolute;left: 0;right: 0;top: 0;border-top-left-radius: 15px;border-top-right-radius: 15px;overflow:hidden;
+        li{
+            list-style: none;
+            width: 33.333%;
+            box-sizing: border-box;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            position: relative;
+            background: #409eff;
+            color: #fff;
+            float: left;
+            border-right: 1px solid #fff;
+            cursor: pointer;
+            span{
+                background: url(../../assets/images/select-usertype-login.png);
+                width: 34px;
+                height: 34px;
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 2;
+                display: none;
+            }
+        }
+        li:last-child{border: none;}
+        li.active{background: #1167de;}
+        li.active span{display: block;}
+    }
+    .logo-top-icon{
+        position: absolute;
+        top: 50px;
+        left: 50px;
+        height: 60px;
+        .icon{
+            height: 100%;float: left;
+        }
+        .name{
+            float: left;
+            display: block;
+            height: 35px;
+            line-height: 35px;
+            border-left: 1px solid #fff;
+            padding-left: 22px;
+            font-size: 26px;
+            color: #fff;
+            position: relative;
+            margin-top: 14px;
+            margin-left: 20px;
+        }
+    }
+    &-con{
+        position: absolute;
+        right: 300px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 380px;
+        .ivu-card{
+            position: relative;
+            border-radius: 15px;
+            padding-top: 50px;
+            .ivu-card-head{
+            color: #000;
+            font-weight: 300;
+            text-align: center;
+            padding: 0 35px 18px 35px;
+            border: none;
+                p{
+                    height: 28px;line-height: 28px;
+                    span{
+                        font-size: 28px;
+                    }
+                }
+            }
+            .ivu-card-body{
+                padding: 0 34px 40px 34px;
+                .ivu-input{
+                    height: 50px;
+                }
+            }  
+        }
+
+        .form-con{
+            // padding-bottom: 38px;
+            .ivu-form-item-content{display: flex;justify-content: space-between;}
+            .ivu-btn-long{
+                width: 145px;height: 50px;font-size: 20px;
+            }
+            .ivu-btn-sign{
+                width: 145px;height: 50px;font-size: 20px;background: #ff7640;color: #fff;
+            }
+            .forget{cursor: pointer;}
+        }   
+        .ivu-select-single .ivu-select-selection,
+        .ivu-select-single .ivu-select-selection .ivu-select-placeholder, 
+        .ivu-select-single .ivu-select-selection .ivu-select-selected-value{height: 50px;line-height: 50px;}
+    }
+    .footer{
+        position: fixed;
+        bottom: 20px;
+        width: 100%;
+        text-align: center;
+        font-size: 16px;
+        color: #fff;
+        line-height: 25px;
+    }
+
+}
+
+
+//企业注册页样式
+#examine{
+    background: url(../../assets/images/shenhe-bg.png);
+    background-size: cover;
+}
+#register{
+       background: url(../../assets/images/shenhe-bg.png);
+    background-size: cover; 
+}
+#register .login-con {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%,-50%);
+    transform: translate(-50%,-50%);
+    width: 680px;
+    .ivu-form .ivu-form-item-label{
+        line-height: 50px;padding: 0 10px 0 0 ;color: #333;
+    }
+    .btnlist Button{
+        font-size: 18px;height: 50px;width: 196px;display: block;color: #fff;
+    }
+    .btnlist Button:last-child{
+        background:#ff7640;
+    }
+    .logo-top-icon{
+        top: 50px;
+    }
+    .ivu-form-item-content{line-height: 50px;}
+}
+
+//企业审核页面样式
+#examine{
+    background: url(../../assets/images/shenhe-bg.png);
+    background-size: cover;
+
+}
+    .vertical-center-modal-msg{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        .ivu-modal{
+            top: 0;
+        }
+    }
+
+#examine .login-con {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%,-50%);
+    transform: translate(-50%,-50%);
+    width: 980px;
+    min-height: 200px;
+    z-index: 1;
+    .form-con{
+        padding-top: 60px;max-height: 698px;overflow-y: auto;
+    }
+    .ivu-form .ivu-form-item-label{
+        line-height: 50px;padding: 0 10px 0 0 ;color: #333;
+    }
+    .btnlist Button{
+        font-size: 18px;height: 50px;width: 196px;display: block;color: #fff;
+    }
+    .btnlist Button:last-child{
+        background:#ff7640;
+    }
+    .btnlist Button:last-child{
+        background:#409eff;border-color: #409eff;
+    }
+    
+    .logo-top-icon{
+        top: 50px;
+    }
+    .ivu-card{padding-left: 70px;min-height: 400px;}
+    
+    .title{
+        position: absolute;left: 0;top: 0;bottom: 0;width: 68px;background: #409eff;color: #fff;border-top-left-radius: 15px;border-bottom-left-radius: 15px;
+        text-align: center;font-size: 24px;
+        span{
+            position: absolute;top: 50%;margin-top: -65px;left: 22px;
+        }
+    }
+    .ivu-radio-group{
+        width: 100%;
+        padding: 35px 0;
+        display: flex;
+        justify-content: space-evenly;
+        .ivu-radio-wrapper{
+            font-size: 18px;
+        }    
+    }
+    .ivu-form-item{margin-bottom: 20px;}
+    .ivu-form-item-error-tip{padding-top: 4px;}
+    .form-center{padding: 0 10%;}
+    .ivu-upload-list{display: none;}
+    .pic_upload_Img{clear: both;}
+    .pic_upload_Img img{width: 200px;max-height: 200px;}
+}
+
+@media screen and (max-width: 1366px){
+    #examine{
+        .login-con{
+            width: 826px;padding-bottom: 1px;
+            .ivu-card .ivu-card-body .ivu-input{height: 32px;}
+            .ivu-form .ivu-form-item-label{line-height: 32px;}
+            .ivu-radio-group{padding: 18px 0;}
+            .ivu-select-single .ivu-select-selection,
+            .ivu-select-single .ivu-select-selection .ivu-select-placeholder, 
+            .ivu-select-single .ivu-select-selection .ivu-select-selected-value{
+                height: 32px;line-height: 32px;
+            }
+            
+        }
+    }
+}

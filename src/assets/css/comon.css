@@ -1,0 +1,132 @@
+@charset "utf-8";
+/* CSS Document */
+/*CSS通用重置样式*/
+html {
+	overflow: -moz-scrollbars-vertical;
+	margin: 0;
+	padding: 0;
+}
+input,button,select,textarea,a,img{outline:none; vertical-align:top;}/*去掉超链接或按钮点击时出现的虚线框黄色边框*/
+::-moz-focus-inner{border:0px;}/*火狐的私有属性去掉点击时边框*/
+*{word-break:break-all;font-family: 'Microsoft Yahei','SimSun',Arial Lucida,Verdana,Helvetica,sans-serif;}
+body, div, dl, dt, dd, ul, ol, li,h1, h2, h3, h4, h5, h6, pre, code,form, fieldset, legend, input, button,textarea, p, blockquote, th, td {margin:0;padding:0;}
+fieldset, img {border:0;}
+:focus {outline:0;}
+address, caption, cite, code, dfn,em, strong, th, var, optgroup,i {font-style:normal;font-weight:normal;}
+h1, h2, h3, h4, h5, h6 {font-size:100%;font-weight:normal;}
+abbr, acronym {border:0;font-variant:normal;}
+input, button, textarea,select, optgroup, option {font-family:inherit;font-size:inherit;font-style:inherit;font-weight:inherit;}
+code, kbd, samp, tt {font-size:100%;}
+input, button, textarea, select {*font-size:100%;}
+
+ol, ul {list-style:none;}
+caption, th {text-align:left;}
+sup, sub {font-size:100%;vertical-align:baseline;}
+:link, :visited , ins {text-decoration:none;}
+blockquote, q {quotes:none;}
+blockquote:before, blockquote:after,q:before, q:after {content:'';content:none;}
+a{ cursor:pointer;}
+a:link,a:visited,a:active{color:inherit;text-decoration:none;/*width: 100%;height: 100%;*/display: inline-block;}
+a:hover{color:inherit;}
+img{vertical-align:middle;-ms-interpolation-mode: bicubic;}
+.clearfix:before, .clearfix:after{content:"\0020";display:block;height:0;overflow:hidden;}
+.clearfix:after{clear:both;}
+.clearfix{zoom:1;}
+.wrapper{height:auto;margin:0 auto;width:1250px;}
+*html{background-image:url();background-attachment:fixed;/*修正IE6振动bug*/}
+article,aside,dialog,footer,header,section,footer,nav,figure,menu{display:block}
+/*以上为通用样式部分*/
+.bg-contern{ background:#f4f8f9; height:100%;}
+.top{ background:#1f92d8; padding:1em 4em;}
+.top .logo{ width:20%; display:inline-block;}
+.top .top-right{ float:right; color:#fff;position: relative;top: 16px;}
+.top .top-right i{ margin-right:5px;}
+.top .top-right a{ margin-left: 10px; padding-left: 10px;border-left: 1px solid #fff;}
+.photo{ border-radius:50%; overflow:hidden; width:120px; margin:0 auto;}
+.photo img{ width:120px; height:120px;}
+.navleft-top{text-align:center; background:#fff; padding: 4em 0;box-shadow: 1px 2px 5px #ccc;}
+.navleft-top h2{ color:#333; font-size:20px; font-weight:bold; margin:0.5em 0;}
+.navleft-top p{ line-height:40px;}
+.navleft-top ul{ margin-top:2em;}
+.navleft-top ul li{ line-height:3.6em; border-bottom:1px solid #ccc; font-size:18px;}
+.navleft-top ul li i{ margin-right:6px;position: relative;top: -2px;}
+.navleft-top ul li:last-of-type{ border-bottom:0px;}
+.mcontainer{ margin:2em auto;}
+.news{ background:#fff; padding:3em 2em;box-shadow: -1px 2px 5px #ccc;}
+.news h5{ font-size:20px; color:#666; margin-bottom:1em;}
+.news ol{ font-size:16px;}
+.news ol li{ background:url(../images/list-li-bg.png) no-repeat left center; padding-left:1em; display:inline-block; width:48%;overflow: hidden;white-space: nowrap;text-overflow: ellipsis;}
+.systerm{ padding:3em 2em; margin-top:1em; background:#fff;box-shadow: -1px 2px 5px #ccc;}
+.systerm-contain{ margin-bottom:2em;}
+.systerm-contain h6{font-size: 24px; color: #666; text-indent: 15px; margin-bottom: 0.5em;}
+.systerm-contain ul{}
+.systerm-contain ul li{display: inline-block;padding-left: 2em;color: #fff;width: 22%; margin: 1%;height: 100px;font-size: 20px;line-height: 100px;}
+.systerm-contain ul li em{ margin-right:15px;}
+.systerm-contain ul li:nth-of-type(1){ background:#5fcff4;}
+.systerm-contain ul li:nth-of-type(2){ background:#ffc333;}
+.systerm-contain ul li:nth-of-type(3){ background:#3fd4da;}
+.systerm-contain ul li:nth-of-type(4){ background:#99cc33;}
+.systerm-contain ul li:nth-of-type(5){ background:#ff8860;}
+.systerm-contain ul li:nth-of-type(6){ background:#63b6ec;}
+.systerm-contain ul li:nth-of-type(7){ background:#a48ad4;}
+.systerm-contain ul li:nth-of-type(8){ background:#5fcff4;}
+.systerm-extend ul li:nth-of-type(1){ background:#3fd4da;}
+.systerm-extend ul li:nth-of-type(2){ background:#5fcff4;}
+.systerm-extend ul li:nth-of-type(3){ background:#ff8860;}
+.systerm-extend ul li:nth-of-type(4){ background:#63b6ec;}
+.position{ padding:1em; margin:1em;}
+.model-contain{ position:relative; /*top:100px;*/}
+.model-contain .model-iterm{ background: #fff;
+    margin: 1%;
+    padding: 3em 2% 1%;
+    min-height: 160px;
+	max-height:160px;
+    border-radius: 3px;
+    box-shadow: 0px 2px 6px #ccc;
+    width: 18%;
+    padding-left: 6%;
+	/*overflow:hidden;*/}
+.model-contain .model-iterm h6{ font-size: 1.3em;
+    color: #FF9800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    height: 40px;
+    /* font-weight: bold; */}
+.model-contain .model-iterm h6 i{width: 16%;
+    display: inline-block;
+    position: absolute;
+    left: 10%;
+    top:20%;}
+.model-contain .model-iterm h6 i img{ max-width: 100%;
+    max-height:100%;}
+.model-contain .model-iterm ul{ margin-top: 0px;}
+.model-contain .model-iterm ul li{background: url(../images/list-li-bg.png) no-repeat left center;
+    padding-left: 1em;
+    font-size: 1em;
+    line-height: 40px;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 97%;
+    background-size: 4%;
+    color: #666;
+    text-overflow: ellipsis;}
+	.basis-contain .model-iterm { width:20%;}
+.basis-contain .model-iterm ul li{ background:none;padding-left:0em;white-space: normal;
+    width: 103%;}
+.title-contain  .model-iterm{ min-height:120px;}
+.title-contain  .model-iterm h6 i{top: 20%;left: 12%;}
+/**步骤列表**/
+.steps-contain{}
+.steps-contain .model-iterm{ margin:4% 3%;}
+.rightnarrow{position: absolute; top: 37%;right:-28%;}
+.rightnarrow img{ width: 80%;}
+.steps-contain .model-iterm .steps{ position: absolute;left: 0;top: -39px;font-size: 18px;color: #139ad4;font-weight: bold;}
+/* footer */
+.footer{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 9;
+    width: 100%;
+  }
