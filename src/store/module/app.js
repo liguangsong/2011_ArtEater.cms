@@ -4,7 +4,7 @@ export default {
   state: {
     breadCrumbList: [],
     tagNavList: [],
-    homeRoute: {name: '食艺兽-试题管理平台'},
+    homeRoute: {name: '食艺兽-管理平台'},
     local: ''
   },
   // getters: {

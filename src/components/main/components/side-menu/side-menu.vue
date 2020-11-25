@@ -75,7 +75,6 @@ export default {
   },
   methods: {
     handleSelect (name) {
-      debugger
       this.$emit('on-select', name)
     },
     getOpenedNamesByActiveName (name) {

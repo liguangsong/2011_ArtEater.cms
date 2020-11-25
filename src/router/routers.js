@@ -36,7 +36,7 @@ export default [
         name: 'index',
         meta: {
           hideInMenu: true,
-          title: '食艺兽-试题管理平台',
+          title: '食艺兽-管理平台',
           notCache: true
         },
         component: () => import('@/view/main/index.vue')
@@ -91,7 +91,7 @@ export default [
         path: '/index',
         name: 'index',
         meta: {
-          title: '食艺兽-试题管理平台',
+          title: '食艺兽-管理平台',
           hideInMenu: true,
           notCache: true
         },

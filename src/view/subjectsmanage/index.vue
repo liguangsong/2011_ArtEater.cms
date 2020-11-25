@@ -1,62 +1,94 @@
 <template>
     <div class="container-wrap">
-        <Row>
-        <Col span="6"><Input v-model="search_keyword" size="large" placeholder="请输入科目名称/ID" style="width: 400px" /><Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
-        <Col span="18">
-            <div class="operation-wrap">
-                <Button type="success" @click="show_window=true">新增科目</Button>
+        <div style="display:flex">
+            <div style="flex:1">
+                <label>科目名称</label>
+                <Input v-model="subjectName" size="large" placeholder="请输入科目名称" style="width: 200px;margin-left:10px" />
+                <label style="margin-left:10px">ID</label>
+                <Input v-model="subjectId" size="large" placeholder="请输入科目ID" style="width: 200px;margin-left:10px" />
+                <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
             </div>
-        </Col>
-        </Row>
+            <div style="width:100px;text-align:right">
+                <Button type="success" @click="addSubject">新增科目</Button>
+            </div>
+        </div>
         <Row class="table-wrap">
-             <Table  :loading="loading" :columns="columns" :data="subjects_datas">
-             </Table>
-             <div class="page-wrap">
-             <Page :total="total" @on-change="page_list"  v-if="total!=0" />
-             </div>
+            <Table  :loading="loading" :columns="columns" :data="subjects_datas">
+                <template slot-scope="{ row }" slot="price">
+                    <strong v-if="row.price&&row.price>0">¥{{ row.price }}元</strong>
+                    <strong v-else>免费</strong>
+                </template>
+                <template slot-scope="{ row }" slot="content">
+                    <strong>{{ row.content?'已添加':'---' }}</strong>
+                </template>
+                <template slot-scope="{ row }" slot="action">
+                    <Button v-if="row.level > 0" type="info" size="small" style="margin-right:5px" @click="ShowParents(row)">查看上一级</Button>
+                    <Button v-if="!row.has_down_level" type="primary" size="small" style="margin-right:5px" @click="AddChildrens(row)">添加下一级</Button>
+                    <Button v-else type="info" size="small" style="margin-right:5px" @click="ShowChildrens(row)">查看下一级</Button>
+                    <Button type="warning" size="small" style="margin-right:5px" @click="ContentFormShow(row)">编辑内容</Button>
+                    <Button type="warning" size="small" style="margin-right:5px" @click="EditFormShow(row)">修改</Button>
+                    <Button type="error" size="small" @click="DelConfirmShow(row)">删除</Button>
+                </template>
+            </Table>
+            <div class="page-wrap">
+                <Page :total="total" @on-change="page_list"  v-if="total!=0" />
+            </div>
         </Row>
-
-         <Modal v-model="show_window"
-        :title="window_title"
-         width="800"
-        @on-ok="add_subjects"
-        @on-cancel="cancel">
-        <Form :model="subject_form" label-position="right" :label-width="80">
-            <FormItem label="科目名称">
-                <Input v-model="subject_form.subject_name" placeholder="请输入科目名称"></Input>
-            </FormItem>
-            <FormItem label="科目ID">
-                <Input v-model="subject_form.subject_ID" placeholder="请输入科目ID"></Input>
-            </FormItem>
-            <FormItem label="是否收费">
-                <i-switch v-model="subject_form.free" size="large">
-                    <span slot="false">收费</span>
-                    <span slot="true">免费</span>
-                </i-switch>
-            </FormItem>
-            <FormItem label="收费金额" v-if="show_price">
-                <Input v-model="subject_form.price" placeholder="请输入收费金额"></Input>
-            </FormItem>
-            <FormItem label="说明">
-                <Editor :value="subject_form.content" @on-change="change_value"></Editor>
-            </FormItem>
-        </Form>
+         <Modal v-model="isShowAddForm"
+            :title="window_title"
+            width="400"
+            mask scrollable
+            :loading='modalLoading'
+            @on-ok="add_subjects">
+            <Form ref="subjectForm" :model="subject_form" label-position="right" :label-width="80" :rules="ruleValidate">
+                <FormItem label="科目名称" prop='subject_name'>
+                    <Input v-model="subject_form.subject_name" placeholder="请输入科目名称"></Input>
+                </FormItem>
+                <FormItem label="是否收费" prop='price'>
+                    <div style="display:flex">
+                        <div style="width:80px">
+                            <i-switch v-model="subject_form.free" size="large">
+                                <span slot="open">收费</span>
+                                <span slot="close">免费</span>
+                            </i-switch>
+                        </div>
+                        <div style="flex:1">
+                            <Input v-if="subject_form.free" v-model="subject_form.price" placeholder="请输入收费金额">
+                                <span slot="append">元</span>
+                            </Input>
+                        </div>
+                    </div>
+                </FormItem>
+            </Form>
+         </Modal>
+         <Modal v-model="isShowContentForm" :title="window_title" width="800" @on-ok="saveContent()">
+            <Editor :value="subject_form.content" @on-change="change_value"></Editor>
          </Modal>
     </div>
 </template> 
 
 <script>
 import Editor from "@/components/editor"
-
+import { verification } from '@/api/verification'
 export default {
     name: "subjectsmanageindex",
     data() {
+        var self = this
         return {
-            query_subject_id:this.$route.query.subjectid,
             page:1,
+            pageSize: 10,
             total:0,
-            loading: true,
-            search_keyword:'',
+            subjectName:'',
+            subjectId:'',
+            currLevel:0,
+            currParent: {
+                id:'0',
+                price:''
+            },
+            route:[{
+                id:'0',
+                price:''
+            }],
             columns: [
                     {
                         title: '科目名称',
@@ -64,85 +96,23 @@ export default {
                     },
                     {
                         title: 'ID',
-                        key: 'subject_ID'
+                        key: 'id'
                     },
                     {
                         title: "内容添加",
-                        key: 'has_content'
+                        key: 'content',
+                        slot:'content'
                     },
                     {
                         title: "收费状态",
-                        key: 'price'
+                        key: 'price',
+                        slot:'price'
                     },
                     {
                         title: '操作',
                         key: 'action',
-                        align: 'center',
-                        render: (h, params) => {
-                            var button=[
-                                  h('Button', {
-                                    props: {
-                                        type: 'success',
-                                        size: 'small'
-                                    },
-                                    style: {
-                                        marginRight: '5px'
-                                    },
-                                    on: {
-                                        click: () => {
-                                            this.parentid=params.row.id
-                                            this.show_window=true
-                                            this.window_title="新增科目"
-                                        }
-                                    }
-                                }, '添加下一级'),
-                                h('Button', {
-                                    props: {
-                                        type: 'primary',
-                                        size: 'small'
-                                    },
-                                    style: {
-                                        marginRight: '5px'
-                                    },
-                                    on: {
-                                        click: () => {
-                                            this.subjectid=params.row.id
-                                            this.show_window=true
-                                            this.window_title="编辑科目"
-                                            this.get_entity()
-                                        }
-                                    }
-                                }, '编辑'),
-                                h('Button', {
-                                    props: {
-                                        type: 'error',
-                                        size: 'small'
-                                    },
-                                     style: {
-                                        marginRight: '5px'
-                                    },
-                                    on: {
-                                        click: () => {
-                                            this.delete(params.row.id)
-                                        }
-                                    }
-                                }, '删除')
-                            ]
-                            if (params.row.has_down_level){
-                                button.push(h('Button', {
-                                    props: {
-                                        type: 'info',
-                                        size: 'small'
-                                    },
-                                    on: {
-                                        click: () => {
-                                            this.$router.push({"name":"subjectsmanageindex",params:{"subjectid":params.row.id}})
-                                        }
-                                    }
-                                }, '查看下一级'))
-                            }
-                            return h('div', button);
-                        }
+                        width:380,
+                        slot:'action'
                     }
                 ],
             subjects_datas: [],
@@ -150,17 +120,38 @@ export default {
                 subject_name:'',
                 subject_ID:'',
                 free:false,
-                price:"",
+                price: '0',
                 content:'',
-                has_content:false,
                 has_down_level:false,
                 parent_ID:'0'
+            },
+            ruleValidate: {
+                subject_name: [{ required: true, message: '请输入科目/章节名称', trigger: 'blur' }],
+                price: [{ trigger: 'blur', 
+                        validator: (rule, value, callback) => {
+                            if(self.subject_form.free){
+                                if (value === '' ) {
+                                    callback(new Error('请输入价格'))
+                                } else if (!/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(value)) {
+                                    return callback(new Error('价格由整数、小数点和最多两个小数组成！'))
+                                } else {
+                                    callback()
+                                }
+                            } else {
+                                callback()
+                            }
+                        }
+                    }
+                ]
             },
             old_price:0,
             init_data:"",
             parentid:"0",
             subjectid:"",
-            show_window:false,
+            isShowAddForm: false,
+            isShowContentForm: false,
+            loading: true,
+            modalLoading: true,
             window_title:"新增科目"
         }
     },
@@ -177,12 +168,11 @@ export default {
         this.page_list(this.page)
     },
     methods: {
-        
         cancel(){
             this.parentid=""
             this.subjectid=""
             this.subject_form=JSON.parse(this.init_data)
-            this.show_window=false,
+            this.isShowAddForm=false,
             this.window_title="新增科目"
         },
 
@@ -193,63 +183,139 @@ export default {
         */
         get_entity(){
             var query = new this.ParseServer.Query("Subjects")
-            query.get(this.subjectid).then((response)=>{
+            query.get(this.subjectid).then(res=>{
                 Object.keys(this.subject_form).forEach(key => {
-                    this.subject_form[key]=response.get(key)
+                    this.subject_form[key]=res.get(key)
+                    
                 })
-                this.old_price=response.get("price")==null?0:response.get("price")
+                this.subject_form.free = res.get('price') && parseFloat(res.get('price'))>0
+                this.old_price=res.get("price")==null?0:res.get("price")
             })
         },
-
+        /** 弹出添加科目弹框 */
+        addSubject(){
+            this.window_title="添加科目"
+            this.isShowAddForm=true
+        },
+        /**
+         * 弹出编辑窗口
+         */
+        EditFormShow(row) {
+            this.subjectid=row.id
+            this.isShowAddForm=true
+            this.window_title="编辑科目"
+            this.get_entity()
+        },
+        /**
+         * 弹出编辑内容窗体
+         */
+        ContentFormShow(row){
+            this.subjectid=row.id
+            this.subject_form.content = row.content
+            this.isShowContentForm=true
+            this.window_title="编辑内容"
+        },
+        /** 查看上一级 */
+        ShowParents(row){
+            this.route.pop()
+            this.currParent = this.route[this.route.length-1]
+            this.page_list(1)
+        },
+        /** 查看下一级 */
+        ShowChildrens(row){
+            this.route.push(row)
+            this.currLevel += 1
+            this.currParent = row
+            // this.old_price = row.price
+            this.page_list(1)
+        },
+        /** 添加下一级 */
+        AddChildrens(row) {
+            var self = this
+            this.$Modal.confirm({
+                title: '操作提示',
+                content: '<p>是否添加下级目录？</p>',
+                onOk: () => {
+                    self.route.push(row.id)
+                    self.currLevel += 1
+                    self.currParent = row
+                    self.page_list(1)
+                }
+            })
+        },
           /*
         *新增科目
         *作者：gzt
         *时间：2020-11-21 23:41:37
         */
         add_subjects(){
-            var subjects=this.ParseServer.Object.extend("Subjects")
-            var subject=new subjects()
-            if(this.subjectid){
-                subject.set('id',this.subjectid)
+            var self = this
+            var subjects = this.ParseServer.Object.extend("Subjects")
+            var subject = new subjects()
+            if(this.subjectid) {
+                subject.set('id', this.subjectid)
             }
-            if(this.parentid){
-                this.subject_form.parent_ID=this.parentid
-            }
-            subject.set('subject_name',this.subject_form.subject_name)
-            subject.set("subject_ID",this.subject_form.subject_ID)
-            subject.set("content",this.subject_form.content)
-            subject.set("price",this.subject_form.price)
-            subject.set("free",this.subject_form.free)
-            subject.set("parent_ID",this.subject_form.parent_ID)
-            subject.set("has_content",this.subject_form.has_content)
-            subject.set("has_down_level",this.subject_form.has_down_level)
-            subject.save().then((subject)=>{
-                if (this.subject_form.parent_ID!="0"||this.subject_form.parent_ID!=0){
-                var query = new this.ParseServer.Query("Subjects")
-                query.get(this.subject_form.parent_ID).then((response)=>{
-                    response.set("has_down_level",true)
-                    if(this.subject_form.price!=""){
-                        var price=response.get('price')==null?0:parseFloat(response.get('price')) -this.old_price
-                        response.set("price",String(parseFloat(price)+parseFloat(this.subject_form.price)))
-                    }
-                    response.save().then((result)=>{
-                        this.$Message.success('保存成功')
-                        this.page_list(1)
-                        this.cancel()
-                    })
-                })
-            }else{
-                this.$Message.success('保存成功')
-                this.page_list(1)
-                this.cancel()
-            }
+            this.subject_form.parent_ID = this.currParent.id
+            this.$refs['subjectForm'].validate(valid => {
+                if (!valid) {
+                    self.$Message.error('请检查表单项')
+                    self.modalLoading = false
+                    setTimeout(() => {
+                        self.modalLoading = true
+                    }, 100)
+                    return false
+                } else {
+                    subject.set('subject_name', self.subject_form.subject_name)
+                    subject.set("content", '')
+                    subject.set("price", self.subject_form.price)
+                    subject.set("level", self.currLevel)
+                    subject.set("parent_ID",self.currParent.id)
+                    subject.set("has_down_level",self.subject_form.has_down_level)
+                    subject.save().then((subject)=>{
+                        if (self.currParent.id!="0"||self.currParent.id!=0){
+                            self.updateParentPrice(self.currParent.id)
+                        }else{
+                            this.$Message.success('保存成功')
+                            this.page_list(1)
+                            this.cancel()
+                        }
 
-            },(error)=>{
-                console.log(error)
-                this.$Message.error('保存失败')
+                    },(error)=>{
+                        console.log(error)
+                        this.$Message.error('保存失败')
+                    })
+                }
             })
         },
-
+        /** 更新父级科目 */
+        updateParentPrice(parentId){
+            var self = this
+            var query = new self.ParseServer.Query("Subjects")
+            query.equalTo("parent_ID", parentId)
+            query.find().then(childrens => {
+                let hasChildren = false
+                let price = 0
+                childrens.forEach((_item, _index)=>{
+                    hasChildren = true
+                    price += parseFloat(_item.get('price'))
+                })
+                var query1 = new self.ParseServer.Query("Subjects")
+                query1.get(parentId).then((parent)=>{
+                    parent.set("has_down_level", hasChildren)
+                    parent.set("price", '' + price.toFixed(2))
+                    parent.save().then((result)=>{
+                        if(parent.get('parent_ID')!='0'){
+                            self.updateParentPrice(parent.get('parent_ID'))
+                        } else {
+                            self.$Message.success('保存成功')
+                            self.page_list(1)
+                            self.cancel()
+                        }
+                    })
+                })
+            })
+            
+        },
         /*
         *富文本编辑框的内容发生变化
         *作者：gzt
@@ -257,14 +323,21 @@ export default {
         */
         change_value(html,text){
             this.subject_form.content=html
-            if(html!="<p><br></p>"){
-                this.subject_form.has_content=true
-            }else{
-                this.subject_form.has_content=false
-            }
-            console.log(this.has_content)
         },
-
+        saveContent(){
+            var self = this
+            var subjects = this.ParseServer.Object.extend("Subjects")
+            var subject = new subjects()
+            subject.set('id', this.subjectid)
+            subject.set("content", this.subject_form.content)
+            subject.save().then((res)=>{
+                self.page_list(self.page)
+                self.$Message.success('保存成功')
+            },(error)=>{
+                console.log(error)
+                self.$Message.error('保存失败')
+            })
+        },
         /*
         *搜索数据
         *作者：gzt
@@ -282,14 +355,12 @@ export default {
         page_list(page_index){
             let _this=this
             let query = new this.ParseServer.Query('Subjects')
-            if (this.query_subject_id!=0){
-                
-            }
+            query.equalTo('parent_ID', this.currParent.id)
             query.count().then(count=>{
                 _this.total=count
             })
-            query.skip((this.page-1)*10)
-            query.limit(10)
+            query.skip((this.page-1)*this.pageSize)
+            query.limit(this.pageSize)
             query.find().then(list => {
                 _this.subjects_datas=[]
                 if (list && list.length>0){
@@ -300,8 +371,9 @@ export default {
                             parent_ID:item.get("parent_ID"),
                             subject_ID:item.get("subject_ID"),
                             price:item.get("price"),
-                            has_content: item.get("has_content")==true?"已添加":"----",
-                            has_down_level: item.get("has_down_level")
+                            level: item.get('level'),
+                            content: item.get('content'),
+                            has_down_level: item.get('has_down_level')
                         })
                     })
                 }
@@ -334,7 +406,8 @@ export default {
         *作者：gzt
         *时间：2020-11-22 08:41:53
         */
-        delete(subject_id){
+        DelConfirmShow(row){
+            var subject_id = row.id
             let _this=this
             this.$Modal.confirm({
                     title: '删除提示',

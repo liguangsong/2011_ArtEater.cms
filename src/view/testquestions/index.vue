@@ -1,63 +1,133 @@
 <template>
     <div class="container-wrap">
-        <Row>
-        <Col span="6"><Input v-model="search_keyword" size="large" placeholder="请输入试题名称" style="width: 400px" /><Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
-        <Col span="18">
-            <div class="operation-wrap">
-                <Button type="success" @click="show_window=true">新增试题</Button>
+        <div style="display:flex">
+            <div style="flex:1">
+                <Input v-model="search_keyword" size="large" placeholder="请输入试题名称" style="width: 400px" />
+                <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
             </div>
-        </Col>
-        </Row>
+            <div style="width:200px;text-align:right">
+                <Button style="margin-right:10px" type="primary" @click="show_window=true">新增试题</Button>
+                <Button type="info" @click="show_window=true">批量导入</Button>
+            </div>
+        </div>
         <Row class="table-wrap">
-             <Table  :loading="loading" :columns="columns" :data="question_datas">
-             </Table>
-             <div class="page-wrap">
-             <Page :total="total" @on-change="page_list"  v-if="total!=0" />
-             </div>
+            <Table  :loading="loading" :columns="columns" :data="question_datas">
+                <template slot-scope="{ row }" slot="subjects">
+                    <strong v-for="(_sub,_idx) in row.subjects">{{getSubjectName(_sub)+(_idx==row.subjects.length-1?'':';')}}</strong>
+                </template>
+                <template slot-scope="{ row }" slot="answer">
+                    <strong>{{getRightAnswer(row.options)}}</strong>
+                </template>
+                <template slot-scope="{ row }" slot="type">
+                    <strong v-if="row.type==1">单选</strong>
+                    <strong v-if="row.type==2">多选</strong>
+                    <strong v-if="row.type==3">填空</strong>
+                </template>
+            </Table>
+            <div class="page-wrap">
+                <Page :total="total" @on-change="page_list"  v-if="total!=0" />
+            </div>
         </Row>
          <Modal v-model="show_window"
-        :title="window_title"
-         width="800"
-        @on-ok="add_questions"
-        @on-cancel="cancel">
-        <Form :model="question_form" label-position="right" :label-width="80">
-            <FormItem label="试题类型">
-                <RadioGroup v-model="question_form.typename">
-                    <Radio label="单选">单选</Radio>
-                    <Radio label="多选">多选</Radio>
-                    <Radio label="填空">填空</Radio>
-                </RadioGroup>
-            </FormItem>
-            <FormItem label="是否重点">
-                <i-switch v-model="question_form.free" size="large">
-                    <span slot="false">重点</span>
-                    <span slot="true">非重点</span>
-                </i-switch>
-            </FormItem>
-            <FormItem label="科目章节">
-                <CheckboxGroup v-model="question_form.subjects">
-                    <Checkbox :label="item" v-for="(item,index) in subjects" :key="index"></Checkbox>
-                </CheckboxGroup>
-             </FormItem>
-            <FormItem label="题干">
-                <Input v-model="question_form.title" placeholder="请输入题干名称"></Input>
-            </FormItem>
-           <FormItem label="图文说明">
-               <UploadImage :images="images" :action="upload_address" @upload-success="upload_success"></UploadImage>
-            </FormItem>
-            <FormItem label="单选选项" v-if="question_form.typename=='单选'">
-                <Single :exam_options="options" @change-option="change_option"></Single>
-            </FormItem>
-            <FormItem label="多选选项" v-if="question_form.typename=='多选'">
-                <Multi :exam_options="options" @change-option="change_option"></Multi>
-            </FormItem>
-            <FormItem label="答案解析">
-                <Input  :rows="3" type="textarea" v-model="question_form.title" placeholder="请输入答案解析"></Input>
-            </FormItem>
-             <FormItem label="参考答案">
-                <Input v-model="question_form.answer" disabled></Input>
-            </FormItem>
-        </Form>
+            :title="window_title"
+            width="600"
+            :loading='modalLoading'
+            @on-ok="add_questions"
+            @on-cancel="cancel">
+            <Form ref="form" :model="question_form" label-position="right" :label-width="80" :rules="ruleValidate">
+                <FormItem label="科目章节" prop="subjects">
+                    <selectTree id="mySelectTree" v-model="question_form.subjects" multiple :treeData="subjectTreeData"></selectTree>
+                </FormItem>
+                <FormItem label="试题类型" prop="type">
+                    <RadioGroup v-model="question_form.type" @on-change="handleQuesTypeChange">
+                        <Radio :label="1">单选</Radio>
+                        <Radio :label="2">多选</Radio>
+                        <Radio :label="3">填空</Radio>
+                    </RadioGroup>
+                </FormItem>
+                <FormItem label="试题图片">
+                    <UploadImage :images="question_form.images" :action="upload_address" @upload-success="upload_success"></UploadImage>
+                </FormItem>
+                <FormItem label="题干" prop="title">
+                    <div style="display:flex">
+                        <div style="flex:1">
+                            <Input id='title' :rows="3" type="textarea" @input="initAnswers" v-model="question_form.title" placeholder="请输入题干"></Input>
+                        </div>
+                        <div v-if="question_form.type==3" style="width:120px;text-align:center">
+                            <Button type="primary" @click="insertInputTxt">插入填空</Button>
+                        </div>
+                    </div>
+                    </Input>
+                </FormItem>
+                <FormItem label="选项" prop="options">
+                    <RadioGroup v-if="question_form.type==1" v-model="rightAnswer" @on-change="changeAnswer" style="width:100%">
+                        <div class="optionItem" v-for="(option, index) in question_form.options">
+                            <div class="code">{{option.code}}</div>
+                            <div class="content">
+                                <Input v-model="option.content" placeholder="请输入答案"></Input>
+                            </div>
+                            <div class="right">
+                                <Radio v-if="question_form.type==1" :label="option.code">正确答案</Radio>
+                            </div>
+                            <div class="del">
+                                <div>
+                                    <Button v-if="index > 2 && index < 7 && index == question_form.options.length-1" type="primary" size="small" shape="circle" icon="md-add" @click="addCOptions"></Button>
+                                </div>
+                                <div>
+                                    <Button v-if="index > 3" type="primary" size="small" shape="circle" icon="md-remove" @click="removeCOption(option)"></Button>
+                                </div>
+                            </div>
+                        </div>
+                    </RadioGroup>
+                    <CheckboxGroup v-if="question_form.type==2" v-model="rightMultiAnswer" @on-change="changeAnswer" style="width:100%">
+                        <div class="optionItem" v-for="(option, index) in question_form.options">
+                            <div class="code">{{option.code}}</div>
+                            <div class="content">
+                                <Input v-model="option.content" placeholder="请输入答案"></Input>
+                            </div>
+                            <div class="right">
+                                <Checkbox :label="option.code">正确答案</Checkbox>
+                            </div>
+                            <div class="del">
+                                <div>
+                                    <Button v-if="index > 2 && index < 7 && index == question_form.options.length-1" type="primary" size="small" shape="circle" icon="md-add" @click="addCOptions"></Button>
+                                </div>
+                                <div>
+                                    <Button v-if="index > 3" type="primary" size="small" shape="circle" icon="md-remove" @click="removeCOption(option)"></Button>
+                                </div>
+                            </div>
+                        </div>
+                    </CheckboxGroup>
+                    <div v-if="question_form.type==3" v-for="(option, index) in question_form.options">
+                        <div class="optionItem" v-for="(item, _idx) in option.value">
+                            <div class="code" style="width:80px">
+                                <template v-if="_idx==0"><strong style="font-weight:bold">答案{{index+1}}</strong></template>
+                                <template v-else>(备选){{_idx}}</template>
+                            </div>
+                            <div class="content">
+                                <Input v-model="item.txt" placeholder="请输入答案"></Input>
+                            </div>
+                            <div class="del">
+                                <div>
+                                    <Button v-if="_idx == option.value.length-1" type="primary" size="small" shape="circle" icon="md-add" @click="addCOptions(option)"></Button>
+                                </div>
+                                <div>
+                                    <Button v-if="_idx > 0" type="primary" size="small" shape="circle" icon="md-remove" @click="removeCOption(option,_idx)"></Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </FormItem>
+                <FormItem label="答案解析" prop="comments">
+                    <Input  :rows="3" type="textarea" v-model="question_form.comments" placeholder="请输入答案解析"></Input>
+                </FormItem>
+                <FormItem label="是否重点">
+                    <RadioGroup v-model="question_form.isImportant">
+                        <Radio :label="1">是</Radio>
+                        <Radio :label="0">否</Radio>
+                    </RadioGroup>
+                </FormItem>
+            </Form>
          </Modal>
     </div>
 </template> 
@@ -65,56 +135,43 @@
 <script>
 import Editor from "@/components/editor"
 import UploadImage from "./components/upload/index"
-import Single from "./components/single/index"
-import Multi from "./components/multiselect/index"
+// import Single from "./components/single/index"
+// import Multi from "./components/multiselect/index"
+import selectTree from '@/components/iview-select-tree'
+import { verification } from '@/api/verification'
+import { tool } from '@/api/tool'
 export default {
     name: "testquestions",
+    components:{
+        Editor,
+        selectTree,
+        UploadImage,
+        // Single,
+        // Multi
+    },
     data() {
+        var self = this
         return {
+            code:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
             page:1,
-            total:0,
+            pSize: 10,
+            total: 0,
             loading: true,
+            modalLoading: true,
             search_keyword:'',
+            subjectTreeData:[],
+            subjects:[], // 所有科目和章节信息
             columns: [
-                    {
-                        title: '题干',
-                        key: 'title'
-                    },
-                    {
-                        title: '类型',
-                        key: 'typename'
-                    },
-                    {
-                        title: "维护人",
-                        key: 'has_content'
-                    },
-                    {
-                        title: "维护时间",
-                        key: 'price'
-                    },
-                    {
-                        title: '操作',
-                        key: 'action',
-                        align: 'center',
+                { title: 'ID', key: 'id' },
+                { title: '科目', key: 'subjects', slot: 'subjects' },
+                { title: '类型', key: 'type', slot: 'type' },
+                { title: '题干', key: 'title' },
+                { title: "答案", key: 'answer', slot: 'answer' },
+                // { title: "更新人", key: 'updatedAt'},
+                { title: "更新时间", key: 'updatedAt'},
+                { title: '操作', key: 'action' , align: 'center',
                         render: (h, params) => {
                             var button=[
-                                h('Button', {
-                                    props: {
-                                        type: 'primary',
-                                        size: 'small'
-                                    },
-                                    style: {
-                                        marginRight: '5px'
-                                    },
-                                    on: {
-                                        click: () => {
-                                            this.question_id=params.row.id
-                                            this.show_window=true
-                                            this.window_title="编辑试题"
-                                            this.get_entity()
-                                        }
-                                    }
-                                }, '编辑'),
                                  h('Button', {
                                     props: {
                                         type: 'info',
@@ -132,6 +189,23 @@ export default {
                                         }
                                     }
                                 }, '查看'),
+                                h('Button', {
+                                    props: {
+                                        type: 'primary',
+                                        size: 'small'
+                                    },
+                                    style: {
+                                        marginRight: '5px'
+                                    },
+                                    on: {
+                                        click: () => {
+                                            this.question_id=params.row.id
+                                            this.show_window=true
+                                            this.window_title="编辑试题"
+                                            this.get_entity()
+                                        }
+                                    }
+                                }, '编辑'),
                                 h('Button', {
                                     props: {
                                         type: 'error',
@@ -152,23 +226,40 @@ export default {
                     }
                 ],
             question_datas: [],
-            subjects:["中文",'.NET','python'],
             question_form:{
-                title:'',
-                free:false,
-                price:"",
-                content:'',
-                has_content:false,
-                has_down_level:false,
-                parent_ID:'0',
+                title: '',
+                isImportant: 0,
                 imaegs:"",
-                options:[],
-                answer:"A",
-                typename:"单选",
-                subjects:[]
-
+                options:[
+                    { code:'A',content:'',value:'' },
+                    { code:'B',content:'',value:'' },
+                    { code:'C',content:'',value:'' },
+                    { code:'D',content:'',value:'' }
+                ],
+                oldType:1,
+                type: 1,
+                subjects:[],
+                comments:''
             },
-            options:[],
+            rightMultiAnswer: [],
+            rightAnswer:'',
+            ruleValidate: {
+                subjects:  [{ required: true, message: '请选择科目/章节', trigger: 'change', 
+                            validator: (rule, value, callback) => {
+                                if(value.length==0){
+                                    callback(new Error('请选择科目/章节'))
+                                } else {
+                                    callback()
+                                }
+                            }
+                }],
+                type:  [{ required: true, message: '请选择题型', trigger: 'change',validator: verification.validateIsNull }],
+                title:  [{ required: true, message: '请输入题干', trigger: 'blur' },{ required: true, message: '请输入题干', trigger: 'change' }],
+                options:  [{ required:true, trigger: 'change',validator: (rule, value, callback) => { self.validateOptions(rule, value, callback, self)}},
+                            { required:true, trigger: 'blur', validator:  (rule, value, callback) => { self.validateOptions(rule, value, callback, self)}}],
+                comments:  [{ required: true, message: '请输入答案解析', trigger: 'blur' },{ required: true, message: '请输入答案解析', trigger: 'change' }],
+            },
+            // options:[],
             init_data:"",
             question_id:"0",
             show_window:false,
@@ -176,16 +267,9 @@ export default {
             upload_address:"http://1.w2wz.com/upload.php"
         }
     },
-      components:{
-        Editor,
-        UploadImage,
-        Single,
-        Multi
-    },
     computed:{
         images(){
             if (this.question_form.imaegs!=""){
-                debugger
                 return this.question_form.images.split(',')
             }
             return []
@@ -194,9 +278,148 @@ export default {
     mounted() {
         this.init_data=JSON.stringify(this.question_form)
         this.page_list(this.page)
+        this.bindSubjectTree()
     },
     methods: {
-
+        /**
+         * 切换题型
+         */
+        handleQuesTypeChange(){
+            var type = this.question_form.type
+            if(type == 1||type==2) {
+                if(this.question_form.oldType==3) {
+                    this.question_form.options=[
+                        { code:'A',content:'',value:'1' },
+                        { code:'B',content:'',value:'' },
+                        { code:'C',content:'',value:'' },
+                        { code:'D',content:'',value:'' }
+                    ]
+                } else {
+                    this.question_form.options.forEach((_item,_index)=>{
+                        _item.value = ''
+                    })
+                    this.rightAnswer = ''
+                    this.rightMultiAnswer = []
+                }
+            } else {
+                this.initAnswers()
+            }
+            this.question_form.oldType = type
+        },
+        /** 构造填空题的答案 */
+        initAnswers(){
+            if(this.question_form.type == 3){
+                let txt = eval("/____/ig")
+                var count = this.question_form.title.indexOf('____')==-1?0: this.question_form.title.match(txt).length;
+                let _options = []
+                for(var i = 0; i < count; i++) {
+                    _options.push({code:'A',content:'',value:[{txt:''}]})
+                }
+                this.question_form.options = _options
+            }
+        },
+        /** 添加答案 */
+        addCOptions(option){
+            var type = this.question_form.type
+            if(type == 1||type==2) {
+                this.question_form.options.push(
+                    { code: this.code[this.question_form.options.length] ,content:'',value:'' },
+                )
+            } else {
+                option.value.push({txt:''})
+                console.log(option)
+            }
+        },
+        /** 选择正确答案 */
+        changeAnswer() {
+            var self = this
+            self.question_form.options.forEach((_item,_index)=>{
+                if(_item.code == self.rightAnswer&&self.question_form.type==1){
+                    _item.value='1'
+                }
+                if(self.question_form.type == 2) {
+                    if(self.rightMultiAnswer.indexOf(_item.code) != -1){
+                        _item.value='1'
+                    } else {
+                        _item.value=''
+                    }
+                }
+            })
+        },
+        /** 答案输入验证 */
+        validateOptions: (rule, value, callback, self) => {
+            let _question_form = self.question_form
+            let hasNullContent = false
+            let answerCount = 0
+            value.forEach((_option, _index)=>{
+                if(_question_form.type==3){
+                    value.value.forEach((_val)=>{
+                        if(!_val.txt){
+                            hasNullContent = true
+                        }
+                    })
+                } else {
+                    if((_question_form.type == 1 || _question_form.type == 2)&&!_option.content){
+                        hasNullContent = true
+                    }
+                    if(_option.value=='1'){
+                        answerCount++
+                    }
+                }
+            })
+            if(hasNullContent){
+                callback(new Error('请输入答案'))
+            }
+            console.log('answerCount:'+answerCount)
+            if(answerCount==0&&_question_form.type==1) {
+                callback(new Error('请选择正确答案'))
+            } else if(answerCount < 2 && _question_form.type==2) {
+                callback(new Error('请选择至少两个正确答案'))
+            } else {
+                callback()
+            }
+        },
+        /** 删除答案 */
+        removeCOption(option, _idx){
+            var type = this.question_form.type
+            if(type == 1||type==2) {
+                let _options = []
+                this.question_form.options.forEach((item,index)=>{
+                    if(item.code != option.code){
+                        item.code = this.code[_options.length]
+                        _options.push(item)
+                    }
+                })
+                this.question_form.options = _options
+            } else {
+                let txts = []
+                option.value.forEach((item,index)=>{
+                    if(_idx != index) {
+                        txts.push(item)
+                    }
+                })
+                option.value = txts
+            }
+        },
+        /** 插入填空 */
+        async insertInputTxt() {
+            var txt = '____'
+             const myField = document.querySelector('#title textarea');
+            if(myField.selectionStart || myField.selectionStart === 0) {
+                let startPos = myField.selectionStart;
+                let endPos = myField.selectionEnd;
+                this.question_form.title = myField.value.substring(0, startPos) + txt
+                            + myField.value.substring(endPos, myField.value.length);
+                await this.$nextTick() // 这句是重点, 圈起来
+                myField.focus();
+                myField.setSelectionRange(endPos + txt.length, endPos + txt.length);
+            } else {
+                this.question_form.title = txt;
+            }
+            this.question_form.options.push({
+                code:'A',content:'',value:[{txt:''}]
+            })
+        },
         /*
         *上传成功
         *作者：gzt
@@ -238,36 +461,75 @@ export default {
         },
 
           /*
-        *新增科目
-        *作者：gzt
-        *时间：2020-11-21 23:41:37
+        * 保存题目
+        * 作者：gzt
+        * 时间：2020-11-21 23:41:37
         */
         add_questions(){
+            var self = this
             var subjects=this.ParseServer.Object.extend("TestQuestions")
             var subject=new subjects()
             if(this.subjectid){
                 subject.set('id',this.subjectid)
             }
-            if(this.parentid){
-                this.question_form.parent_ID=this.parentid
-            }
-            subject.set('title',this.question_form.title)
-            subject.set("subject_ID",this.question_form.subject_ID)
-            subject.set("content",this.question_form.content)
-            subject.set("price",this.question_form.price)
-            subject.set("free",this.question_form.free)
-            subject.set("parent_ID",this.question_form.parent_ID)
-            subject.set("has_content",this.question_form.has_content)
-            subject.set("has_down_level",this.question_form.has_down_level)
-            subject.save().then((subject)=>{
-                this.$Message.success('保存成功')
-                this.page_list(1)
-                this.cancel()
-            },(error)=>{
-                this.$Message.error('保存失败')
+            this.$refs['form'].validate(valid => {
+                if (!valid) {
+                    self.$Message.error('请检查表单项')
+                    self.modalLoading = false
+                    setTimeout(() => {
+                        self.modalLoading = true
+                    }, 100)
+                    return false
+                } else {
+                    subject.set('title',this.question_form.title)
+                    subject.set("subjects",this.question_form.subjects)
+                    subject.set("isImportant",this.question_form.isImportant)
+                    subject.set("type",this.question_form.type)
+                    subject.set("options",this.question_form.options)
+                    subject.set("comments",this.question_form.comments)
+                    subject.set("images",this.question_form.images)
+                    subject.save().then((subject)=>{
+                        this.$Message.success('保存成功')
+                        this.page_list(1)
+                        this.cancel()
+                    },(error)=>{
+                        this.$Message.error('保存失败')
+                    })
+                }
             })
         },
-
+        /** 加载树形科目 */
+        bindSubjectTree(){
+            var self = this
+            var query = new this.ParseServer.Query("Subjects")
+            query.find().then(res=>{
+                this.subjects = res
+                var tree = self.initSubjectTree(res,'0')
+                self.subjectTreeData = tree
+            })
+        },
+        /** 构造树形科目 */
+        initSubjectTree(subjects, parentId){
+            var self = this
+            var treeValue = []
+            let _subjects = subjects.filter((_item)=>{
+                return _item.get('parent_ID') == parentId
+            })
+            _subjects.forEach((_subject, _index)=> {
+                let subject = {
+                    title: _subject.get('subject_name'),
+                    value: _subject.id,
+                }
+                let childrens = subjects.filter(_item=>{
+                    return _item.get('parent_ID') == _subject.id
+                })
+                if(childrens.length>0){
+                    subject.children = self.initSubjectTree(subjects, _subject.id)
+                }
+                treeValue.push(subject)
+            })
+            return treeValue
+        },
         /*
         *富文本编辑框的内容发生变化
         *作者：gzt
@@ -309,22 +571,37 @@ export default {
                 if (list && list.length>0){
                     list.forEach((item)=>{
                         _this.question_datas.push({
-                            id:item.id,
-                            title:item.get("title"),
-                            parent_ID:item.get("parent_ID"),
-                            subject_ID:item.get("subject_ID"),
-                            price:item.get("price"),
-                            has_content: item.get("has_content")==true?"已添加":"----",
-                            has_down_level: item.get("has_down_level")
+                            id: item.id,
+                            subjects: item.get('subjects'),
+                            type: item.get('type'),
+                            title: item.get("title"),
+                            options: item.get('options'),
+                            updatedAt:  tool.dateFormat(item.updatedAt, 'yyyy-MM-dd HH:mm:ss')
                         })
                     })
                 }
                 this.loading=false
             })
         },
-
+        /** 获取科目名称 */
+        getSubjectName(id){
+            var subject = this.subjects.find(item=>{
+                return item.id == id
+            })
+            return subject?subject.get('subject_name'):'';
+        },
+        /** 获取答案 */
+        getRightAnswer(options){
+            var _rightAnswer = ''
+            options.forEach(item=>{
+                if(item.value=='1'){
+                    _rightAnswer += item.code
+                }
+            })
+            return _rightAnswer
+        },
         /*
-        * 删除科目
+        * 删除题目
         *作者：gzt
         *时间：2020-11-22 08:41:53
         */
@@ -332,7 +609,7 @@ export default {
             let _this=this
             this.$Modal.confirm({
                     title: '删除提示',
-                    content: '<p>删除当前科目后，包含的子科目都会被删除，确定要删除吗？</p>',
+                    content: '<p>确定删除当前试题吗？</p>',
                     onOk: () => {
                         var query = new this.ParseServer.Query("TestQuestions")
                         query.get(subject_id).then((response)=>{
@@ -347,18 +624,31 @@ export default {
                     }
                 });
         },
-
-
-
-
-        //----------------------------------------------------------试题的选项操作相关-----------------------------------------
-
-        change_option(optinos){
-            console.log(optinos)
-        }
     }
 }
 </script>
 
 <style lang="less" scoped>
+    .optionItem{
+        display: flex;
+    }
+    .optionItem .code{
+        width: 20px;
+        text-align: center;
+    }
+    .optionItem .content{
+        flex: 1;
+    }
+    .optionItem .right{
+        width: 100px;
+        text-align: center;
+    }
+    .optionItem .del{
+        width: 60px;
+        display: flex;
+    }
+    .optionItem .del div{
+        flex: 1;
+        text-align: center;
+    }
 </style>

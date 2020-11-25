@@ -132,7 +132,6 @@ export default {
     //   'handleLogin'
     // ]),
     turnToPage(route) {
-      debugger
       let { name, params, query } = {};
       if (typeof route === "string") name = route;
       else {

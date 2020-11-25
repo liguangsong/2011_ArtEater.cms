@@ -63,7 +63,8 @@ export default {
                 sort: this.options.length,
 				text: "",
 				right_answer: false
-			});
+            });
+            this.$emit('change-option', this.options)
         },
        /*
        *删除选项
@@ -81,6 +82,7 @@ export default {
 			for (let i = 0; i < this.options.length; i++) {
 				this.options[i].value = String.fromCharCode(i + 65);
 			}
+            this.$emit('change-option', this.options)
 		},
 		/*
         *选择答案

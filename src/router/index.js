@@ -38,7 +38,7 @@ const modules =[
               "name":"subjectsmanage",
               "redirect":"subjectsmanage/subjectsmanageindex",
               "meta":{
-                  "icon":"ios-list-box-outline",
+                  "icon":"ios-apps",
                   "title":"科目管理",
                   "hideInMenu":false,
                   "showAlways":true
@@ -76,7 +76,7 @@ const modules =[
           "name":"usermanage",
           "redirect":"usermanage/usermanageindex",
           "meta":{
-              "icon":"ios-list-box-outline",
+              "icon":"ios-people",
               "title":"用户管理",
               "hideInMenu":false,
               "showAlways":true
@@ -92,9 +92,9 @@ const modules =[
                   "name":"usermanageindex",
                   "redirect":null,
                   "meta":{
-                      "icon":null,
+                      "icon":"ios-list-box-outline",
                       "title":"用户列表",
-                      "hideInMenu":true,
+                      "hideInMenu":false,
                       "showAlways":true
                   },
                   "component":"usermanage/index.vue",
@@ -115,7 +115,7 @@ const modules =[
           "name":"testquestions",
           "redirect":"testquestions/restquestionsindex",
           "meta":{
-              "icon":"ios-list-box-outline",
+              "icon":"ios-paper",
               "title":"试题管理",
               "hideInMenu":false,
               "showAlways":true
@@ -131,9 +131,9 @@ const modules =[
                   "name":"restquestionsindex",
                   "redirect":null,
                   "meta":{
-                      "icon":null,
+                      "icon":"ios-list-box-outline",
                       "title":"试题列表",
-                      "hideInMenu":true,
+                      "hideInMenu":false,
                       "showAlways":true
                   },
                   "component":"testquestions/index.vue",
@@ -154,7 +154,7 @@ const modules =[
           "name":"exampaper",
           "redirect":"exampaper/exampaperindex",
           "meta":{
-              "icon":"ios-list-box-outline",
+              "icon":"ios-school",
               "title":"考试管理",
               "hideInMenu":false,
               "showAlways":true
@@ -170,9 +170,9 @@ const modules =[
                   "name":"exampaperindex",
                   "redirect":null,
                   "meta":{
-                      "icon":null,
+                      "icon":"ios-list-box-outline",
                       "title":"试卷列表",
-                      "hideInMenu":true,
+                      "hideInMenu":false,
                       "showAlways":true
                   },
                   "component":"exampaper/index.vue",

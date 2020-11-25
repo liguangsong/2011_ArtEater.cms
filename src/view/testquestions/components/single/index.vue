@@ -26,23 +26,22 @@ export default {
     props:{
         exam_options:{
             type:Array,
-            default:function(){
-                return []
-            }
+            default: []
         }
     },
     data() {
         return {
+            code:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
             options:[]
         }
     },
     watch:{
-        options:{
-            handler:function(new_val,old_val) {
-                this.$emit("change-option",new_val)
-            },
-            deep: true
-        }
+        // options: {
+        //     handler:function(new_val,old_val) {
+        //         this.$emit("change-option",new_val)
+        //     },
+        //     deep: true
+        // }
     },
     mounted(){
         this.options=this.exam_options.map((item)=>{
@@ -57,13 +56,16 @@ export default {
 		* 时间：2020-06-05 22:55:25
 		*/
 		add_option () {
-			var option_val = String.fromCharCode(this.options.length + 65);
-			this.options.push({
+            var option_val = this.code[this.options.length];
+            let _options = this.options
+            _options.push({
                 value: option_val,
                 sort: this.options.length,
 				text: "",
 				right_answer: false
-			});
+            })
+            this.$emit('change-option', _options)
+            this.options = _options;
         },
        /*
        *删除选项
@@ -79,8 +81,9 @@ export default {
 			}
 			// 重新改变索引
 			for (let i = 0; i < this.options.length; i++) {
-				this.options[i].value = String.fromCharCode(i + 65);
+				this.options[i].value = this.code[i]
 			}
+            this.$emit('change-option', this.options)
 		},
 		/*
         *选择答案
