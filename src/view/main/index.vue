@@ -125,7 +125,7 @@ export default {
     }
   },
   mounted () {
-    //
+    console.log(111111111111111)
   }
 }
 </script>

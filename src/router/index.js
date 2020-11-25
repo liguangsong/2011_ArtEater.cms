@@ -87,13 +87,13 @@ const modules =[
           ],
           "children":[
               {
-                  "Id":"131231313-1242342sdae-123sdfs-q24e2sdf",
+                  "Id":"1231231-1231zcsa-124dzcsdfvs-q342zxfczx",
                   "path":"usermanageindex",
                   "name":"usermanageindex",
                   "redirect":null,
                   "meta":{
                       "icon":"ios-list-box-outline",
-                      "title":"用户列表",
+                      "title":"后台账号管理",
                       "hideInMenu":false,
                       "showAlways":true
                   },
@@ -104,7 +104,26 @@ const modules =[
                   "children":null,
                   "href":"usermanage/index.vue",
                   "level":1
-              }
+            },
+            {
+              "Id":"1312-sdfs-w3rwe-xgsdfs-2342432",
+              "path":"studentindex",
+              "name":"studentindex",
+              "redirect":null,
+              "meta":{
+                  "icon":"ios-list-box-outline",
+                  "title":"学生管理",
+                  "hideInMenu":false,
+                  "showAlways":true
+              },
+              "component":"usermanage/student.vue",
+              "permissionInfos":[
+
+              ],
+              "children":null,
+              "href":"usermanage/student.vue",
+              "level":1
+          }
           ],
           "href":null,
           "level":1
@@ -209,6 +228,7 @@ router.beforeEach((to, from, next) => {
     if (to.meta.nologin) {
       next()
     } else {
+      console.log(1)
       next()
     }
   } else if (!token && to.name === LOGIN_PAGE_NAME) {

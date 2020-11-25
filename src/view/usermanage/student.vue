@@ -1,20 +1,12 @@
 <template>
     <div class="container-wrap">
         <Row>
-        <Col span="6"><Input v-model="search_keyword" size="large" placeholder="ID 姓名 手机号关键字搜索" style="width: 400px" /></Col>
-         <Col span="6">身份 
-         <Select v-model="search_role"  placeholder="请选择身份">
-                <Option v-for="item in roles" :value="item.value" :key="item.value">{{ item.label }}</Option>
-        </Select>
-        </Col>
-        <Col  span="4">
-         <Button type="primary" class="search-btn" @click="search">查询</Button>
-        </Col>
-        <Col span="8">
-            <div class="operation-wrap">
-                <Button type="success" @click="show_window=true">新增后台账号</Button>
-            </div>
-        </Col>
+        <Col span="6"><Input v-model="search_keyword" size="large" placeholder="ID 昵称 姓名关键字查询" style="width: 400px" /></Col>
+         <Col span="2">注册时间</Col>
+         <Col span="6"><DatePicker type="date" :start-date="new Date(2020, 1, 1)" placeholder="请输入开始时间" style="width: 200px"></DatePicker></Col>~
+         <Col span="6"><DatePicker type="date" :start-date="new Date(2020, 1, 1)" placeholder="请输入结束时间" style="width: 200px"></DatePicker></Col>
+          <Col span="4"> <Button type="primary" class="search-btn" @click="search">查询</Button></Col>
+       
         </Row>
         <Row class="table-wrap">
              <Table  :loading="loading" :columns="columns" :data="users_datas">
@@ -25,20 +17,35 @@
         </Row>
         <Modal v-model="show_window"
         :title="window_title"
-        @on-ok="add_user"
-        @on-cancel="cancel">
-
+        @on-ok="cancel">
         <Form :model="user_forms" label-position="right" :label-width="60">
+        <FormItem label="头像">
+            <Avatar icon="ios-person" size="large" v-if="user_forms.avatarUrl!=''" />
+             <Avatar v-else :src="user_forms.avatarUrl" size="large" />
+        </FormItem>
+        <FormItem label="昵称">
+            <Input v-model="user_forms.nickName" disabled></Input>
+        </FormItem>
         <FormItem label="姓名">
-            <Input v-model="user_forms.realname" placeholder="请输入姓名"></Input>
+            <Input v-model="user_forms.realname" disabled></Input>
         </FormItem>
           <FormItem label="手机号">
-            <Input v-model="user_forms.phone" placeholder="请输入手机号"></Input>
+            <Input v-model="user_forms.phone" disabled></Input>
         </FormItem>
-         <FormItem label="身份">
-             <Select v-model="user_forms.role"  placeholder="请选择身份">
-                <Option v-for="item in roles" :value="item.value" :key="item.value">{{ item.label }}</Option>
-            </Select>
+        <FormItem label="报考专业">
+            <Input v-model="user_forms.speciality" disabled></Input>
+        </FormItem>
+              <FormItem label="目标院校">
+            <Input v-model="user_forms.university" disabled></Input>
+        </FormItem>
+             <FormItem label="所在地区">
+            <Input v-model="user_forms.proviceName" disabled></Input>
+        </FormItem>
+        <FormItem label="消费金额(元)" v-if="see">
+            <Input v-model="user_forms.amount" disabled></Input>
+        </FormItem>
+        <FormItem label="积分" v-if="see">
+            <Input v-model="user_forms.score" disabled></Input>
         </FormItem>
     </Form>
     </Modal>
@@ -48,28 +55,21 @@
 <script>
 
 export default {
-    name: "usermanageindex",
+    name: "studentindex",
     data() {
         return {
-            roles:[
-                    {
-                        value: '老师',
-                        label: '老师'
-                    },
-                    {
-                        value: '管理',
-                        label: '管理'
-                    }],
             page:1,
             total:0,
             loading: true,
             user_id:"",
-            window_title:"新增用户",
-            see:false,
+            window_title:"用户信息",
             show_window:false,
             search_keyword:'',
-            search_role:"",
              columns: [
+                    {
+                        title: '昵称',
+                        key: 'nickName'
+                    },
                     {
                         title: '姓名',
                         key: 'realname'
@@ -79,12 +79,16 @@ export default {
                         key: 'phone'
                     },
                     {
-                        title: "身份",
-                        key: 'role'
-                    },
-                     {
                         title: "注册时间",
                         key: 'registration_time'
+                    },
+                     {
+                        title: "消费金额",
+                        key: 'amount'
+                    },
+                     {
+                        title: "积分",
+                        key: 'score'
                     },
                     {
                         title: '操作',
@@ -94,7 +98,7 @@ export default {
                             var button=[
                                 h('Button', {
                                     props: {
-                                        type: 'primary',
+                                        type: 'info',
                                         size: 'small'
                                     },
                                     style: {
@@ -102,13 +106,13 @@ export default {
                                     },
                                     on: {
                                         click: () => {
-                                           this.user_id=params.row.id
-                                           this.get_entity()
+                                            this.user_id=params.row.id
                                             this.show_window=true
-                                            this.window_title="后台账号信息"
+                                            this.see=true
+                                            this.get_entity()
                                         }
                                     }
-                                }, '编辑'),
+                                }, '用户信息'),
                                 h('Button', {
                                     props: {
                                         type: 'error',
@@ -130,15 +134,20 @@ export default {
                 ],
             users_datas: [],
             user_forms:{
+                nickName:"",
                 realname:"",
                 phone:"",
-                role:"老师"
+                amount:"",
+                score:"",
+                avatarUrl:"",
+                speciality:"",
+                university:"",
+                proviceName:"",
+                registration_time:""
             },
-            init_data:""
         }
     },
       mounted() {
-          this.init_data=JSON.stringify(this.user_forms)
         this.page_list(this.page)
     },
     methods: {
@@ -150,35 +159,8 @@ export default {
         */
         cancel(){
             this.show_window=false
-            this.see=false
-            this.window_title="新增用户"
-            this.user_forms=JSON.parse(this.init_data)
         },
         
-        /*
-        *新增用户
-        *作者：gzt
-        *时间：2020-11-22 14:50:34
-        */
-        add_user(){
-            var Accounts=this.ParseServer.Object.extend("UserInfo")
-            var account=new Accounts()
-            if(this.user_id){
-                account.set('id',this.user_id)
-            }
-            account.set("realname",this.user_forms.realname)
-            account.set("phone",this.user_forms.phone)
-            account.set("role",this.user_forms.role)
-            account.save().then((account)=>{
-                this.$Message.success('保存成功')
-                this.user_forms=JSON.parse(this.init_data)
-                this.page_list(this.page)
-            },(error)=>{
-                this.$Message.error('保存失败')
-            })
-        },
-
-
          /*
         *获取用户
         *作者：gzt
@@ -226,45 +208,52 @@ export default {
                     this.users_datas=list.map((item)=>{
                         var account={
                             id:item.id,
+                            nickName:item.get("nickName"),
                             realname:item.get("realname"),
                             phone:item.get("phone"),
-                            role:item.get("role"),
+                            amount:item.get("amount"),
+                            score:item.get("score"),
+                            registration_time:item.get("registration_time")
                         }
                         return account
                     })
                 }
                 this.loading=false
             },(error)=>{
-                console.log(error)
-                this.$Message.error('保存失败')
+                this.$Message.error('用户列表获取失败')
             })
         },
 
         /*
-        * 删除用户
+        *删除用户
         *作者：gzt
-        *时间：2020-11-22 08:41:53
+        *时间：2020-11-25 23:17:56
         */
-        delete(subject_id){
+        delete(user_id){
             let _this=this
             this.$Modal.confirm({
                     title: '删除提示',
                     content: '<p>删除用户后，用户将无法使用系统，确定要删除吗？</p>',
                     onOk: () => {
-                        var query = new this.ParseServer.Query("Accounts")
-                        query.get(subject_id).then((response)=>{
-                            // 删除当前组件
+                        var query = new this.ParseServer.Query("UserInfo")
+                        query.get(user_id).then((response)=>{
+                            // 删除用户
                             response.destroy().then((delete_result)=>{
                                 this.$Message.success('删除成功');
                                 this.page_list(this.page)
+                            },(error)=>{
+                                this.$Message.error('删除失败');
                             })
+                        },(error)=>{
+                            this.$Message.error('删除的用户不存在');
                         })
                     },
                     onCancel: () => {
                         this.$Message.info('取消了操作');
                     }
                 });
-        }
+            }
+
     }
 }
 </script>
