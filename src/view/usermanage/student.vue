@@ -303,7 +303,7 @@ export default {
 .search-wrap {
   .search-keyword {
     float: left;
-    width: 40%;
+    width: 20%;
   }
   .select-choice {
     float: left;
@@ -326,11 +326,8 @@ export default {
   }
   .search-btn {
     float: left;
-    width: 20%;
+    width: 10%;
     margin: 0 20px;
-    button {
-      width: 70%;
-    }
   }
 }
 </style>

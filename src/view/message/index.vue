@@ -2,7 +2,7 @@
   <div class="container-wrap">
     <div class="header-wrap">
       <Row>
-        <Col span="20">
+        <Col span="12">
           <div class="search-wrap clear-fix">
             <div class="search-keyword">
               <Input
@@ -337,11 +337,8 @@ export default {
   }
   .search-btn {
     float: left;
-    width: 20%;
+    width: 18%;
     margin: 0 20px;
-    button {
-      width: 70%;
-    }
   }
 }
 </style>
