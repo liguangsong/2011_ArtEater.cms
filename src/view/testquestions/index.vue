@@ -6,14 +6,14 @@
                 <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
             </div>
             <div style="width:200px;text-align:right">
-                <Button style="margin-right:10px" type="primary" @click="show_window=true">新增试题</Button>
-                <Button type="info" @click="show_window=true">批量导入</Button>
+                <Button style="margin-right:10px" type="primary" @click="handleAddQuestion">新增试题</Button>
+                <Button type="info" @click="isUploadData=true">批量导入</Button>
             </div>
         </div>
         <Row class="table-wrap">
             <Table  :loading="loading" :columns="columns" :data="question_datas">
                 <template slot-scope="{ row }" slot="subjects">
-                    <strong v-for="(_sub,_idx) in row.subjects">{{getSubjectName(_sub)+(_idx==row.subjects.length-1?'':';')}}</strong>
+                    <strong v-for="(_sub,_idx) in row.subjects">{{getSubjectName(_sub)+(_idx==row.subjects.length-1?'':'；')}}</strong>
                 </template>
                 <template slot-scope="{ row }" slot="answer">
                     <strong>{{getRightAnswer(row.options)}}</strong>
@@ -22,6 +22,11 @@
                     <strong v-if="row.type==1">单选</strong>
                     <strong v-if="row.type==2">多选</strong>
                     <strong v-if="row.type==3">填空</strong>
+                </template>
+                <template slot-scope="{ row }" slot="action">
+                    <Button type="info" size="small" style="margin-right:5px" @click="handleShowQuestion(row)">查看</Button>
+                    <Button type="warning" size="small" style="margin-right:5px" @click="handleEditQuestion(row)">编辑</Button>
+                    <Button type="error" size="small" @click="handleRemove(row)">删除</Button>
                 </template>
             </Table>
             <div class="page-wrap">
@@ -49,15 +54,20 @@
                     <UploadImage :images="question_form.images" :action="upload_address" @upload-success="upload_success"></UploadImage>
                 </FormItem>
                 <FormItem label="题干" prop="title">
-                    <div style="display:flex">
-                        <div style="flex:1">
-                            <Input id='title' :rows="3" type="textarea" @input="initAnswers" v-model="question_form.title" placeholder="请输入题干"></Input>
+                    <Tooltip placement="top" style="width:100%">
+                        <div style="display:flex;">
+                            <div style="flex:1">
+                                <Input id='title' :rows="3" type="textarea" @input="initAnswers" v-model="question_form.title" placeholder="请输入题干"></Input>
+                            </div>
+                            <div v-if="question_form.type==3" style="width:120px;text-align:center">
+                                <Button type="primary" @click="insertInputTxt">插入填空</Button>
+                            </div>
                         </div>
-                        <div v-if="question_form.type==3" style="width:120px;text-align:center">
-                            <Button type="primary" @click="insertInputTxt">插入填空</Button>
+                        <div slot="content">
+                            <p>提示：4个英文下划线(_)代表一个填空</p>
+                            <p>导入时一样，在框内输入____试试</p>
                         </div>
-                    </div>
-                    </Input>
+                    </Tooltip>
                 </FormItem>
                 <FormItem label="选项" prop="options">
                     <RadioGroup v-if="question_form.type==1" v-model="rightAnswer" @on-change="changeAnswer" style="width:100%">
@@ -129,6 +139,60 @@
                 </FormItem>
             </Form>
          </Modal>
+         
+         <Modal v-model="isShowDetail" title="查看试题" width="600">
+            <Form label-position="right" :label-width="100">
+                <FormItem label="科目章节">
+                    <label><strong v-for="(_sub,_idx) in question_form.subjects">{{getSubjectName(_sub)+(_idx==question_form.subjects.length-1?'':'；')}}</strong></label>
+                </FormItem>
+                <FormItem label="类型">
+                    <strong v-if="question_form.type==1">单选</strong>
+                    <strong v-if="question_form.type==2">多选</strong>
+                    <strong v-if="question_form.type==3">填空</strong>
+                </FormItem>
+                <FormItem label="试题图片">
+                    <img src="@/assets/images/404.png" width="400px" />
+                </FormItem>
+                <FormItem label="题干">
+                    <div>{{question_form.title}}</div>
+                </FormItem>
+                <FormItem label="选项" v-if="question_form.type==1||question_form.type==2">
+                    <div v-for="option in question_form.options">选项{{option.code}}：{{option.content}}</div>
+                </FormItem>
+                <FormItem label="答案">
+                    <template v-if="question_form.type==3">
+                        <div v-for="(option, index) in question_form.options">答案{{index + 1}}：{{option.value[0].txt}}
+                            <span v-if="option.value.length>1">(
+                                <span v-for="(val,idx) in option.value">{{idx > 0 ? ('备选' + idx + '：' + val.txt + (idx == (option.value.length - 1) ? '' : '；')):''}}</span>
+                                )</span>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div>{{getRightAnswer(question_form.options)}}</div>
+                    </template>
+                </FormItem>
+                <FormItem label="答案解析">
+                    <div>{{question_form.comments}}</div>
+                </FormItem>
+                <FormItem label="是否作为重点">
+                    <div>{{question_form.isImportant==1?'是':'否'}}</div>
+                </FormItem>
+            </Form>
+         </Modal>
+
+         <Modal v-model="isUploadData" title="查看试题" width="600">
+            <Form label-position="right" :label-width="100">
+                <!-- <FormItem>
+                    <a style="text-decoration: underline;color:blue;font-size:14px" @click="handleDownLoad" href="#">还没有模板吗？立即下载导入模板.xls</a>
+                </FormItem> -->
+                <FormItem>
+                    <!-- <Upload :before-upload="handleUpload" action="//jsonplaceholder.typicode.com/posts/"> -->
+                    <Upload action="">
+                        <Button icon="ios-cloud-upload-outline">选择要导入的文件</Button>
+                    </Upload>
+                </FormItem>
+            </Form>
+         </Modal>
     </div>
 </template> 
 
@@ -137,6 +201,7 @@ import Editor from "@/components/editor"
 import UploadImage from "./components/upload/index"
 // import Single from "./components/single/index"
 // import Multi from "./components/multiselect/index"
+import { urlConfig } from '@/api/urlconfig'
 import selectTree from '@/components/iview-select-tree'
 import { verification } from '@/api/verification'
 import { tool } from '@/api/tool'
@@ -169,61 +234,7 @@ export default {
                 { title: "答案", key: 'answer', slot: 'answer' },
                 // { title: "更新人", key: 'updatedAt'},
                 { title: "更新时间", key: 'updatedAt'},
-                { title: '操作', key: 'action' , align: 'center',
-                        render: (h, params) => {
-                            var button=[
-                                 h('Button', {
-                                    props: {
-                                        type: 'info',
-                                        size: 'small'
-                                    },
-                                    style: {
-                                        marginRight: '5px'
-                                    },
-                                    on: {
-                                        click: () => {
-                                            this.question_id=params.row.id
-                                            this.show_window=true
-                                            this.window_title="查看试题"
-                                            this.get_entity()
-                                        }
-                                    }
-                                }, '查看'),
-                                h('Button', {
-                                    props: {
-                                        type: 'primary',
-                                        size: 'small'
-                                    },
-                                    style: {
-                                        marginRight: '5px'
-                                    },
-                                    on: {
-                                        click: () => {
-                                            this.question_id=params.row.id
-                                            this.show_window=true
-                                            this.window_title="编辑试题"
-                                            this.get_entity()
-                                        }
-                                    }
-                                }, '编辑'),
-                                h('Button', {
-                                    props: {
-                                        type: 'error',
-                                        size: 'small'
-                                    },
-                                     style: {
-                                        marginRight: '5px'
-                                    },
-                                    on: {
-                                        click: () => {
-                                            this.delete(params.row.id)
-                                        }
-                                    }
-                                }, '删除')
-                            ]
-                            return h('div', button);
-                        }
-                    }
+                { title: '操作', key: 'action', slot: 'action', align: 'center'}
                 ],
             question_datas: [],
             question_form:{
@@ -262,6 +273,8 @@ export default {
             // options:[],
             init_data:"",
             question_id:"0",
+            isUploadData: false, // 是否上传
+            isShowDetail: false, // 是否查看
             show_window:false,
             window_title:"新增试题",
             upload_address:"http://1.w2wz.com/upload.php"
@@ -281,6 +294,61 @@ export default {
         this.bindSubjectTree()
     },
     methods: {
+        handleDownLoad(){
+        },
+        /** 添加试题 */
+        handleAddQuestion(){
+            this.show_window = true
+            this.question_form = {
+                title: '',
+                isImportant: 0,
+                imaegs:"",
+                options:[
+                    { code:'A',content:'',value:'' },
+                    { code:'B',content:'',value:'' },
+                    { code:'C',content:'',value:'' },
+                    { code:'D',content:'',value:'' }
+                ],
+                oldType:1,
+                type: 1,
+                subjects:[],
+                comments:''
+            }
+            this.rightMultiAnswer = []
+            this.rightAnswer = ''
+        },
+        /** 查看题目 */
+        handleShowQuestion(row){
+            this.isShowDetail = true
+            this.question_form = {
+                title: row.title,
+                isImportant: row.isImportant,
+                imaegs: row.images,
+                options: row.options,
+                oldType: row.type,
+                type: row.type,
+                subjects: row.subjects,
+                comments: row.comments
+            }
+        },
+        /** 编辑试题 */
+        handleEditQuestion(row) {
+            this.show_window = true
+            this.question_form = {
+                id: row.id,
+                title: row.title,
+                isImportant: row.isImportant,
+                imaegs: row.images,
+                options: row.options,
+                oldType: row.type,
+                type: row.type,
+                subjects: row.subjects,
+                comments: row.comments
+            }
+            this.rightMultiAnswer = []
+            this.rightAnswer = ''
+            this.$refs['form'].validate()
+        },
         /**
          * 切换题型
          */
@@ -353,7 +421,7 @@ export default {
             let answerCount = 0
             value.forEach((_option, _index)=>{
                 if(_question_form.type==3){
-                    value.value.forEach((_val)=>{
+                    _option.value.forEach((_val)=>{
                         if(!_val.txt){
                             hasNullContent = true
                         }
@@ -467,10 +535,10 @@ export default {
         */
         add_questions(){
             var self = this
-            var subjects=this.ParseServer.Object.extend("TestQuestions")
-            var subject=new subjects()
-            if(this.subjectid){
-                subject.set('id',this.subjectid)
+            var questions=this.ParseServer.Object.extend("TestQuestions")
+            var question=new questions()
+            if(this.question_form.id){
+                question.set('id', this.question_form.id)
             }
             this.$refs['form'].validate(valid => {
                 if (!valid) {
@@ -481,14 +549,14 @@ export default {
                     }, 100)
                     return false
                 } else {
-                    subject.set('title',this.question_form.title)
-                    subject.set("subjects",this.question_form.subjects)
-                    subject.set("isImportant",this.question_form.isImportant)
-                    subject.set("type",this.question_form.type)
-                    subject.set("options",this.question_form.options)
-                    subject.set("comments",this.question_form.comments)
-                    subject.set("images",this.question_form.images)
-                    subject.save().then((subject)=>{
+                    question.set('title',this.question_form.title)
+                    question.set("subjects",this.question_form.subjects)
+                    question.set("isImportant",this.question_form.isImportant)
+                    question.set("type",this.question_form.type)
+                    question.set("options",this.question_form.options)
+                    question.set("comments",this.question_form.comments)
+                    question.set("images",this.question_form.images)
+                    question.save().then((qres)=>{
                         this.$Message.success('保存成功')
                         this.page_list(1)
                         this.cancel()
@@ -561,6 +629,7 @@ export default {
         page_list(page_index){
             let _this=this
             let query = new this.ParseServer.Query('TestQuestions')
+            query.descending("createdAt")
             query.count().then(count=>{
                 _this.total=count
             })
@@ -576,6 +645,8 @@ export default {
                             type: item.get('type'),
                             title: item.get("title"),
                             options: item.get('options'),
+                            comments: item.get('comments'),
+                            isImportant: item.get('isImportant'),
                             updatedAt:  tool.dateFormat(item.updatedAt, 'yyyy-MM-dd HH:mm:ss')
                         })
                     })
@@ -605,22 +676,25 @@ export default {
         *作者：gzt
         *时间：2020-11-22 08:41:53
         */
-        delete(subject_id){
+        handleRemove(row){
             let _this=this
             this.$Modal.confirm({
                     title: '删除提示',
                     content: '<p>确定删除当前试题吗？</p>',
                     onOk: () => {
                         var query = new this.ParseServer.Query("TestQuestions")
-                        query.get(subject_id).then((response)=>{
-                            // 删除当前组件
+                        debugger
+                        query.get(row.id).then((response)=>{
+                            // 删除当前题目
+                            debugger
                             response.destroy().then((delete_result)=>{
-                               
+                                _this.$Message.success('删除成功')
+                                _this.page_list(1)
                             })
                         })
                     },
                     onCancel: () => {
-                        this.$Message.info('取消了操作');
+                        // this.$Message.info('取消了操作');
                     }
                 });
         },

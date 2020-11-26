@@ -363,6 +363,26 @@
                         this.$emit('input', '')
                     }
                 }
+            },
+            value(val){
+                if(val.length==0){
+                    this.multipleHideVal.forEach((_item,_index)=>{
+                        this.removeVal(_index)
+                    })
+                } else {
+                    let _tree = this.treeData
+                    this.multipleShowVal = []
+                    this.multipleHideVal = []
+                    for (let i = 0; i < val.length; i++) {
+                        var item = _tree.find(t=>{
+                            return t.value == val[i]
+                        })
+                        if(item) {
+                            this.multipleShowVal.push(item.title)
+                            this.multipleHideVal.push(item.value)
+                        }
+                    }
+                }
             }
         },
         mounted () {
