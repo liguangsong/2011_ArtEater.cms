@@ -231,6 +231,41 @@ const modules = [{
             }],
             "href": null,
             "level": 1
+        },
+        {
+            "Id": "1232-asda-q2q3-zsd-a-dsa-231-asd",
+            "path": "/opinion",
+            "name": "opinion",
+            "redirect": "opinion/opinionindex",
+            "meta": {
+                "icon": "ios-school",
+                "title": "意见反馈",
+                "hideInMenu": false,
+                "showAlways": true
+            },
+            "component": "Main",
+            "permissionInfos": [
+
+            ],
+            "children": [{
+                "Id": "zfdwsrf-23423-sdfs-23423",
+                "path": "opinionindex",
+                "name": "opinionindex",
+                "redirect": null,
+                "meta": {
+                    "icon": "ios-list-box-outline",
+                    "title": "反馈列表",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "opinion/index.vue",
+                "permissionInfos": [],
+                "children": null,
+                "href": "opinion/index.vue",
+                "level": 1
+            }],
+            "href": null,
+            "level": 1
         }
 
     ],
