@@ -270,6 +270,7 @@ export default {
             },
             // options:[],
             init_data:"",
+            maxIndex: 0,// 最大索引值
             question_id:"0",
             isUploadData: false, // 是否上传
             isShowDetail: false, // 是否查看
@@ -287,9 +288,16 @@ export default {
         }
     },
     mounted() {
+        var self = this
         this.init_data=JSON.stringify(this.question_form)
         this.page_list(this.page)
         this.bindSubjectTree()
+        
+        var query = new this.ParseServer.Query("TestQuestions")
+        query.descending('createdAt')
+        query.first().then(res=>{
+            self.maxIndex = res.get('index')?res.get('index'):0
+        })
     },
     methods: {
         handleDownLoad(){
@@ -540,6 +548,8 @@ export default {
             var question=new questions()
             if(this.question_form.id){
                 question.set('id', this.question_form.id)
+            } else {
+                question.set('index', self.maxIndex + 1)
             }
             this.$refs['form'].validate(valid => {
                 if (!valid) {
@@ -558,6 +568,7 @@ export default {
                     question.set("comments",this.question_form.comments)
                     question.set("images",this.question_form.images)
                     question.save().then((qres)=>{
+                        self.maxIndex++
                         this.$Message.success('保存成功')
                         this.page_list(1)
                         this.cancel()
