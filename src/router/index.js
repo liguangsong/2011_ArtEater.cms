@@ -203,7 +203,7 @@ const modules = [{
             "name": "message",
             "redirect": "message/messageindex",
             "meta": {
-                "icon": "ios-school",
+                "icon": "md-notifications-outline",
                 "title": "消息中心",
                 "hideInMenu": false,
                 "showAlways": true
@@ -238,7 +238,7 @@ const modules = [{
             "name": "opinion",
             "redirect": "opinion/opinionindex",
             "meta": {
-                "icon": "ios-school",
+                "icon": "md-text",
                 "title": "意见反馈",
                 "hideInMenu": false,
                 "showAlways": true

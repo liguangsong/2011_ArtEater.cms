@@ -339,6 +339,22 @@
                         this.removeShowVal(data[j].children,val,showVal,hideVal)
                     }
                 }
+            },
+            /** 赋值(多选时) */
+            initData(_tree, val) {
+                var item = _tree.find(t=>{
+                    return t.value == val
+                })
+                if(item) {
+                    this.multipleShowVal.push(item.title)
+                    this.multipleHideVal.push(item.value)
+                } else {
+                    _tree.forEach((_node, _idx)=>{
+                        if(_node.children&&_node.children.length > 0) {
+                            this.initData(_node.children, val)
+                        }
+                    })
+                }
             }
         },
         watch:{
@@ -373,15 +389,9 @@
                     let _tree = this.treeData
                     this.multipleShowVal = []
                     this.multipleHideVal = []
-                    for (let i = 0; i < val.length; i++) {
-                        var item = _tree.find(t=>{
-                            return t.value == val[i]
-                        })
-                        if(item) {
-                            this.multipleShowVal.push(item.title)
-                            this.multipleHideVal.push(item.value)
-                        }
-                    }
+                    val.forEach(v=>{
+                        this.initData(_tree, v)
+                    })
                 }
             }
         },

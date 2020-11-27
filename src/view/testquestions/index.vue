@@ -45,16 +45,16 @@
                 </FormItem>
                 <FormItem label="试题类型" prop="type">
                     <RadioGroup v-model="question_form.type" @on-change="handleQuesTypeChange">
-                        <Radio :label="1">单选</Radio>
-                        <Radio :label="2">多选</Radio>
-                        <Radio :label="3">填空</Radio>
+                        <Radio :disabled="question_form.id&&question_form.id!=''" :label="1">单选</Radio>
+                        <Radio :disabled="question_form.id&&question_form.id!=''" :label="2">多选</Radio>
+                        <Radio :disabled="question_form.id&&question_form.id!=''" :label="3">填空</Radio>
                     </RadioGroup>
                 </FormItem>
                 <FormItem label="试题图片">
                     <UploadImage :images="question_form.images" :action="upload_address" @upload-success="upload_success"></UploadImage>
                 </FormItem>
                 <FormItem label="题干" prop="title">
-                    <Tooltip placement="top" style="width:100%">
+                    <Tooltip :disabled="question_form.type!=3" placement="top" style="width:100%">
                         <div style="display:flex;">
                             <div style="flex:1">
                                 <Input id='title' :rows="3" type="textarea" @input="initAnswers" v-model="question_form.title" placeholder="请输入题干"></Input>
@@ -63,7 +63,7 @@
                                 <Button type="primary" @click="insertInputTxt">插入填空</Button>
                             </div>
                         </div>
-                        <div slot="content">
+                        <div v-if="question_form.type==3" slot="content">
                             <p>提示：4个英文下划线(_)代表一个填空</p>
                             <p>导入时一样，在框内输入____试试</p>
                         </div>
@@ -139,7 +139,6 @@
                 </FormItem>
             </Form>
          </Modal>
-         
          <Modal v-model="isShowDetail" title="查看试题" width="600">
             <Form label-position="right" :label-width="100">
                 <FormItem label="科目章节">
@@ -179,7 +178,6 @@
                 </FormItem>
             </Form>
          </Modal>
-
          <Modal v-model="isUploadData" title="查看试题" width="600">
             <Form label-position="right" :label-width="100">
                 <!-- <FormItem>
@@ -435,6 +433,9 @@ export default {
                     }
                 }
             })
+            if(value.length==0&&_question_form.type==3){
+                callback(new Error('还没有需要填空的'))
+            }
             if(hasNullContent){
                 callback(new Error('请输入答案'))
             }
