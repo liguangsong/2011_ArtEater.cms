@@ -1,41 +1,29 @@
 <template>
   <div class="container-wrap">
     <div class="header-wrap">
-      <Row>
-        <Col span="20">
-          <div class="search-wrap clear-fix">
-            <div class="search-keyword">
-              <Input
-                v-model="search_keyword"
-                size="large"
-                placeholder="ID 昵称 姓名和关键字查询"
-              />
+      <div class="search-wrap clear-fix">
+        <div class="search-keyword">
+          <Input v-model="search_keyword" size="large" placeholder="ID 昵称 姓名和关键字查询" />
+        </div>
+        <div class="select-choice clear-fix">
+          <span>注册时间</span>
+          <div class="date-picker-wrap clear-fix">
+            <div class="date-picker">
+              <DatePicker :value="search_start_date" size="large" type="date" placeholder="请输入开始时间"></DatePicker>
             </div>
-            <div class="select-choice clear-fix">
-              <span>注册时间</span>
-              <DatePicker
-                :value="search_start_date"
-                type="date"
-                placeholder="请输入开始时间"
-                style="width: 200px"
-              ></DatePicker>
-              <label class="label-split">~</label>
-              <DatePicker
-                :value="search_end_date"
-                type="date"
-                placeholder="请输入结束时间"
-                style="width: 200px"
-              ></DatePicker>
-            </div>
-            <div class="search-btn">
-              <Button type="primary" @click="search" size="large">查询</Button>
+            <label class="label-split">~</label>
+            <div class="date-picker">
+              <DatePicker :value="search_end_date" size="large" type="date" placeholder="请输入结束时间"></DatePicker>
             </div>
           </div>
-        </Col>
-      </Row>
+        </div>
+        <div class="search-btn">
+          <Button type="primary" @click="search" size="large">查询</Button>
+        </div>
+      </div>
     </div>
     <Row class="table-wrap">
-      <Table :loading="loading" :columns="columns" :data="users_datas"> </Table>
+      <Table :loading="loading" :columns="columns" :data="users_datas"></Table>
       <div class="page-wrap">
         <Page :total="total" @on-change="page_list" v-if="total != 0" />
       </div>
@@ -43,11 +31,7 @@
     <Modal v-model="show_window" :title="window_title" @on-ok="cancel">
       <Form :model="user_forms" label-position="right" :label-width="80">
         <FormItem label="头像">
-          <Avatar
-            icon="ios-person"
-            size="large"
-            v-if="user_forms.avatarUrl != ''"
-          />
+          <Avatar icon="ios-person" size="large" v-if="user_forms.avatarUrl != ''" />
           <Avatar v-else :src="user_forms.avatarUrl" size="large" />
         </FormItem>
         <FormItem label="昵称">
@@ -82,7 +66,7 @@
 <script>
 export default {
   name: "studentindex",
-  data() {
+  data () {
     return {
       page: 1,
       total: 0,
@@ -182,7 +166,7 @@ export default {
       }
     };
   },
-  mounted() {
+  mounted () {
     this.page_list(this.page);
   },
   methods: {
@@ -191,7 +175,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 14:42:57
      */
-    cancel() {
+    cancel () {
       this.show_window = false;
     },
 
@@ -200,7 +184,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 09:21:48
      */
-    get_entity() {
+    get_entity () {
       var query = new this.ParseServer.Query("UserInfo");
       query.get(this.user_id).then(response => {
         Object.keys(this.user_forms).forEach(key => {
@@ -214,7 +198,7 @@ export default {
      *作者：gzt
      *时间：2020-11-21 23:30:19
      */
-    search() {
+    search () {
       this.page = 1;
       this.page_list(this.page);
     },
@@ -223,7 +207,7 @@ export default {
      *作者：gzt
      *时间：2020-11-21 23:30:27
      */
-    page_list(page_index) {
+    page_list (page_index) {
       this.loading = true;
       let query = new this.ParseServer.Query("UserInfo");
       query.descending("createdAt");
@@ -266,7 +250,7 @@ export default {
      *作者：gzt
      *时间：2020-11-25 23:17:56
      */
-    delete(user_id) {
+    delete (user_id) {
       this.$Modal.confirm({
         title: "删除提示",
         content: "<p>删除用户后，用户将无法使用系统，确定要删除吗？</p>",
@@ -307,18 +291,17 @@ export default {
   }
   .select-choice {
     float: left;
-    width: 35%;
+    width: 40%;
     span {
       width: 20%;
-      display: inline-block;
+      display: block;
+      float: left;
       box-sizing: border-box;
       line-height: 36px;
       padding: 0 10px;
       text-align: right;
     }
-    .label-split {
-      margin: 0 10px;
-    }
+
     .choice {
       width: 80%;
       float: right;
@@ -328,6 +311,24 @@ export default {
     float: left;
     width: 10%;
     margin: 0 20px;
+  }
+}
+
+.date-picker-wrap {
+  float: left;
+  width: 80%;
+  .date-picker {
+    float: left;
+    width: 45%;
+  }
+  .label-split {
+    // margin: 0 10px;
+    padding: 0 10px;
+    width: 10%;
+    box-sizing: border-box;
+    display: block;
+    float: left;
+    text-align: center;
   }
 }
 </style>

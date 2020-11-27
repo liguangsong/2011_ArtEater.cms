@@ -1,31 +1,21 @@
 <template>
   <div class="container-wrap">
-    <div class="header-wrap">
-      <Row>
-        <Col span="12">
-          <div class="search-wrap clear-fix">
-            <div class="search-keyword">
-              <Input
-                v-model="search_keyword"
-                size="large"
-                placeholder="ID 主题关键字搜索"
-              />
-            </div>
-            <div class="search-btn">
-              <Button type="primary" @click="search" size="large">查询</Button>
-            </div>
-          </div>
-        </Col>
-      </Row>
-      <Row>
-        <div class="operation-wrap">
-          <Button type="success" @click="show_window = true">发布消息</Button>
+    <div class="header-wrap clear-fix">
+      <div class="search-wrap clear-fix">
+        <div class="search-keyword">
+          <Input v-model="search_keyword" size="large" placeholder="ID 主题关键字搜索" />
         </div>
-      </Row>
+        <div class="search-btn">
+          <Button type="primary" @click="search" size="large">查询</Button>
+        </div>
+      </div>
+
+      <div class="operation-wrap clear-fix">
+        <Button class="func" type="success" @click="show_window = true">发布消息</Button>
+      </div>
     </div>
     <Row class="table-wrap">
-      <Table :loading="loading" :columns="columns" :data="message_datas">
-      </Table>
+      <Table :loading="loading" :columns="columns" :data="message_datas"></Table>
       <div class="page-wrap">
         <Page :total="total" @on-change="page_list" v-if="total != 0" />
       </div>
@@ -48,12 +38,7 @@
           <Input v-model="message_form.title" placeholder="请输入主题"></Input>
         </FormItem>
         <FormItem label="内容" prop="content">
-          <Input
-            type="textarea"
-            :rows="4"
-            v-model="message_form.content"
-            placeholder="请输入内容"
-          ></Input>
+          <Input type="textarea" :rows="4" v-model="message_form.content" placeholder="请输入内容"></Input>
         </FormItem>
       </Form>
     </Modal>
@@ -64,7 +49,7 @@
 import { verification } from "@/api/verification";
 export default {
   name: "messageindex",
-  data() {
+  data () {
     return {
       close: false,
       page: 1,
@@ -163,7 +148,7 @@ export default {
       init_data: ""
     };
   },
-  mounted() {
+  mounted () {
     this.init_data = JSON.stringify(this.message_form);
     this.page_list(this.page);
   },
@@ -173,7 +158,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 14:42:57
      */
-    cancel() {
+    cancel () {
       this.show_window = false;
       this.$refs["form"].resetFields();
       this.window_title = "法布消息";
@@ -185,7 +170,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 14:50:34
      */
-    add_message() {
+    add_message () {
       this.$refs["form"].validate(valid => {
         if (valid) {
           var Messages = this.ParseServer.Object.extend("Message");
@@ -216,7 +201,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 09:21:48
      */
-    get_entity() {
+    get_entity () {
       var query = new this.ParseServer.Query("Message");
       query.get(this.message_id).then(response => {
         Object.keys(this.message_form).forEach(key => {
@@ -230,7 +215,7 @@ export default {
      *作者：gzt
      *时间：2020-11-21 23:30:19
      */
-    search() {
+    search () {
       this.page = 1;
       this.page_list(this.page);
     },
@@ -239,7 +224,7 @@ export default {
      *作者：gzt
      *时间：2020-11-21 23:30:27
      */
-    page_list(page_index) {
+    page_list (page_index) {
       this.loading = true;
       let query = new this.ParseServer.Query("Message");
       query.descending("createdAt");
@@ -280,7 +265,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 08:41:53
      */
-    delete(subject_id) {
+    delete (subject_id) {
       let _this = this;
       this.$Modal.confirm({
         title: "删除提示",
@@ -315,9 +300,11 @@ export default {
 
 <style lang="less" scoped>
 .search-wrap {
+  float: left;
+  width: 60%;
   .search-keyword {
     float: left;
-    width: 40%;
+    width: 35%;
   }
   .select-choice {
     float: left;
@@ -339,6 +326,14 @@ export default {
     float: left;
     width: 18%;
     margin: 0 20px;
+  }
+}
+.operation-wrap {
+  float: right;
+  width: 40%;
+  .func {
+    float: right;
+    margin-left: 10px;
   }
 }
 </style>

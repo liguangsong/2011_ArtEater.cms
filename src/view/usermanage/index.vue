@@ -1,49 +1,26 @@
 <template>
   <div class="container-wrap">
-    <div class="header-wrap">
-      <Row>
-        <Col span="12">
-          <div class="search-wrap clear-fix">
-            <div class="search-keyword">
-              <Input
-                v-model="search_keyword"
-                size="large"
-                placeholder="ID 姓名 手机号关键字搜索"
-              />
-            </div>
-            <div class="select-choice clear-fix">
-              <span>身份</span>
-              <Select
-                size="large"
-                v-model="search_role"
-                class="choice"
-                placeholder="请选择身份"
-              >
-                <Option
-                  v-for="item in roles"
-                  :value="item.value"
-                  :key="item.value"
-                  >{{ item.label }}</Option
-                >
-              </Select>
-            </div>
-            <div class="search-btn">
-              <Button type="primary" @click="search" size="large">查询</Button>
-            </div>
-          </div>
-        </Col>
-      </Row>
-      <Row>
-        <div class="operation-wrap">
-          <Button type="success" @click="show_window = true"
-            >新增后台账号</Button
-          >
+    <div class="header-wrap clear-fix">
+      <div class="search-wrap clear-fix">
+        <div class="search-keyword">
+          <Input v-model="search_keyword" size="large" placeholder="ID 姓名 手机号关键字搜索" />
         </div>
-      </Row>
+        <div class="select-choice clear-fix">
+          <span>身份</span>
+          <Select size="large" v-model="search_role" class="choice" placeholder="请选择身份">
+            <Option v-for="item in roles" :value="item.value" :key="item.value">{{ item.label }}</Option>
+          </Select>
+        </div>
+        <div class="search-btn">
+          <Button type="primary" @click="search" size="large">查询</Button>
+        </div>
+      </div>
+      <div class="operation-wrap">
+        <Button class="func" type="success" @click="show_window = true">新增后台账号</Button>
+      </div>
     </div>
-
     <Row class="table-wrap">
-      <Table :loading="loading" :columns="columns" :data="users_datas"> </Table>
+      <Table :loading="loading" :columns="columns" :data="users_datas"></Table>
       <div class="page-wrap">
         <Page :total="total" @on-change="page_list" v-if="total != 0" />
       </div>
@@ -70,12 +47,7 @@
         </FormItem>
         <FormItem label="身份" prop="role">
           <Select v-model="user_forms.role" placeholder="请选择身份">
-            <Option
-              v-for="item in roles"
-              :value="item.value"
-              :key="item.value"
-              >{{ item.label }}</Option
-            >
+            <Option v-for="item in roles" :value="item.value" :key="item.value">{{ item.label }}</Option>
           </Select>
         </FormItem>
       </Form>
@@ -87,7 +59,7 @@
 import { verification } from "@/api/verification";
 export default {
   name: "usermanageindex",
-  data() {
+  data () {
     return {
       close: false,
       roles: [
@@ -237,7 +209,7 @@ export default {
       init_data: ""
     };
   },
-  mounted() {
+  mounted () {
     this.init_data = JSON.stringify(this.user_forms);
     this.page_list(this.page);
   },
@@ -247,7 +219,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 14:42:57
      */
-    cancel() {
+    cancel () {
       this.show_window = false;
       this.$refs["form"].resetFields();
       this.see = false;
@@ -260,7 +232,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 14:50:34
      */
-    add_user() {
+    add_user () {
       this.$refs["form"].validate(valid => {
         if (valid) {
           var Accounts = this.ParseServer.Object.extend("UserInfo");
@@ -293,7 +265,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 09:21:48
      */
-    get_entity() {
+    get_entity () {
       var query = new this.ParseServer.Query("UserInfo");
       query.get(this.user_id).then(response => {
         Object.keys(this.user_forms).forEach(key => {
@@ -307,7 +279,7 @@ export default {
      *作者：gzt
      *时间：2020-11-21 23:30:19
      */
-    search() {
+    search () {
       this.page = 1;
       this.page_list(this.page);
     },
@@ -316,7 +288,7 @@ export default {
      *作者：gzt
      *时间：2020-11-21 23:30:27
      */
-    page_list(page_index) {
+    page_list (page_index) {
       this.loading = true;
       let query = new this.ParseServer.Query("UserInfo");
       query.descending("createdAt");
@@ -357,7 +329,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 08:41:53
      */
-    delete(subject_id) {
+    delete (subject_id) {
       let _this = this;
       this.$Modal.confirm({
         title: "删除提示",
@@ -392,6 +364,8 @@ export default {
 
 <style lang="less" scoped>
 .search-wrap {
+  float: left;
+  width: 60%;
   .search-keyword {
     float: left;
     width: 40%;
@@ -416,6 +390,15 @@ export default {
     float: left;
     width: 20%;
     margin: 0 20px;
+  }
+}
+
+.operation-wrap {
+  width: 40%;
+  float: left;
+  .func {
+    float: right;
+    margin-left: 10px;
   }
 }
 </style>
