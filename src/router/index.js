@@ -31,41 +31,7 @@ const modules = [{
     "permissionInfos": [
 
     ],
-    "children": [{
-            "path": "/subjectsmanage",
-            "name": "subjectsmanage",
-            "redirect": "subjectsmanage/subjectsmanageindex",
-            "meta": {
-                "icon": "ios-apps",
-                "title": "科目管理",
-                "hideInMenu": false,
-                "showAlways": true
-            },
-            "component": "Main",
-            "permissionInfos": [
-
-            ],
-            "children": [{
-                "path": "subjectsmanageindex",
-                "name": "subjectsmanageindex",
-                "redirect": null,
-                "meta": {
-                    "icon": "ios-list-box-outline",
-                    "title": "科目列表",
-                    "hideInMenu": false,
-                    "showAlways": true
-                },
-                "component": "subjectsmanage/index.vue",
-                "permissionInfos": [
-
-                ],
-                "children": null,
-                "href": "subjectsmanage/index.vue",
-                "level": 1
-            }],
-            "href": null,
-            "level": 1
-        },
+    "children": [
         {
             "Id": "1b9da043-6a2b-4531-123123-1231313131",
             "path": "/usermanage",
@@ -81,25 +47,7 @@ const modules = [{
             "permissionInfos": [
 
             ],
-            "children": [{
-                    "Id": "1231231-1231zcsa-124dzcsdfvs-q342zxfczx",
-                    "path": "usermanageindex",
-                    "name": "usermanageindex",
-                    "redirect": null,
-                    "meta": {
-                        "icon": "ios-list-box-outline",
-                        "title": "后台账号管理",
-                        "hideInMenu": false,
-                        "showAlways": true
-                    },
-                    "component": "usermanage/index.vue",
-                    "permissionInfos": [
-
-                    ],
-                    "children": null,
-                    "href": "usermanage/index.vue",
-                    "level": 1
-                },
+            "children": [
                 {
                     "Id": "1312-sdfs-w3rwe-xgsdfs-2342432",
                     "path": "studentindex",
@@ -118,8 +66,60 @@ const modules = [{
                     "children": null,
                     "href": "usermanage/student.vue",
                     "level": 1
+                },{
+                    "Id": "1231231-1231zcsa-124dzcsdfvs-q342zxfczx",
+                    "path": "usermanageindex",
+                    "name": "usermanageindex",
+                    "redirect": null,
+                    "meta": {
+                        "icon": "ios-list-box-outline",
+                        "title": "后台账号管理",
+                        "hideInMenu": false,
+                        "showAlways": true
+                    },
+                    "component": "usermanage/index.vue",
+                    "permissionInfos": [
+
+                    ],
+                    "children": null,
+                    "href": "usermanage/index.vue",
+                    "level": 1
                 }
             ],
+            "href": null,
+            "level": 1
+        },{
+            "path": "/subjectsmanage",
+            "name": "subjectsmanage",
+            "redirect": "subjectsmanage/subjectsmanageindex",
+            "meta": {
+                "icon": "ios-apps",
+                "title": "课程管理",
+                "hideInMenu": false,
+                "showAlways": true
+            },
+            "component": "Main",
+            "permissionInfos": [
+
+            ],
+            "children": [{
+                "path": "subjectsmanageindex",
+                "name": "subjectsmanageindex",
+                "redirect": null,
+                "meta": {
+                    "icon": "ios-list-box-outline",
+                    "title": "科目管理",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "subjectsmanage/index.vue",
+                "permissionInfos": [
+
+                ],
+                "children": null,
+                "href": "subjectsmanage/index.vue",
+                "level": 1
+            }],
             "href": null,
             "level": 1
         },
@@ -145,7 +145,7 @@ const modules = [{
                 "redirect": null,
                 "meta": {
                     "icon": "ios-list-box-outline",
-                    "title": "试题列表",
+                    "title": "试题管理",
                     "hideInMenu": false,
                     "showAlways": true
                 },
@@ -156,33 +156,14 @@ const modules = [{
                 "children": null,
                 "href": "testquestions/index.vue",
                 "level": 1
-            }],
-            "href": null,
-            "level": 1
-        },
-        {
-            "Id": "2312asda-231321-adada-q2e12easda",
-            "path": "/exampaper",
-            "name": "exampaper",
-            "redirect": "exampaper/exampaperindex",
-            "meta": {
-                "icon": "ios-school",
-                "title": "考试管理",
-                "hideInMenu": false,
-                "showAlways": true
-            },
-            "component": "Main",
-            "permissionInfos": [
-
-            ],
-            "children": [{
+            },{
                 "Id": "erwerfs-24234-zdfsdf-23xdvsds",
                 "path": "exampaperindex",
                 "name": "exampaperindex",
                 "redirect": null,
                 "meta": {
                     "icon": "ios-list-box-outline",
-                    "title": "试卷列表",
+                    "title": "组卷管理",
                     "hideInMenu": false,
                     "showAlways": true
                 },
@@ -198,13 +179,13 @@ const modules = [{
             "level": 1
         },
         {
-            "Id": "zdfs-12432sdfs-sdfsf-23xdfs-sdfs",
-            "path": "/message",
-            "name": "message",
-            "redirect": "message/messageindex",
+            "Id": "2312asda-231321-adada-w2e12easda",
+            "path": "/setting",
+            "name": "setting",
+            "redirect": "setting/messageindex",
             "meta": {
-                "icon": "md-notifications-outline",
-                "title": "消息中心",
+                "icon": "ios-settings",
+                "title": "设置",
                 "hideInMenu": false,
                 "showAlways": true
             },
@@ -218,8 +199,8 @@ const modules = [{
                 "name": "messageindex",
                 "redirect": null,
                 "meta": {
-                    "icon": "ios-list-box-outline",
-                    "title": "消息列表",
+                    "icon": "md-notifications-outline",
+                    "title": "消息中心",
                     "hideInMenu": false,
                     "showAlways": true
                 },
@@ -228,33 +209,14 @@ const modules = [{
                 "children": null,
                 "href": "message/index.vue",
                 "level": 1
-            }],
-            "href": null,
-            "level": 1
-        },
-        {
-            "Id": "1232-asda-q2q3-zsd-a-dsa-231-asd",
-            "path": "/opinion",
-            "name": "opinion",
-            "redirect": "opinion/opinionindex",
-            "meta": {
-                "icon": "md-text",
-                "title": "意见反馈",
-                "hideInMenu": false,
-                "showAlways": true
-            },
-            "component": "Main",
-            "permissionInfos": [
-
-            ],
-            "children": [{
+            },{
                 "Id": "zfdwsrf-23423-sdfs-23423",
                 "path": "opinionindex",
                 "name": "opinionindex",
                 "redirect": null,
                 "meta": {
                     "icon": "ios-list-box-outline",
-                    "title": "反馈列表",
+                    "title": "意见反馈",
                     "hideInMenu": false,
                     "showAlways": true
                 },
@@ -262,6 +224,22 @@ const modules = [{
                 "permissionInfos": [],
                 "children": null,
                 "href": "opinion/index.vue",
+                "level": 1
+            },{
+                "Id": "zfdwsrf-23423-sdfs-23423",
+                "path": "setprice",
+                "name": "setprice",
+                "redirect": null,
+                "meta": {
+                    "icon": "logo-usd",
+                    "title": "功能收费",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "setting/setprice.vue",
+                "permissionInfos": [],
+                "children": null,
+                "href": "setting/setprice.vue",
                 "level": 1
             }],
             "href": null,

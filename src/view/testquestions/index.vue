@@ -51,7 +51,7 @@
                     </RadioGroup>
                 </FormItem>
                 <FormItem label="试题图片">
-                    <UploadImage :images="question_form.images" :action="upload_address" @upload-success="upload_success"></UploadImage>
+                    <myUpload></myUpload>
                 </FormItem>
                 <FormItem label="题干" prop="title">
                     <Tooltip :disabled="question_form.type!=3" placement="top" style="width:100%">
@@ -129,7 +129,8 @@
                     </div>
                 </FormItem>
                 <FormItem label="答案解析" prop="comments">
-                    <Input  :rows="3" type="textarea" v-model="question_form.comments" placeholder="请输入答案解析"></Input>
+                    <!-- <Input  :rows="3" type="textarea" v-model="question_form.comments" placeholder="请输入答案解析"></Input> -->
+                    <Editor v-model="question_form.comments" placeholder="请输入答案解析" @on-change="change_value"></Editor>
                 </FormItem>
                 <FormItem label="是否重点">
                     <RadioGroup v-model="question_form.isImportant">
@@ -178,7 +179,7 @@
                 </FormItem>
             </Form>
          </Modal>
-         <Modal v-model="isUploadData" title="查看试题" width="600">
+         <Modal v-model="isUploadData" title="导入试题" width="600">
             <Form label-position="right" :label-width="100">
                 <!-- <FormItem>
                     <a style="text-decoration: underline;color:blue;font-size:14px" @click="handleDownLoad" href="#">还没有模板吗？立即下载导入模板.xls</a>
@@ -196,7 +197,7 @@
 
 <script>
 import Editor from "@/components/editor"
-import UploadImage from "./components/upload/index"
+import myUpload from "@/components/myUpload"
 // import Single from "./components/single/index"
 // import Multi from "./components/multiselect/index"
 import { urlConfig } from '@/api/urlconfig'
@@ -208,7 +209,7 @@ export default {
     components:{
         Editor,
         selectTree,
-        UploadImage,
+        myUpload,
         // Single,
         // Multi
     },
@@ -275,8 +276,7 @@ export default {
             isUploadData: false, // 是否上传
             isShowDetail: false, // 是否查看
             show_window:false,
-            window_title:"新增试题",
-            upload_address:"http://1.w2wz.com/upload.php"
+            window_title:"新增试题"
         }
     },
     computed:{
@@ -498,20 +498,6 @@ export default {
             })
         },
         /*
-        *上传成功
-        *作者：gzt
-        *时间：2020-11-22 20:26:31
-        */
-        upload_success(data){
-            console.log('------------------')
-            console.log(data)
-             console.log('------------------')
-            // this.question_form.imaegs=data.map((item)=>{
-            //     return item.name
-            // }).join(',')
-        },
-
-        /*
         * 取消操作
         *作者：gzt
         *时间：2020-11-22 18:49:58
@@ -615,13 +601,9 @@ export default {
         *作者：gzt
         *时间：2020-11-22 00:37:46
         */
-        change_value(html,text){
-            this.question_form.content=html
-            if(html!="<p><br></p>"){
-                this.question_form.has_content=true
-            }else{
-                this.question_form.has_content=false
-            }
+        change_value(html){
+            this.question_form.comments = html=='<p><br></p>'?'':html
+            this.$refs['form'].validate()
         },
 
         /*
@@ -695,10 +677,8 @@ export default {
                     content: '<p>确定删除当前试题吗？</p>',
                     onOk: () => {
                         var query = new this.ParseServer.Query("TestQuestions")
-                        debugger
                         query.get(row.id).then((response)=>{
                             // 删除当前题目
-                            debugger
                             response.destroy().then((delete_result)=>{
                                 _this.$Message.success('删除成功')
                                 _this.page_list(1)

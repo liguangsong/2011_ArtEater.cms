@@ -18,11 +18,17 @@ import '@/assets/css/fnBase.css'
 import '@/assets/css/animate.css'
 import '@/assets/css/bootstrap.min.css'
 import '@/assets/css/comon.css'
+import VueQuillEditor from "vue-quill-editor"; 
+import 'quill/dist/quill.core.css'; 
+import 'quill/dist/quill.snow.css';
+import 'quill/dist/quill.bubble.css';
+Vue.use(VueQuillEditor)
+
 import parse from 'parse'
 
 // 注册parse-server服务
-parse.serverURL =config.parse_server.server_url
-parse.initialize(config.parse_server.app_id, config.parse_server.master_key)
+parse.serverURL =config.parse_server.PARSE_PUBLIC_SERVER_URL
+parse.initialize(config.parse_server.PARSE_SERVER_APPLICATION_ID, config.parse_server. PARSE_SERVER_MASTER_KEY)
 Vue.prototype.ParseServer = parse
 
 
