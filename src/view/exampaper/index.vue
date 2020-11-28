@@ -6,7 +6,7 @@
           <span>名称</span>
           <Input
             class="keyword-input"
-            v-model="search_keyword"
+            v-model="subject_name"
             size="large"
             placeholder="请输入科目名称"
           />
@@ -31,13 +31,20 @@
       </div>
     </div>
     <Row class="table-wrap">
-      <Table :loading="loading" :columns="columns" :data="exam_datas"></Table>
+      <Table :loading="loading" :columns="columns" :data="exam_datas">
+        <template slot-scope="{ row }" slot="subjects">
+          <strong v-for="(_sub, _idx) in row.subjects">{{
+            getSubjectName(_sub) + (_idx == row.subjects.length - 1 ? "" : "；")
+          }}</strong>
+        </template>
+      </Table>
       <div class="page-wrap">
         <Page :total="total" @on-change="page_list" v-if="total != 0" />
       </div>
     </Row>
     <ExalForm
       :windows="show_window"
+      :examid="paper_id"
       @change-window="change_window"
       @preview="preview_window"
     ></ExalForm>
@@ -54,6 +61,7 @@
 import { verification } from "@/api/verification";
 import ExalForm from "./components/examform";
 import PreviewForm from "./components/previewform";
+import { tool } from "@/api/tool";
 export default {
   name: "exampaperindex",
   data() {
@@ -66,10 +74,16 @@ export default {
       preview_form: false,
       search_keyword: "",
       search_role: "",
+      subject_name: "",
       columns: [
         {
+          title: "ID",
+          key: "id"
+        },
+        {
           title: "科目名称",
-          key: "subjects"
+          key: "subjects",
+          slot: "subjects"
         },
         {
           title: "组卷名称",
@@ -84,11 +98,34 @@ export default {
           key: "pass_score"
         },
         {
+          title: "时间",
+          key: "create_date"
+        },
+        {
           title: "操作",
           key: "action",
           align: "center",
           render: (h, params) => {
             var button = [
+              h(
+                "Button",
+                {
+                  props: {
+                    type: "info",
+                    size: "small"
+                  },
+                  style: {
+                    marginRight: "5px"
+                  },
+                  on: {
+                    click: () => {
+                      this.paper_id = params.row.id;
+                      this.preview_form = true;
+                    }
+                  }
+                },
+                "预览"
+              ),
               h(
                 "Button",
                 {
@@ -102,9 +139,8 @@ export default {
                   on: {
                     click: () => {
                       this.paper_id = params.row.id;
-                      this.get_entity();
+
                       this.show_window = true;
-                      this.window_title = "后台账号信息";
                     }
                   }
                 },
@@ -134,7 +170,8 @@ export default {
         }
       ],
       exam_datas: [],
-      init_data: ""
+      subjectTreeData: [],
+      subjects: []
     };
   },
   components: {
@@ -142,20 +179,66 @@ export default {
     PreviewForm
   },
   mounted() {
-    this.init_data = JSON.stringify(this.exam_forms);
-    // this.page_list(this.page);
+    this.bindSubjectTree();
+    this.page_list(this.page);
   },
   methods: {
     close_preview(value) {
-      this.preview_form = value;
+      if (!value) {
+        this.preview_form = value;
+        console.log(11111);
+        this.paper_id = "";
+        this.page_list();
+      }
     },
     change_window(value) {
+      if (!value) {
+        this.paper_id = "";
+      }
       this.show_window = value;
     },
     preview_window(value) {
-      console.log(value);
       this.show_window = false;
       this.preview_form = value;
+    },
+
+    getSubjectName(id) {
+      var subject = this.subjects.find(item => {
+        return item.id == id;
+      });
+      return subject ? subject.get("subject_name") : "";
+    },
+    /** 加载树形科目 */
+    bindSubjectTree() {
+      var self = this;
+      var query = new this.ParseServer.Query("Subjects");
+      query.find().then(res => {
+        this.subjects = res;
+        var tree = self.initSubjectTree(res, "0");
+        self.subjectTreeData = tree;
+      });
+    },
+    /** 构造树形科目 */
+    initSubjectTree(subjects, parentId) {
+      var self = this;
+      var treeValue = [];
+      let _subjects = subjects.filter(_item => {
+        return _item.get("parent_ID") == parentId;
+      });
+      _subjects.forEach((_subject, _index) => {
+        let subject = {
+          title: _subject.get("subject_name"),
+          value: _subject.id
+        };
+        let childrens = subjects.filter(_item => {
+          return _item.get("parent_ID") == _subject.id;
+        });
+        if (childrens.length > 0) {
+          subject.children = self.initSubjectTree(subjects, _subject.id);
+        }
+        treeValue.push(subject);
+      });
+      return treeValue;
     },
     /*
      *搜索数据
@@ -176,7 +259,9 @@ export default {
       let query = new this.ParseServer.Query("ExamPaper");
       query.descending("createdAt");
       if (this.search_keyword) {
-        query.startWith("test_paper_name", this.search_keyword);
+        query.contains("test_paper_name", this.search_keyword);
+      }
+      if (this.subject_name) {
       }
       query.count().then(count => {
         this.total = count;
@@ -194,7 +279,11 @@ export default {
                 subjects: item.get("subjects"),
                 test_paper_name: item.get("test_paper_name"),
                 score: item.get("score"),
-                pass_score: item.get("pass_score")
+                pass_score: item.get("pass_score"),
+                create_date: tool.dateFormat(
+                  item.updatedAt,
+                  "yyyy-MM-dd HH:mm:ss"
+                )
               };
               return exam;
             });

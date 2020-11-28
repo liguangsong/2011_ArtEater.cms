@@ -1,5 +1,4 @@
 <template>
-  <!--  -->
   <Modal v-model="show_windows" :title="window_title" width="700px">
     <Form
       :model="exam_forms"
@@ -128,7 +127,7 @@ export default {
   name: "examform",
   props: {
     windows: false,
-    examid: 0
+    examid: ""
   },
   components: {
     selectTree
@@ -176,23 +175,23 @@ export default {
         options: [
           {
             type: "单选",
-            number: 0,
-            score: 0
+            number: "",
+            score: ""
           },
           {
             type: "多选",
-            number: 0,
-            score: 0
+            number: "",
+            score: ""
           },
           {
             type: "填空",
-            number: 0,
-            score: 0
+            number: "",
+            score: ""
           }
         ],
-        time_count: 0,
+        time_count: "",
         score: 0,
-        pass_score: 0,
+        pass_score: "",
         subjects: "",
         range: "请选择范围",
         way: "试题选项顺序全部一致",
@@ -218,7 +217,18 @@ export default {
           }
         ],
         subjects: [
-          { required: true, message: "请选择考试科目", trigger: "blur" }
+          {
+            required: true,
+            message: "请选择科目/章节",
+            trigger: "change",
+            validator: (rule, value, callback) => {
+              if (value.length == 0) {
+                callback(new Error("请选择科目/章节"));
+              } else {
+                callback();
+              }
+            }
+          }
         ],
         range: [
           {
@@ -282,7 +292,33 @@ export default {
           }
         ]
       },
-      init_data: ""
+      init_data: {
+        test_paper_name: "",
+        options: [
+          {
+            type: "单选",
+            number: "",
+            score: ""
+          },
+          {
+            type: "多选",
+            number: "",
+            score: ""
+          },
+          {
+            type: "填空",
+            number: "",
+            score: ""
+          }
+        ],
+        time_count: "",
+        score: 0,
+        pass_score: "",
+        subjects: "",
+        range: "请选择范围",
+        way: "试题选项顺序全部一致",
+        questions: []
+      }
     };
   },
   computed: {
@@ -294,9 +330,12 @@ export default {
     total_score() {
       var score = 0;
       this.exam_forms.options.forEach((item, index) => {
-        score += parseInt(item.number) * parseInt(item.score);
+        var _score = parseInt(item.number) * parseInt(item.score);
+        if (_score) {
+          score += _score;
+        }
       });
-      this.score = score;
+      this.exam_forms.score = score;
       return score;
     }
   },
@@ -306,19 +345,46 @@ export default {
       this.show_windows = new_val;
     },
     show_windows: function(new_val, old_val) {
+      if (!new_val) {
+        this.exam_forms = JSON.parse(JSON.stringify(this.init_data));
+      }
       this.$emit("change-window", new_val);
+    },
+    examid: function(new_val, old_val) {
+      if (new_val) {
+        this.get_entity();
+      }
     }
   },
   mounted() {
-    // this.bindSubjectTree();
-    if (this.examid) {
-      this.get_entity();
-    }
-    this.init_data = JSON.stringify(this.exam_forms);
+    this.bindSubjectTree();
   },
   methods: {
-    show_window(show) {
-      this.show_windows = show;
+    /*
+     *构造树形结构
+     *作者：gzt
+     *时间：2020-11-28 21:09:50
+     */
+    initSubjectTree(subjects, parentId) {
+      var self = this;
+      var treeValue = [];
+      let _subjects = subjects.filter(_item => {
+        return _item.get("parent_ID") == parentId;
+      });
+      _subjects.forEach((_subject, _index) => {
+        let subject = {
+          title: _subject.get("subject_name"),
+          value: _subject.id
+        };
+        let childrens = subjects.filter(_item => {
+          return _item.get("parent_ID") == _subject.id;
+        });
+        if (childrens.length > 0) {
+          subject.children = self.initSubjectTree(subjects, _subject.id);
+        }
+        treeValue.push(subject);
+      });
+      return treeValue;
     },
     /*
      * 加载科目的树形结构
@@ -342,9 +408,86 @@ export default {
     cancel() {
       this.$refs["form"].resetFields();
       this.window_title = "添加组卷";
-      this.exam_forms = JSON.parse(this.init_data);
+      this.exam_forms = JSON.parse(JSON.stringify(this.init_data));
       this.$emit("preview", true);
     },
+
+    get_random_array_elements(arr, count) {
+      if (arr.length <= count) {
+        return arr;
+      }
+      var shuffled = arr.slice(0),
+        i = arr.length,
+        min = i - count,
+        temp,
+        index;
+      while (i-- > min) {
+        index = Math.floor((i + 1) * Math.random());
+        temp = shuffled[index];
+        shuffled[index] = shuffled[i];
+        shuffled[i] = temp;
+      }
+      return shuffled.slice(min);
+    },
+
+    /*
+     *创建问题
+     *作者：gzt
+     *时间：2020-11-29 01:18:08
+     */
+    create_questions() {
+      let _this = this;
+      var query = new this.ParseServer.Query("TestQuestions");
+      query.select("id", "type");
+      query.containedIn("subjects", this.exam_forms.subjects);
+      var reuqestions = {
+        1: [],
+        2: [],
+        3: []
+      };
+      var reuqestion_ids = [];
+      query.find().then(
+        response => {
+          if (response.length > 0) {
+            response.forEach((item, index) => {
+              reuqestions[item.get("type")].push(item.id);
+            });
+          }
+          // 随机计算试题
+          Object.keys(reuqestions).forEach(key => {
+            this.get_random_array_elements(
+              reuqestions[key],
+              this.exam_forms.options[parseInt(key) - 1].number
+            ).forEach(item => {
+              reuqestion_ids.push(item);
+            });
+          });
+          var Exampaper = _this.ParseServer.Object.extend("ExamPaper");
+          var exam_paper = new Exampaper();
+          if (_this.examid) {
+            exam_paper.set("id", _this.examid);
+          }
+          _this.exam_forms.questions = reuqestion_ids;
+          // 试卷的生成
+          Object.keys(_this.exam_forms).forEach(key => {
+            exam_paper.set(key, _this.exam_forms[key]);
+          });
+          exam_paper.save().then(
+            account => {
+              _this.$Message.success("保存成功");
+              _this.cancel();
+            },
+            error => {
+              _this.$Message.error("保存失败");
+            }
+          );
+        },
+        error => {
+          this.$Message.error("试题生成过程中出错");
+        }
+      );
+    },
+
     /*
      *新增试卷
      *作者：gzt
@@ -353,23 +496,7 @@ export default {
     save() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          var Exampaper = this.ParseServer.Object.extend("ExamPaper");
-          var exam_paper = new Exampaper();
-          if (this.examid) {
-            exam_paper.set("id", this.examid);
-          }
-          Object.keys(this.exam_forms).forEach(key => {
-            exam_paper.set(key, this.exam_forms[key]);
-          });
-          exam_paper.save().then(
-            account => {
-              this.$Message.success("保存成功");
-              this.cancel();
-            },
-            error => {
-              this.$Message.error("保存失败");
-            }
-          );
+          this.create_questions();
         } else {
           this.$Message.error("请检查数据的正确性");
         }

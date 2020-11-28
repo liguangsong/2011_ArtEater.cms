@@ -633,6 +633,7 @@ export default {
                 _this.question_datas=[]
                 if (list && list.length>0){
                     list.forEach((item)=>{
+                        console.log(item.get('subjects'))
                         _this.question_datas.push({
                             id: item.id,
                             subjects: item.get('subjects'),
