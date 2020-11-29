@@ -27,13 +27,50 @@
       </div>
       <Button @click="search" type="primary">搜索</Button>
     </div>
-    <div class="content"></div>
+    <div class="content">
+      <SingleQues
+        v-if="type == '1'"
+        :number="index + 1"
+        :question="item"
+        v-for="(item, index) in questions"
+        :add="true"
+        @add-question="add"
+        :key="index"
+      ></SingleQues>
+      <Multi
+        v-if="type == '2'"
+        :number="index + 1"
+        :question="item"
+        @add-question="add"
+        v-for="(item, index) in questions"
+        :add="true"
+        :key="index"
+      ></Multi>
+
+      <FillBlank
+        v-if="type == '3'"
+        :number="index + 1"
+        :question="item"
+        @add-question="add"
+        v-for="(item, index) in questions"
+        :add="true"
+        :key="index"
+      ></FillBlank>
+    </div>
   </Modal>
 </template>
 
 <script>
+import SingleQues from "./single/index";
+import Multi from "./multi/index";
+import FillBlank from "./fillblank/index";
 export default {
   name: "add-form",
+  components: {
+    SingleQues,
+    Multi,
+    FillBlank
+  },
   props: {
     windows: false
   },
@@ -76,7 +113,41 @@ export default {
      *作者：gzt
      *时间：2020-11-29 13:17:40
      */
-    search() {}
+    search() {
+      let _this = this;
+      var query = new this.ParseServer.Query("TestQuestions");
+      query.contains("title", this.exam_name);
+      var equle = new this.ParseServer.Query("TestQuestions");
+      equle.equalTo("type", parseInt(this.type));
+      var main_query = this.ParseServer.Query.and(query, equle);
+      main_query.find().then(
+        response => {
+          if (response.length) {
+            response.forEach(item => {
+              _this.questions.push({
+                id: item.id,
+                title: item.get("title"),
+                images: item.get("images"),
+                options: item.get("options"),
+                type: item.get("type"),
+                comments: item.get("comments")
+              });
+            });
+          }
+        },
+        error => {}
+      );
+    },
+
+    /*
+     *增加试题
+     *作者：gzt
+     *时间：2020-11-29 20:05:02
+     */
+    add(question_id, type) {
+      this.show_windows = false;
+      this.$emit("add-question", { question_id: question_id, type: type });
+    }
   }
 };
 </script>
@@ -97,6 +168,7 @@ export default {
 }
 
 .content {
+  padding-top: 20px;
   border-top: 1px solid #ddd;
   min-height: 200px;
 }

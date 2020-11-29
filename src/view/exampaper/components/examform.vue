@@ -473,7 +473,7 @@ export default {
             exam_paper.set(key, _this.exam_forms[key]);
           });
           exam_paper.save().then(
-            account => {
+            response => {
               _this.$Message.success("保存成功");
               _this.cancel();
             },

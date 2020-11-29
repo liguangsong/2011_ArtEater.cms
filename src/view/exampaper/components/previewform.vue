@@ -46,11 +46,7 @@
           v-if="questions['3'].length"
         />
       </TabPane>
-      <Button
-        @click="add_window = true"
-        size="small"
-        type="primary"
-        slot="extra"
+      <Button @click="add_window = true" type="primary" slot="extra"
         >添加</Button
       >
     </Tabs>
@@ -71,7 +67,13 @@ export default {
   name: "exam-preview-form",
   props: {
     windows: false,
-    examid: ""
+    examid: "",
+    question: {
+      type: Object,
+      default: function() {
+        return null;
+      }
+    }
   },
   data() {
     return {
@@ -154,6 +156,17 @@ export default {
       if (new_val) {
         this.$emit("add-window", new_val);
       }
+    },
+    /*
+     *试题
+     *作者：gzt
+     *时间：2020-11-29 20:13:38
+     */
+    question: {
+      handler: function(new_val, old_dal) {
+        this.add_question(new_val);
+      },
+      deep: true
     }
   },
 
@@ -217,14 +230,75 @@ export default {
     switch_value_3(page) {
       this.fillblank_page = page;
     },
-    submit() {},
+
+    /*
+     *提交保存
+     *作者：gzt
+     *时间：2020-11-29 20:41:39
+     */
+    submit() {
+      let _this = this;
+      var Exampaper = _this.ParseServer.Object.extend("ExamPaper");
+      var exam_paper = new Exampaper();
+      exam_paper.set("id", this.examid);
+      Object.keys(this.exam_forms).forEach(key => {
+        exam_paper.set(key, this.exam_forms[key]);
+      });
+      exam_paper.save().then(
+        response => {
+          _this.$Message.success("提交成功");
+          _this.show_windows = false;
+        },
+        error => {
+          _this.$Message.error("提交失败");
+        }
+      );
+    },
 
     /*
      *添加试题
      *作者：gzt
      *时间：2020-11-29 10:43:35
      */
-    add_question() {},
+    add_question(question) {
+      if (
+        this.exam_forms.questions.findIndex(
+          ent => ent == question.question_id
+        ) != -1
+      ) {
+        this.$Message.warning("该套试卷中以存在此题");
+        return;
+      }
+      let _this = this;
+      var query = new this.ParseServer.Query("TestQuestions");
+      query.get(question.question_id).then(response => {
+        _this.questions[response.get("type")].push({
+          id: response.id,
+          title: response.get("title"),
+          images: response.get("images"),
+          options: response.get("options"),
+          type: response.get("type"),
+          comments: response.get("comments")
+        });
+        _this.exam_forms.questions.push(response.id);
+        // 计算分数和题数
+        if (question.type == "1") {
+          // 单选
+          _this.exam_forms.options[0].number += 1;
+          _this.exam_forms.score += _this.exam_forms.options[0].score;
+        }
+        if (question.type == "2") {
+          // 多选
+          _this.exam_forms.options[1].number += 1;
+          _this.exam_forms.score += _this.exam_forms.options[1].score;
+        }
+        if (question.type == "3") {
+          // 填空
+          _this.exam_forms.options[2].number += 1;
+          _this.exam_forms.score += _this.exam_forms.options[2].score;
+        }
+      });
+    },
     /*
      *查询试题
      *作者：gzt
@@ -282,13 +356,13 @@ export default {
     computed_socre(type) {
       var score = 0;
       if (type == "单选") {
-        score = _this.exam_forms.options[0].score;
+        score = this.exam_forms.options[0].score;
       }
       if (type == "多选") {
-        score = _this.exam_forms.options[1].score;
+        score = this.exam_forms.options[1].score;
       }
       if (type == "填空") {
-        score = _this.exam_forms.options[2].score;
+        score = this.exam_forms.options[2].score;
       }
       var _score = this.exam_forms.score - score;
       if (_score < this.exam_forms.pass_score) {

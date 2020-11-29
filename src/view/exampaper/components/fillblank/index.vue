@@ -3,7 +3,9 @@
     <div class="title clear-fix">
       <p>{{ number }}. {{ question.title }}</p>
       <div>
-        <Button class="save" v-if="add" @click="del(question.id)">添加</Button>
+        <Button class="save" v-if="add" @click="add_question(question.id)"
+          >添加</Button
+        >
         <Button class="save" v-else @click="del(question.id)">删除</Button>
       </div>
     </div>
@@ -65,6 +67,9 @@ export default {
      */
     del(question_id) {
       this.$emit("del", question_id);
+    },
+    add_question(question_id) {
+      this.$emit("add-question", question_id, "3");
     }
   }
 };

@@ -51,11 +51,17 @@
     <PreviewForm
       :windows="preview_form"
       :examid="paper_id"
+      :question="question"
       @change-window="close_preview"
       @add-window="change_add_window"
     >
     </PreviewForm>
-    <AddForm :windows="add_window" @change-window="close_add_window"> </AddForm>
+    <AddForm
+      :windows="add_window"
+      @change-window="close_add_window"
+      @add-question="add_question"
+    >
+    </AddForm>
   </div>
 </template>
 
@@ -175,7 +181,11 @@ export default {
       ],
       exam_datas: [],
       subjectTreeData: [],
-      subjects: []
+      subjects: [],
+      question: {
+        question_id: "",
+        type: ""
+      }
     };
   },
   components: {
@@ -188,6 +198,16 @@ export default {
     this.page_list(this.page);
   },
   methods: {
+    /*
+     *添加试题
+     *作者：gzt
+     *时间：2020-11-29 20:08:00
+     */
+
+    add_question(question) {
+      this.question = question;
+    },
+
     close_add_window(value) {
       if (!value) {
         this.preview_form = true;
@@ -202,9 +222,6 @@ export default {
       }
     },
     change_add_window(value) {
-      console.log("**********************");
-      console.log(value);
-      console.log("**********************");
       this.preview_form = false;
       this.add_window = value;
     },
