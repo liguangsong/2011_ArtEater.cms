@@ -52,8 +52,10 @@
       :windows="preview_form"
       :examid="paper_id"
       @change-window="close_preview"
+      @add-window="change_add_window"
     >
     </PreviewForm>
+    <AddForm :windows="add_window" @change-window="close_add_window"> </AddForm>
   </div>
 </template>
 
@@ -61,6 +63,7 @@
 import { verification } from "@/api/verification";
 import ExalForm from "./components/examform";
 import PreviewForm from "./components/previewform";
+import AddForm from "./components/addform";
 import { tool } from "@/api/tool";
 export default {
   name: "exampaperindex",
@@ -71,6 +74,7 @@ export default {
       loading: true,
       paper_id: "",
       show_window: false,
+      add_window: false,
       preview_form: false,
       search_keyword: "",
       search_role: "",
@@ -176,20 +180,33 @@ export default {
   },
   components: {
     ExalForm,
-    PreviewForm
+    PreviewForm,
+    AddForm
   },
   mounted() {
     this.bindSubjectTree();
     this.page_list(this.page);
   },
   methods: {
+    close_add_window(value) {
+      if (!value) {
+        this.preview_form = true;
+      }
+      this.add_window = value;
+    },
     close_preview(value) {
       if (!value) {
         this.preview_form = value;
-        console.log(11111);
         this.paper_id = "";
         this.page_list();
       }
+    },
+    change_add_window(value) {
+      console.log("**********************");
+      console.log(value);
+      console.log("**********************");
+      this.preview_form = false;
+      this.add_window = value;
     },
     change_window(value) {
       if (!value) {

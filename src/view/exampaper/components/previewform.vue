@@ -2,42 +2,13 @@
   <Modal v-model="show_windows" :title="window_title" width="700px">
     <Tabs v-if="ready">
       <TabPane label="单选题">
-        <div v-for="(item, index) in singles" :key="index" class="question">
-          <div class="title clear-fix">
-            <p>
-              {{ parseInt((single_page - 1) * 10 + parseInt(index + 1)) }}.
-              <span>(单选)</span>{{ item.title }}
-            </p>
-            <div>
-              <Button class="save" @click="del">删除</Button>
-            </div>
-          </div>
-
-          <div v-if="item.images">
-            <Avatar
-              shape="square"
-              :src="url"
-              size="large"
-              v-for="(url, i) in item.images.split(',')"
-              :key="i"
-            />
-          </div>
-          <div class="option-wraps">
-            <p
-              class="option"
-              v-for="(option, option_index) in item.options"
-              :key="option_index"
-            >
-              <Radio v-model="option.value != ''" disable>{{
-                option.content
-              }}</Radio>
-            </p>
-          </div>
-          <div class="parsing clear-fix">
-            <p>解析:</p>
-            <div v-html="item.comments"></div>
-          </div>
-        </div>
+        <SingleQues
+          :question="item"
+          :number="parseInt((single_page - 1) * 10 + parseInt(index + 1))"
+          v-for="(item, index) in singles"
+          :key="index"
+          @del="del"
+        ></SingleQues>
         <Page
           :page-size="page_size"
           :total="questions['1'].length"
@@ -45,8 +16,43 @@
           v-if="questions['1'].length"
         />
       </TabPane>
-      <TabPane label="多选题"></TabPane>
-      <TabPane label="填空题"></TabPane>
+      <TabPane label="多选题">
+        <Multi
+          :question="item"
+          :number="parseInt((multis_page - 1) * 10 + parseInt(index + 1))"
+          v-for="(item, index) in multis"
+          :key="index"
+          @del="del"
+        ></Multi>
+        <Page
+          :page-size="page_size"
+          :total="questions['2'].length"
+          @on-change="switch_value_2"
+          v-if="questions['2'].length"
+        />
+      </TabPane>
+      <TabPane label="填空题">
+        <FillBlank
+          :question="item"
+          :number="parseInt((fillblank_page - 1) * 10 + parseInt(index + 1))"
+          v-for="(item, index) in fillblanks"
+          :key="index"
+          @del="del"
+        ></FillBlank>
+        <Page
+          :page-size="page_size"
+          :total="questions['3'].length"
+          @on-change="switch_value_3"
+          v-if="questions['3'].length"
+        />
+      </TabPane>
+      <Button
+        @click="add_window = true"
+        size="small"
+        type="primary"
+        slot="extra"
+        >添加</Button
+      >
     </Tabs>
     <div slot="footer" class="footer-wrap">
       <Button class="save" @click="submit" type="primary" size="large"
@@ -58,6 +64,9 @@
 
 <script>
 import { verification } from "@/api/verification";
+import SingleQues from "./single/index";
+import Multi from "./multi/index";
+import FillBlank from "./fillblank/index";
 export default {
   name: "exam-preview-form",
   props: {
@@ -66,11 +75,14 @@ export default {
   },
   data() {
     return {
-      page_size: 3,
+      page_size: 10,
       show_windows: false,
       window_title: "预览组卷",
       ready: false,
+      add_window: false,
       single_page: 1,
+      multis_page: 1,
+      fillblank_page: 1,
       questions: {
         1: [],
         2: [],
@@ -105,10 +117,18 @@ export default {
       }
     };
   },
-  computed: {},
+  components: {
+    SingleQues,
+    Multi,
+    FillBlank
+  },
 
   watch: {
     windows: function(new_val, old) {
+      if (new_val) {
+        this.add_window = false;
+      }
+
       this.show_windows = new_val;
     },
     show_windows: function(new_val, old_val) {
@@ -124,6 +144,16 @@ export default {
         this.ready = false;
         this.get_entity();
       }
+    },
+    /*
+     *添加窗口
+     *作者：gzt
+     *时间：2020-11-29 12:06:10
+     */
+    add_window: function(new_val, old_val) {
+      if (new_val) {
+        this.$emit("add-window", new_val);
+      }
     }
   },
 
@@ -137,8 +167,38 @@ export default {
       var questions = this.questions["1"];
       if (questions.length > 0) {
         return questions.slice(
-          (this.single_page - 1) * 3,
-          this.single_page * 3
+          (this.single_page - 1) * this.page_size,
+          this.single_page * this.page_size
+        );
+      }
+      return [];
+    },
+    /*
+     *多选
+     *作者：gzt
+     *时间：2020-11-29 09:40:47
+     */
+    multis() {
+      var questions = this.questions["2"];
+      if (questions.length > 0) {
+        return questions.slice(
+          (this.multis_page - 1) * this.page_size,
+          this.multis_page * this.page_size
+        );
+      }
+      return [];
+    },
+    /*
+     *填空题
+     *作者：gzt
+     *时间：2020-11-29 09:41:28
+     */
+    fillblanks() {
+      var questions = this.questions["3"];
+      if (questions.length > 0) {
+        return questions.slice(
+          (this.fillblank_page - 1) * this.page_size,
+          this.fillblank_page * this.page_size
         );
       }
       return [];
@@ -151,9 +211,20 @@ export default {
     switch_value_1(page) {
       this.single_page = page;
     },
-
+    switch_value_2(page) {
+      this.multis_page = page;
+    },
+    switch_value_3(page) {
+      this.fillblank_page = page;
+    },
     submit() {},
 
+    /*
+     *添加试题
+     *作者：gzt
+     *时间：2020-11-29 10:43:35
+     */
+    add_question() {},
     /*
      *查询试题
      *作者：gzt
@@ -183,6 +254,11 @@ export default {
      *时间：2020-11-22 09:21:48
      */
     get_entity() {
+      this.questions = {
+        1: [],
+        2: [],
+        3: []
+      };
       let _this = this;
       var query = new this.ParseServer.Query("ExamPaper");
       query.get(this.examid).then(
@@ -199,54 +275,71 @@ export default {
     },
 
     /*
+     *计算删除后的分数
+     *作者：gzt
+     *时间：2020-11-29 11:26:58
+     */
+    computed_socre(type) {
+      var score = 0;
+      if (type == "单选") {
+        score = _this.exam_forms.options[0].score;
+      }
+      if (type == "多选") {
+        score = _this.exam_forms.options[1].score;
+      }
+      if (type == "填空") {
+        score = _this.exam_forms.options[2].score;
+      }
+      var _score = this.exam_forms.score - score;
+      if (_score < this.exam_forms.pass_score) {
+        return false;
+      }
+      this.exam_forms.score = _score;
+      return true;
+    },
+
+    /*
      *试题id
      *作者：gzt
      *时间：2020-11-29 04:14:11
      */
-    del(question_id) {
-      console.log(question_id);
+    del(question_id, type) {
+      let _this = this;
+      this.$Modal.confirm({
+        title: "删除提示",
+        content: "<p>确定要删除该试题吗？</p>",
+        onOk: () => {
+          var result = this.computed_socre(type);
+          if (!result) {
+            this.$Message.error("删除后将低于及格分");
+            return;
+          }
+          Object.keys(_this.questions).forEach(key => {
+            _this.questions[key].forEach((item, index) => {
+              if (item.id == question_id) {
+                _this.questions[key].splice(index, 1);
+              }
+            });
+          });
+          _this.exam_forms.questions.forEach((item, index) => {
+            if (item == question_id) {
+              _this.exam_forms.questions.splice(index, 1);
+            }
+          });
+        },
+        onCancel: () => {
+          this.$Message.info("取消了操作");
+        }
+      });
+      console.log("------------------");
+      console.log(this.exam_forms);
+      console.log("------------------");
     }
   }
 };
 </script>
 
 <style lang="less" scoped>
-.question {
-  margin: 20px 5px;
-  color: #666;
-  font-size: 16px;
-  .title {
-    margin-bottom: 20px;
-    p {
-      float: left;
-      width: 80%;
-    }
-    div {
-      float: left;
-      width: 20%;
-    }
-
-    .option {
-      margin: 10px;
-    }
-  }
-  .option-wraps {
-    margin: 10px 0;
-  }
-  .parsing {
-    margin: 10px 0;
-    p {
-      float: left;
-      width: 7%;
-      color: #333;
-    }
-    div {
-      float: left;
-      width: 93%;
-    }
-  }
-}
-
 .footer-wrap {
   text-align: center;
 }
