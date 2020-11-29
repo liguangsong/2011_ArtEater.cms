@@ -30,7 +30,7 @@
                 </template>
             </Table>
             <div class="page-wrap">
-                <Page :total="total" @on-change="page_list"  v-if="total!=0" />
+                <Page :total="total" @on-change="pagechange"  v-if="total!=0" />
             </div>
         </Row>
          <Modal v-model="show_window"
@@ -351,8 +351,12 @@ export default {
                 subjects: row.subjects,
                 comments: row.comments
             }
-            this.rightMultiAnswer = []
-            this.rightAnswer = ''
+            row.options.forEach((item)=>{
+                if(item.value=='1'){
+                    this.rightMultiAnswer.push(item.code)
+                    this.rightAnswer = item.code
+                }
+            })
             this.$refs['form'].validate()
         },
         /**
@@ -408,10 +412,13 @@ export default {
         changeAnswer() {
             var self = this
             self.question_form.options.forEach((_item,_index)=>{
-                if(_item.code == self.rightAnswer&&self.question_form.type==1){
-                    _item.value='1'
-                }
-                if(self.question_form.type == 2) {
+                if(self.question_form.type==1) {
+                    if(_item.code == self.rightAnswer){
+                        _item.value='1'
+                    } else {
+                        _item.value=''
+                    }
+                } else if(self.question_form.type == 2) {
                     if(self.rightMultiAnswer.indexOf(_item.code) != -1){
                         _item.value='1'
                     } else {
@@ -613,14 +620,18 @@ export default {
         */
         search(){
             this.page=1
-           this.page_list(this.page) 
+            this.page_list(this.page)
+        },
+        pagechange(e){
+            this.page = e
+            this.page_list(this.page) 
         },
         /*
         *分页加载数据
         *作者：gzt
         *时间：2020-11-21 23:30:27
         */
-        page_list(page_index){
+        page_list(){
             let _this=this
             let query = new this.ParseServer.Query('TestQuestions')
             query.descending("createdAt")

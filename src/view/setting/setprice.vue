@@ -11,6 +11,12 @@
                 <template slot-scope="{ row }" slot="isNeedPay">
                     {{row.isNeedPay==1?'是':'否'}}
                 </template>
+                <template slot-scope="{ row }" slot="price">
+                    {{row.price?row.price:'---'}}
+                </template>
+                <template slot-scope="{ row }" slot="updatedAt">
+                    {{toDateFormat(row.updatedAt)}}
+                </template>
                 <template slot-scope="{ row }" slot="action">
                     <Button type="warning" size="small" style="margin-right:5px" @click="EditFormShow(row)">编辑</Button>
                 </template>
@@ -47,6 +53,7 @@
 </template> 
 
 <script>
+import { tool } from '@/api/tool'
 import { verification } from '@/api/verification'
 export default {
     name: "subjectsmanageindex",
@@ -57,8 +64,8 @@ export default {
                 { title: '页面',key: 'page'},
                 { title: '功能名称', key: 'action'},
                 { title: "是否收费", key: 'isNeedPay',slot: 'isNeedPay'},
-                { title: "收费金额（元）", key: 'price'},
-                { title: "更新时间", key: 'updatedAt'},
+                { title: "收费金额（元）", key: 'price', slot: 'price', align: 'center'},
+                { title: "更新时间", key: 'updatedAt', slot: 'updatedAt'},
                 { title: "更新人", key: 'updatedBy'},
                 { title: '操作', key: 'action',slot:'action' }
             ],
@@ -101,7 +108,9 @@ export default {
         this.page_list()
     },
     methods: {
-
+        toDateFormat(date) {
+            return tool.dateFormat(date,'yyyy-MM-dd HH:mm:ss')
+        },
         /**
          * 弹出编辑窗口
          */
@@ -166,6 +175,7 @@ export default {
                                     action:item.get('action'),
                                     isNeedPay: item.get('isNeedPay'),
                                     price: item.get('price'),
+                                    updatedAt: item.get('updatedAt'),
                                     updatedBy: item.get('updatedBy')
                                 })
                             })
@@ -205,6 +215,7 @@ export default {
                                 action: res.get('action'),
                                 isNeedPay: res.get('isNeedPay'),
                                 price: res.get('price'),
+                                updatedAt: item.get('updatedAt'),
                                 updatedBy: res.get('updatedBy')
                             })
                             _this.loading=false
