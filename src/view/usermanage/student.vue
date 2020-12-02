@@ -209,7 +209,7 @@ export default {
      */
     page_list (page_index) {
       this.loading = true;
-      let query = new this.ParseServer.Query("UserInfo");
+      let query = new this.ParseServer.Query(this.ParseServer.User);
       query.descending("createdAt");
       if (this.search_keyword) {
         query.startWith("realname", this.search_keyword);
@@ -217,6 +217,8 @@ export default {
       query.count().then(count => {
         this.total = count;
       });
+      query.equalTo('role', 'student')
+      query.descending('createdAt')
       query.skip((this.page - 1) * 10);
       query.limit(10);
 
@@ -255,7 +257,7 @@ export default {
         title: "删除提示",
         content: "<p>删除用户后，用户将无法使用系统，确定要删除吗？</p>",
         onOk: () => {
-          var query = new this.ParseServer.Query("UserInfo");
+          var query = new this.ParseServer.Query(this.ParseServer.User);
           query.get(user_id).then(
             response => {
               // 删除用户

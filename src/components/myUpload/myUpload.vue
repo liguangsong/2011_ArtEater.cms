@@ -1,11 +1,12 @@
 <template>
-    <div>
-        <div @click="before_upload" class="ivu-upload ivu-upload-drag" style="width:58px;">
+    <div style="display:flex;margin-top:5px">
+        <div @click="before_upload" class="ivu-upload ivu-upload-drag" style="width:38px;">
             <input @change="processFiles()" ref="uploader" type="file" class="ivu-upload-input" />
-            <div style="width: 58px; height: 58px; line-height: 58px;">
+            <div style="width: 38px; height: 38px; line-height: 38px;">
                 <i class="ivu-icon ivu-icon-ios-camera" style="font-size: 20px;"></i>
             </div>
         </div>
+        <div style="margin-left:10px;color:#808695" v-if="tips">{{tips}}</div>
     </div>
 </template>
 
@@ -19,6 +20,10 @@ export default {
         multiple: {
             type: Boolean,
             default: false
+        },
+        tips:{
+            type: String,
+            default: ''
         }
     },
     data() {
@@ -32,12 +37,14 @@ export default {
         processFiles(e){
             var files = this.$refs.uploader.files
             var name = "photo.jpg";
-            var parseFile = new this.ParseServer.File(name, files[0].File);
-            if(parseFile._url){
-                this.$emit('complate', parseFile._url)
-            } else {
-                this.$Message.error("上传失败");
-            }
+            var parseFile = new this.ParseServer.File(name, files[0]);
+            parseFile.save().then(res=>{
+                if(res._url){
+                    this.$emit('complate', res._url)
+                } else {
+                    this.$Message.error("上传失败");
+                }
+            })
         }
     },
     mounted() {

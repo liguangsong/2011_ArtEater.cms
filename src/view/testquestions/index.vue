@@ -51,7 +51,11 @@
                     </RadioGroup>
                 </FormItem>
                 <FormItem label="试题图片">
-                    <myUpload></myUpload>
+                    <div>
+                        <!-- <img v-if="form.Pic" :src="basePath + form.Pic" width="100" height="100" /> -->
+                        <img v-if="question_form.images" :src="question_form.images" width="200" height="150"/>
+                    </div>
+                    <myUpload @complate="handleUploadComplate"></myUpload>
                 </FormItem>
                 <FormItem label="题干" prop="title">
                     <Tooltip :disabled="question_form.type!=3" placement="top" style="width:100%">
@@ -239,7 +243,7 @@ export default {
             question_form:{
                 title: '',
                 isImportant: 0,
-                imaegs:"",
+                images:"",
                 options:[
                     { code:'A',content:'',value:'' },
                     { code:'B',content:'',value:'' },
@@ -280,12 +284,7 @@ export default {
         }
     },
     computed:{
-        images(){
-            if (this.question_form.imaegs!=""){
-                return this.question_form.images.split(',')
-            }
-            return []
-        }
+        
     },
     mounted() {
         var self = this
@@ -296,7 +295,11 @@ export default {
         var query = new this.ParseServer.Query("TestQuestions")
         query.descending('createdAt')
         query.first().then(res=>{
-            self.maxIndex = res.get('index')?res.get('index'):0
+            if(res){
+                self.maxIndex = res.get('index')
+            } else {
+                self.maxIndex = 0
+            }
         })
     },
     methods: {
@@ -308,7 +311,7 @@ export default {
             this.question_form = {
                 title: '',
                 isImportant: 0,
-                imaegs:"",
+                images:"",
                 options:[
                     { code:'A',content:'',value:'' },
                     { code:'B',content:'',value:'' },
@@ -329,7 +332,7 @@ export default {
             this.question_form = {
                 title: row.title,
                 isImportant: row.isImportant,
-                imaegs: row.images,
+                images: row.images,
                 options: row.options,
                 oldType: row.type,
                 type: row.type,
@@ -344,7 +347,7 @@ export default {
                 id: row.id,
                 title: row.title,
                 isImportant: row.isImportant,
-                imaegs: row.images,
+                images: row.images,
                 options: row.options,
                 oldType: row.type,
                 type: row.type,
@@ -504,6 +507,12 @@ export default {
                 code:'A',content:'',value:[{txt:''}]
             })
         },
+        /**
+         * 图片上传完成
+         */
+        handleUploadComplate(url){
+            this.question_form.images = url
+        },
         /*
         * 取消操作
         *作者：gzt
@@ -575,6 +584,7 @@ export default {
         bindSubjectTree(){
             var self = this
             var query = new this.ParseServer.Query("Subjects")
+            query.ascending('createdAt')
             query.find().then(res=>{
                 this.subjects = res
                 var tree = self.initSubjectTree(res,'0')
@@ -648,6 +658,7 @@ export default {
                         _this.question_datas.push({
                             id: item.id,
                             subjects: item.get('subjects'),
+                            images: item.get('images'),
                             type: item.get('type'),
                             title: item.get("title"),
                             options: item.get('options'),

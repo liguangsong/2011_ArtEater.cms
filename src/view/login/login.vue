@@ -46,11 +46,28 @@ export default {
     handleSubmit ({userName, password}) {
       sessionStorage.setItem('userType', this.userTypes)
       this.$Loading.finish()
-          sessionStorage.setItem('UserInfo', JSON.stringify({token: "123131", Id: 1, userAccount: "admin", headIcon:"12131", realName:"管理员", loginName: "admin"}))
-          this.$Message.success('登录成功跳转')
-          this.$router.push({
-            name: 'index'
-          })
+      
+      this.ParseServer.User.logIn(userName, password).then(user=>{
+            // sessionStorage.setItem('UserInfo', JSON.stringify(user))
+            // var Post = this.ParseServer.Object.extend("UserInfo");
+            // var publicPost = new Post();
+            // var postACL = new this.ParseServer.ACL(this.ParseServer.User.current());
+            // postACL.setPublicWriteAccess(true);
+            // publicPost.setACL(postACL);
+            // publicPost.save().then(t=>{
+            //   debugger
+            // },(e)=>{
+            //   debugger
+            // })
+            sessionStorage.setItem('UserInfo', JSON.stringify({token: user.get('sessionToken'), Id: user.id, userAccount: user.get('username'), headIcon:"", realName:user.get('username'), loginName: user.get('username')}))
+            this.$Message.success('登录成功跳转')
+            this.$router.push({
+              name: 'index'
+            })
+      },(user,error)=>{
+        this.$Message.error('登录失败，请检查您的用户名密码')
+      })
+      // sessionStorage.setItem('UserInfo', JSON.stringify({token: "123131", Id: 1, userAccount: "admin", headIcon:"12131", realName:"管理员", loginName: "admin"}))
     }
   }
 }

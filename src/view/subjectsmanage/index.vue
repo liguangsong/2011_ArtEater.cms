@@ -9,7 +9,7 @@
                 <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
             </div>
             <div style="width:100px;text-align:right">
-                <Button type="success" @click="addSubject">新增科目</Button>
+                <Button type="primary" @click="addSubject">新增科目</Button>
             </div>
         </div>
         <Row class="table-wrap">
@@ -59,6 +59,12 @@
                         </div>
                     </div>
                 </FormItem>
+                <FormItem v-if="subject_form.level==0" label="背景图">
+                    <div>
+                        <img v-if="subject_form.backgroundImg" :src="subject_form.backgroundImg" width="168" height="76"/>
+                    </div>
+                    <myUpload @complate="handleUploadComplate" tips="（推荐尺寸504*228）"></myUpload>
+                </FormItem>
             </Form>
          </Modal>
          <Modal v-model="isShowContentForm" :title="window_title" width="800" @on-ok="saveContent()">
@@ -70,8 +76,13 @@
 <script>
 import Editor from "@/components/editor"
 import { verification } from '@/api/verification'
+import myUpload from "@/components/myUpload"
 export default {
     name: "subjectsmanageindex",
+    components:{
+        Editor,
+        myUpload
+    },
     data() {
         var self = this
         return {
@@ -83,11 +94,11 @@ export default {
             currLevel:0,
             currParent: {
                 id:'0',
-                price:''
+                price: 0
             },
             route:[{
                 id:'0',
-                price:''
+                price: 0
             }],
             columns: [
                     {
@@ -119,8 +130,10 @@ export default {
             subject_form:{
                 subject_name:'',
                 subject_ID:'',
+                backgroundImg: '',
                 free:false,
-                price: '0',
+                level: 0,
+                price: 0,
                 content:'',
                 has_down_level:false,
                 parent_ID:'0'
@@ -155,9 +168,6 @@ export default {
             window_title:"新增科目"
         }
     },
-      components:{
-        Editor
-    },
     computed:{
         show_price(){
             return this.subject_form.free
@@ -182,20 +192,34 @@ export default {
         *时间：2020-11-22 09:21:48
         */
         get_entity(){
+            var self = this
             var query = new this.ParseServer.Query("Subjects")
             query.get(this.subjectid).then(res=>{
-                Object.keys(this.subject_form).forEach(key => {
-                    this.subject_form[key]=res.get(key)
-                    
+                Object.keys(self.subject_form).forEach(key => {
+                    self.subject_form[key]=res.get(key)
                 })
-                this.subject_form.free = res.get('price') && parseFloat(res.get('price'))>0
-                this.old_price=res.get("price")==null?0:res.get("price")
+                self.subject_form.free = (res.get('price') > 0)
+                self.old_price=res.get("price")==null?0:res.get("price")
             })
         },
         /** 弹出添加科目弹框 */
         addSubject(){
+            this.subject_form = {
+                subject_name:'',
+                subject_ID:'',
+                backgroundImg: '',
+                free:false,
+                level: this.currLevel,
+                price: 0,
+                content:'',
+                has_down_level:false,
+                parent_ID:'0'
+            }
             this.window_title="添加科目"
             this.isShowAddForm=true
+        },
+        handleUploadComplate(url){
+            this.subject_form.backgroundImg = url
         },
         /**
          * 弹出编辑窗口
@@ -218,6 +242,7 @@ export default {
         /** 查看上一级 */
         ShowParents(row){
             this.route.pop()
+            this.currLevel -= 1
             this.currParent = this.route[this.route.length-1]
             this.page_list(1)
         },
@@ -266,8 +291,9 @@ export default {
                     return false
                 } else {
                     subject.set('subject_name', self.subject_form.subject_name)
+                    subject.set('backgroundImg', self.subject_form.backgroundImg)
                     subject.set("content", '')
-                    subject.set("price", self.subject_form.price)
+                    subject.set("price", parseFloat(self.subject_form.price))
                     subject.set("level", self.currLevel)
                     subject.set("parent_ID",self.currParent.id)
                     subject.set("has_down_level",self.subject_form.has_down_level)
@@ -275,14 +301,14 @@ export default {
                         if (self.currParent.id!="0"||self.currParent.id!=0){
                             self.updateParentPrice(self.currParent.id)
                         }else{
-                            this.$Message.success('保存成功')
-                            this.page_list(1)
-                            this.cancel()
+                            self.$Message.success('保存成功')
+                            self.page_list(1)
+                            self.cancel()
                         }
 
                     },(error)=>{
                         console.log(error)
-                        this.$Message.error('保存失败')
+                        self.$Message.error('保存失败')
                     })
                 }
             })
@@ -297,12 +323,12 @@ export default {
                 let price = 0
                 childrens.forEach((_item, _index)=>{
                     hasChildren = true
-                    price += parseFloat(_item.get('price'))
+                    price += _item.get('price')
                 })
                 var query1 = new self.ParseServer.Query("Subjects")
                 query1.get(parentId).then((parent)=>{
                     parent.set("has_down_level", hasChildren)
-                    parent.set("price", '' + price.toFixed(2))
+                    parent.set("price", parseFloat(price.toFixed(2)))
                     parent.save().then((result)=>{
                         if(parent.get('parent_ID')!='0'){
                             self.updateParentPrice(parent.get('parent_ID'))
@@ -355,6 +381,7 @@ export default {
         page_list(page_index){
             let _this=this
             let query = new this.ParseServer.Query('Subjects')
+            query.ascending('createdAt')
             query.equalTo('parent_ID', this.currParent.id)
             query.count().then(count=>{
                 _this.total=count
@@ -370,7 +397,7 @@ export default {
                             subject_name:item.get("subject_name"),
                             parent_ID:item.get("parent_ID"),
                             subject_ID:item.get("subject_ID"),
-                            price:item.get("price"),
+                            price: parseFloat(item.get("price")),
                             level: item.get('level'),
                             content: item.get('content'),
                             has_down_level: item.get('has_down_level')

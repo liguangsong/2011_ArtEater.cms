@@ -1,6 +1,6 @@
 <template>
   <div class="newsEdit">
-    <Upload
+    <!-- <Upload
         id="iviewUp"
         ref="upload"
       :show-upload-list="false"
@@ -15,6 +15,9 @@
           <Icon type="ios-camera" size="50"></Icon>
       </div>
     </Upload>
+     -->
+    <!-- <myUpload @complate="handleUploadComplate"></myUpload> -->
+    <input id="iviewUp" @change="handleUploadComplate()" ref="uploader" type="file" class="ivu-upload-input" style="display:none" />
     <quillEditor
         class="quillEditor"
       v-model="content"
@@ -29,18 +32,26 @@
 <script>
 // 富文本编辑器
 // import "quill/dist/quill.core.css";
+import myUpload from "@/components/myUpload"
 import "quill/dist/quill.snow.css";
 // import "quill/dist/quill.bubble.css";
 import { quillEditor } from "vue-quill-editor";
 const toolbarOptions = [
-  ["bold", "italic", "underline", "strike"],
-  [{ color: ["red", "blue", "black"] }, { background: ["white", "black"] }],
+   ['bold', 'italic', 'underline', 'strike'], //加粗，斜体，下划线，删除线
+  [{'list': 'ordered'}, {'list': 'bullet'}], //列表
+  [{'script': 'sub'}, {'script': 'super'}],// 上下标
+  [{'indent': '-1'}, {'indent': '+1'}],// 缩进
+  [{'direction': 'rtl'}],// 文本方向
+  [{'header': [1, 2, 3, 4, 5, 6, false]}],//几级标题
+  [{'color': []}, {'background': []}],// 字体颜色，字体背景颜色
+  [{'align': []}], //对齐方式
   ["image"],
   ["clean"], // remove formatting button
 ];
 export default {
   name: "NewsEdit",
   components: {
+    myUpload,
     quillEditor,
   },
   props: {
@@ -68,7 +79,7 @@ export default {
             handlers: {
               image: function (value) {
                 if (value) {
-                  document.querySelector("#iviewUp input").click();
+                  document.querySelector("#iviewUp").click();
                 } else {
                   this.quill.format("image", false);
                 }
@@ -101,24 +112,28 @@ export default {
       // this.content = this.value
     },
     //富文本 自定义图片上传 
-    handleSingleSuccess(res) {
-      console.log(res);
-      let vm = this;
-      let quill = this.$refs.myQuillEditor.quill;
-      console.log("res---", vm.$refs.myQuillEditor.quill.getSelection());
-      // 如果上传成功
-      if (res.code === 200) {
-        // 获取光标所在位置
-        let length = quill.getSelection().index;
-        // 插入图片 res.info为服务器返回的图片地址
-        quill.insertEmbed(length, "image", res.msg);
-        // 调整光标到最后
-        quill.setSelection(length + 1);
-      } else {
-        vm.$Message.error("图片插入失败");
-      }
-      // loading动画消失
-      this.quillUpdateImg = false;
+    handleUploadComplate(e) {
+      let self = this;
+      var files = this.$refs.uploader.files
+      var name = "photo.jpg";
+      var parseFile = new this.ParseServer.File(name, files[0]);
+      parseFile.save().then(res=>{
+          if(res._url){
+            let quill = self.$refs.myQuillEditor.quill;
+            // 如果上传成功
+            
+              // 获取光标所在位置
+            let length = quill.getSelection().index;
+            // 插入图片 res.info为服务器返回的图片地址
+            quill.insertEmbed(length, "image", res._url);
+            // 调整光标到最后
+            quill.setSelection(length + 1);
+            // loading动画消失
+            self.quillUpdateImg = false;
+          } else {
+              self.$Message.error("上传失败");
+          }
+      })
     },
   },
   watch: {
