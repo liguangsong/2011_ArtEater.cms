@@ -29,36 +29,47 @@
       </div>
     </Row>
     <Modal v-model="show_window" :title="window_title" @on-ok="cancel">
-      <Form :model="user_forms" label-position="right" :label-width="80">
-        <FormItem label="头像">
-          <Avatar icon="ios-person" size="large" v-if="user_forms.avatarUrl != ''" />
-          <Avatar v-else :src="user_forms.avatarUrl" size="large" />
-        </FormItem>
-        <FormItem label="昵称">
-          <div>{{ user_forms.nickName }}</div>
-        </FormItem>
-        <FormItem label="姓名">
-          <div>{{ user_forms.realname }}</div>
-        </FormItem>
-        <FormItem label="手机号">
-          <div>{{ user_forms.phone }}</div>
-        </FormItem>
-        <FormItem label="报考专业">
-          <div>{{ user_forms.speciality }}</div>
-        </FormItem>
-        <FormItem label="目标院校">
-          <div>{{ user_forms.university }}</div>
-        </FormItem>
-        <FormItem label="所在地区">
-          <div>{{ user_forms.proviceName }}</div>
-        </FormItem>
-        <FormItem label="消费金额(元)">
-          <div>{{ user_forms.amount }}</div>
-        </FormItem>
-        <FormItem label="积分">
-          <div>{{ user_forms.score }}</div>
-        </FormItem>
-      </Form>
+      <div class="form" :model="user_forms" label-position="right" :label-width="120">
+        <div class="myFormShow">
+          <div class="head">头像</div>
+          <div class="cont">
+            <Avatar shape="circle" icon="ios-person" size="large" v-if="user_forms.avatarUrl == ''" />
+            <img v-else :src="user_forms.avatarUrl" style="width:50px;height:50px;border-radius:50%">
+          </div>
+        </div>
+        <div class="myFormShow">
+          <div class="head">昵称</div>
+          <div class="cont">{{ user_forms.nickName }}</div>
+        </div>
+        <div class="myFormShow">
+          <div class="head">姓名</div>
+          <div class="cont">{{ user_forms.realname }}</div>
+        </div>
+        <div class="myFormShow">
+          <div class="head">手机号</div>
+          <div class="cont">{{ user_forms.phone }}</div>
+        </div>
+        <div class="myFormShow">
+          <div class="head">报考专业</div>
+          <div class="cont">{{ user_forms.speciality }}</div>
+        </div>
+        <div class="myFormShow">
+          <div class="head">目标院校</div>
+          <div class="cont">{{ user_forms.university }}</div>
+        </div>
+        <div class="myFormShow">
+          <div class="head">所在地区</div>
+          <div class="cont">{{ user_forms.proviceName+'-'+ user_forms.cityName}}</div>
+        </div>
+        <div class="myFormShow">
+          <div class="head">消费金额(元)</div>
+          <div class="cont">{{ user_forms.amount }}</div>
+        </div>
+        <div class="myFormShow">
+          <div class="head">积分</div>
+          <div class="cont">{{ user_forms.score }}</div>
+        </div>
+      </div>
     </Modal>
   </div>
 </template>
@@ -78,34 +89,13 @@ export default {
       search_start_date: "",
       search_end_date: "",
       columns: [
-        {
-          title: "昵称",
-          key: "nickName"
-        },
-        {
-          title: "姓名",
-          key: "realname"
-        },
-        {
-          title: "手机号",
-          key: "phone"
-        },
-        {
-          title: "注册时间",
-          key: "registration_time"
-        },
-        {
-          title: "消费金额",
-          key: "amount"
-        },
-        {
-          title: "积分",
-          key: "score"
-        },
-        {
-          title: "操作",
-          key: "action",
-          align: "center",
+        { title: "昵称", key: "nickName"},
+        { title: "姓名",key: "realname"},
+        { title: "手机号", key: "phone" },
+        { title: "注册时间", key: "registration_time"},
+        { title: "消费金额", key: "amount"},
+        { title: "积分", key: "score" },
+        { title: "操作", key: "action", align: "center",
           render: (h, params) => {
             var button = [
               h(
@@ -158,11 +148,12 @@ export default {
         phone: "",
         amount: "",
         score: "",
-        avatarUrl: "",
         speciality: "",
         university: "",
+        cityName: "",
         proviceName: "",
-        registration_time: ""
+        registration_time: "",
+        avatarUrl:''
       }
     };
   },
@@ -185,10 +176,11 @@ export default {
      *时间：2020-11-22 09:21:48
      */
     get_entity () {
-      var query = new this.ParseServer.Query("UserInfo");
-      query.get(this.user_id).then(response => {
-        Object.keys(this.user_forms).forEach(key => {
-          this.user_forms[key] = response.get(key);
+      var self= this
+      var query = new this.ParseServer.Query(this.ParseServer.User);
+      query.get(self.user_id).then(response => {
+        Object.keys(self.user_forms).forEach(key => {
+          self.user_forms[key] = response.get(key);
         });
       });
     },
@@ -234,6 +226,7 @@ export default {
                 phone: item.get("phone"),
                 amount: item.get("amount"),
                 score: item.get("score"),
+                avatarUrl: item.get('avatarUrl'),
                 registration_time: item.get("registration_time")
               };
               return account;
@@ -332,5 +325,29 @@ export default {
     float: left;
     text-align: center;
   }
+}
+.form .myFormShow{
+  min-height: 30px;
+  line-height: 30px;
+  display: flex;
+}
+
+.myFormShow .head{
+  width: 230px;
+  text-align: right;
+  font-size: 14px;
+  font-weight: bold;
+  padding-right: 10px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.myFormShow .cont{
+  flex: 1;
+  text-align: left;
+  font-size: 14px;
+  padding-left: 10px;
+}
+.form .myFormShow:first-child .head{
+  line-height:50px
 }
 </style>

@@ -180,13 +180,16 @@ export default {
           }
           message.set("title", this.message_form.title);
           message.set("content", this.message_form.content);
+          debugger
           message.save().then(
             response => {
+              debugger
               this.$Message.success("保存成功");
               this.cancel();
               this.page_list(this.page);
             },
             error => {
+              debugger
               this.$Message.error("保存失败");
             }
           );

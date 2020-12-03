@@ -29,6 +29,7 @@
 </template>
 
 <script>
+import { tool } from '@/api/tool'
 export default {
   name: "opinionindex",
   data() {
@@ -39,8 +40,12 @@ export default {
       search_keyword: "",
       columns: [
         {
+          title: "ID",
+          key: "id"
+        },
+        {
           title: "会员",
-          key: "nick_name"
+          key: "nickName"
         },
         {
           title: "联系方式",
@@ -48,7 +53,7 @@ export default {
         },
         {
           title: "时间",
-          key: "create_date"
+          key: "createdAt"
         },
         {
           title: "意见反馈",
@@ -125,9 +130,9 @@ export default {
             this.message_datas = list.map(item => {
               var message = {
                 id: item.id,
-                nick_name: item.get("nick_name"),
+                nickName: item.get("nickName"),
                 phone: item.get("phone"),
-                create_date: item.get("create_date"),
+                createdAt: tool.dateFormat(item.get("createdAt"), 'yyyy-MM-dd HH:mm:ss'),
                 content: item.get("content")
               };
               return message;

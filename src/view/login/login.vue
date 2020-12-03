@@ -59,7 +59,7 @@ export default {
             // },(e)=>{
             //   debugger
             // })
-            sessionStorage.setItem('UserInfo', JSON.stringify({token: user.get('sessionToken'), Id: user.id, userAccount: user.get('username'), headIcon:"", realName:user.get('username'), loginName: user.get('username')}))
+            sessionStorage.setItem('UserInfo', JSON.stringify({token: user.get('sessionToken'), Id: user.id, userAccount: user.get('username'), headIcon:"", realName:user.get('realname'), loginName: user.get('username')}))
             this.$Message.success('登录成功跳转')
             this.$router.push({
               name: 'index'

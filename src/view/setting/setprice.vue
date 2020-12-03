@@ -61,8 +61,8 @@ export default {
         var self = this
         return {
             columns: [
-                { title: '页面',key: 'page'},
-                { title: '功能名称', key: 'action'},
+                // { title: '页面',key: 'page'},
+                { title: '功能模块', key: 'action'},
                 { title: "是否收费", key: 'isNeedPay',slot: 'isNeedPay'},
                 { title: "收费金额（元）", key: 'price', slot: 'price', align: 'center'},
                 { title: "更新时间", key: 'updatedAt', slot: 'updatedAt'},
@@ -74,7 +74,7 @@ export default {
                 page:'',
                 action:'',
                 isNeedPay: 0,
-                price: '0',
+                price: 0,
             },
             ruleValidate: {
                 price: [{ trigger: 'blur', 
@@ -133,7 +133,8 @@ export default {
                     return false
                 } else {
                     config.set('isNeedPay', self.form.isNeedPay)
-                    config.set('price', self.form.isNeedPay == 1 ? self.form.price: '')
+                    config.set('updatedBy', self.ParseServer.User.current().get('realname'))
+                    config.set('price', self.form.isNeedPay == 1 ? parseFloat(self.form.price): 0)
                     config.save().then((con)=>{
                         this.isShowAddForm = false
                         self.$Message.success('保存成功')
@@ -185,17 +186,8 @@ export default {
                 } else {
                     var dbConfig = this.ParseServer.Object.extend("ActionConfig")
                     var data = [
-                        {page: '首页',code:'cuotiji',action:'错题集',isNeedPay:1, price:'50.10',updatedBy:'管理员'},
-                        {page: '首页',code:'zhongdiantiku',action:'重点题库',isNeedPay:0, price:'',updatedBy:'管理员'},
-                        {page: '首页',code:'monishiti',action:'模拟试题',isNeedPay:1, price:'60.00',updatedBy:'管理员'},
-                        {page: '首页',code:'lunbotu',action:'轮播图',isNeedPay:0, price:'',updatedBy:'管理员'},
-                        {page: '我的',code:'gerenxinxi',action:'个人信息',isNeedPay:0, price:'',updatedBy:'管理员'},
-                        {page: '我的',code:'wodecuotiji',action:'错题集',isNeedPay:0, price:'',updatedBy:'管理员'},
-                        {page: '我的',code:'qiandao',action:'签到',isNeedPay:0, price:'',updatedBy:'管理员'},
-                        {page: '我的',code:'yigouxiangmu',action:'已购项目',isNeedPay:0, price:'',updatedBy:'管理员'},
-                        {page: '我的',code:'jifenpaihangbang',action:'积分排行榜',isNeedPay:0, price:'',updatedBy:'管理员'},
-                        {page: '我的',code:'xiaoxizhongxin',action:'消息中心',isNeedPay:0, price:'',updatedBy:'管理员'},
-                        {page: '我的',code:'yijianfankui',action:'意见反馈',isNeedPay:0, price:'',updatedBy:'管理员'}
+                        {page: '首页',code:'cuotiji',action:'错题集',isNeedPay:1, price:50.10,updatedBy:'管理员'},
+                        {page: '首页',code:'zhongdiantiku',action:'重点题库',isNeedPay:0, price:0, updatedBy:'管理员'},
                     ]
                     for(var i = 0; i < data.length; i++) {
                         var item = data[i]
@@ -215,10 +207,12 @@ export default {
                                 action: res.get('action'),
                                 isNeedPay: res.get('isNeedPay'),
                                 price: res.get('price'),
-                                updatedAt: item.get('updatedAt'),
+                                updatedAt: res.get('updatedAt'),
                                 updatedBy: res.get('updatedBy')
                             })
                             _this.loading=false
+                        },error=>{
+                            console.log(error)
                         })
                     }
                 }
