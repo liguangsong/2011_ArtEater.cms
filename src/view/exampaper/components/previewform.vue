@@ -95,25 +95,25 @@ export default {
         options: [
           {
             type: "单选",
-            number: "",
-            score: ""
+            number: 0,
+            score: 0
           },
           {
             type: "多选",
-            number: "",
-            score: ""
+            number: 0,
+            score: 0
           },
           {
             type: "填空",
-            number: "",
-            score: ""
+            number: 0,
+            score: 0
           }
         ],
-        time_count: "",
+        time_count: 0,
         score: 0,
-        pass_score: "",
+        pass_score: 0,
         subjects: "",
-        range: "请选择范围",
+        rang: "请选择范围",
         way: "试题选项顺序全部一致",
         questions: []
       }
@@ -250,6 +250,7 @@ export default {
           _this.show_windows = false;
         },
         error => {
+          console.log(error);
           _this.$Message.error("提交失败");
         }
       );
@@ -285,17 +286,17 @@ export default {
         if (question.type == "1") {
           // 单选
           _this.exam_forms.options[0].number += 1;
-          _this.exam_forms.score += _this.exam_forms.options[0].score;
+          _this.exam_forms.score += parseInt(_this.exam_forms.options[0].score);
         }
         if (question.type == "2") {
           // 多选
           _this.exam_forms.options[1].number += 1;
-          _this.exam_forms.score += _this.exam_forms.options[1].score;
+          _this.exam_forms.score += parseInt(_this.exam_forms.options[1].score);
         }
         if (question.type == "3") {
           // 填空
           _this.exam_forms.options[2].number += 1;
-          _this.exam_forms.score += _this.exam_forms.options[2].score;
+          _this.exam_forms.score += parseInt(_this.exam_forms.options[2].score);
         }
       });
     },
@@ -357,18 +358,24 @@ export default {
       var score = 0;
       if (type == "单选") {
         score = this.exam_forms.options[0].score;
+        this.exam_forms.options[0].number =
+          parseInt(this.exam_forms.options[0].number) - 1;
       }
       if (type == "多选") {
         score = this.exam_forms.options[1].score;
+        this.exam_forms.options[1].number =
+          parseInt(this.exam_forms.options[1].number) - 1;
       }
       if (type == "填空") {
         score = this.exam_forms.options[2].score;
+        this.exam_forms.options[2].number =
+          parseInt(this.exam_forms.options[2].number) - 1;
       }
       var _score = this.exam_forms.score - score;
       if (_score < this.exam_forms.pass_score) {
         return false;
       }
-      this.exam_forms.score = _score;
+      this.exam_forms.score = parseInt(_score);
       return true;
     },
 
@@ -392,6 +399,7 @@ export default {
             _this.questions[key].forEach((item, index) => {
               if (item.id == question_id) {
                 _this.questions[key].splice(index, 1);
+                // 更新题目的数量
               }
             });
           });
@@ -405,9 +413,6 @@ export default {
           this.$Message.info("取消了操作");
         }
       });
-      console.log("------------------");
-      console.log(this.exam_forms);
-      console.log("------------------");
     }
   }
 };

@@ -50,7 +50,7 @@
     ></ExalForm>
     <PreviewForm
       :windows="preview_form"
-      :examid="paper_id"
+      :examid="exam_id"
       :question="question"
       @change-window="close_preview"
       @add-window="change_add_window"
@@ -78,6 +78,7 @@ export default {
       page: 1,
       total: 0,
       loading: true,
+      exam_id: "",
       paper_id: "",
       show_window: false,
       add_window: false,
@@ -129,7 +130,7 @@ export default {
                   },
                   on: {
                     click: () => {
-                      this.paper_id = params.row.id;
+                      this.exam_id = params.row.id;
                       this.preview_form = true;
                     }
                   }
@@ -217,7 +218,12 @@ export default {
     close_preview(value) {
       if (!value) {
         this.preview_form = value;
+        console.log("********************");
         this.paper_id = "";
+        if (!this.add_window) {
+          console.log("----------------");
+          this.exam_id = "";
+        }
         this.page_list();
       }
     },
@@ -231,9 +237,10 @@ export default {
       }
       this.show_window = value;
     },
-    preview_window(value) {
+    preview_window(value, exam_id) {
       this.show_window = false;
       this.preview_form = value;
+      this.exam_id = exam_id;
     },
 
     getSubjectName(id) {

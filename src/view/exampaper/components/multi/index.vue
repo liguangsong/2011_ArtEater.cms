@@ -30,7 +30,7 @@
     </div>
     <div class="parsing clear-fix">
       <p>解析:</p>
-      <div v-html="question.comments"></div>
+      <div v-html="question.comments" class="parsing-wrap scroll-wrap "></div>
     </div>
   </div>
 </template>
@@ -64,7 +64,7 @@ export default {
      *时间：2020-11-29 04:14:11
      */
     del(question_id) {
-      this.$emit("del", question_id);
+      this.$emit("del", question_id, "多选");
     },
     add_question(question_id) {
       this.$emit("add-question", question_id, "2");
@@ -86,6 +86,7 @@ export default {
       width: 80%;
     }
     div {
+      text-align: center;
       float: left;
       width: 20%;
     }
@@ -107,6 +108,34 @@ export default {
       float: left;
       width: 93%;
     }
+  }
+}
+.scroll-wrap {
+  width: 600px;
+  height: 200px;
+  // border: 1px solid #d9d9d9;
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #d8d8d8;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track-piece {
+    background: transparent;
+  }
+}
+.parsing-wrap {
+  overflow: hidden;
+  width: 600px;
+  height: 200px;
+  p {
+    width: 100%;
+  }
+  img {
+    width: 400px;
+    height: 180px;
   }
 }
 </style>

@@ -27,8 +27,8 @@
           :treeData="subjectTreeData"
         ></selectTree>
       </FormItem>
-      <FormItem label="选择范围" prop="range">
-        <Select v-model="exam_forms.range" placeholder="请选择范围">
+      <FormItem label="选择范围" prop="rang">
+        <Select v-model="exam_forms.rang" placeholder="请选择范围">
           <Option
             v-for="item in ranges"
             :value="item.value"
@@ -71,7 +71,6 @@
               :rules="
                 ({ required: true, trigger: 'blur', message: '请输入题数' },
                 {
-                  type: 'string',
                   pattern: /^\d+$/,
                   message: '请输入数字',
                   trigger: 'blur'
@@ -90,9 +89,8 @@
               label="每题分数"
               :prop="'options.' + index + '.score'"
               :rules="
-                ({ required: true, trigger: 'blur', message: '请输入题数' },
+                ({ required: true, trigger: 'blur', message: '请输入每题分数' },
                 {
-                  type: 'string',
                   pattern: /^\d+$/,
                   message: '请输入数字',
                   trigger: 'blur'
@@ -189,11 +187,11 @@ export default {
             score: ""
           }
         ],
-        time_count: "",
+        time_count: 0,
         score: 0,
-        pass_score: "",
+        pass_score: 0,
         subjects: "",
-        range: "请选择范围",
+        rang: "请选择范围",
         way: "试题选项顺序全部一致",
         questions: []
       },
@@ -206,11 +204,19 @@ export default {
             validator: verification.validateIsNull
           }
         ],
-
         pass_score: [
-          { required: true, message: "请输入及格分数", trigger: "blur" },
           {
-            type: "string",
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (value == 0) {
+                callback(new Error("请输入及格分数"));
+              } else {
+                callback();
+              }
+            }
+          },
+          {
             pattern: /^\d+$/,
             message: "请输入数字",
             trigger: "blur"
@@ -230,7 +236,7 @@ export default {
             }
           }
         ],
-        range: [
+        rang: [
           {
             required: true,
             trigger: "blur",
@@ -261,22 +267,14 @@ export default {
             validator: (rule, value, callback) => {
               if (value == 0) {
                 callback(new Error("请输入考试时长"));
+              } else if (value > 999) {
+                callback(new Error("考试时长最多为999分钟"));
               } else {
                 callback();
               }
             }
           },
           {
-            type: "string",
-            pattern: /^\d+$/,
-            message: "请输入数字",
-            trigger: "blur"
-          }
-        ],
-        number: [
-          { required: true, message: "请输入试题数", trigger: "blur" },
-          {
-            type: "string",
             pattern: /^\d+$/,
             message: "请输入数字",
             trigger: "blur"
@@ -285,7 +283,6 @@ export default {
         score: [
           { required: true, message: "请输入试题数", trigger: "blur" },
           {
-            type: "string",
             pattern: /^\d+$/,
             message: "请输入数字",
             trigger: "blur"
@@ -311,11 +308,11 @@ export default {
             score: ""
           }
         ],
-        time_count: "",
+        time_count: 0,
         score: 0,
-        pass_score: "",
+        pass_score: 0,
         subjects: "",
-        range: "请选择范围",
+        rang: "请选择范围",
         way: "试题选项顺序全部一致",
         questions: []
       }
@@ -405,11 +402,11 @@ export default {
      *作者：gzt
      *时间：2020-11-22 14:42:57
      */
-    cancel() {
+    cancel(exam_id) {
       this.$refs["form"].resetFields();
       this.window_title = "添加组卷";
       this.exam_forms = JSON.parse(JSON.stringify(this.init_data));
-      this.$emit("preview", true);
+      this.$emit("preview", true, exam_id);
     },
 
     get_random_array_elements(arr, count) {
@@ -438,7 +435,6 @@ export default {
     create_questions() {
       let _this = this;
       var query = new this.ParseServer.Query("TestQuestions");
-      query.select("id", "type");
       query.containedIn("subjects", this.exam_forms.subjects);
       var reuqestions = {
         1: [],
@@ -453,12 +449,19 @@ export default {
               reuqestions[item.get("type")].push(item.id);
             });
           }
+          var total_score = 0;
           // 随机计算试题
           Object.keys(reuqestions).forEach(key => {
-            this.get_random_array_elements(
+            var random_questions = this.get_random_array_elements(
               reuqestions[key],
               this.exam_forms.options[parseInt(key) - 1].number
-            ).forEach(item => {
+            );
+            total_score +=
+              this.exam_forms.options[parseInt(key) - 1].score *
+              random_questions.length;
+            this.exam_forms.options[parseInt(key) - 1].number =
+              random_questions.length;
+            random_questions.forEach(item => {
               reuqestion_ids.push(item);
             });
           });
@@ -467,17 +470,25 @@ export default {
           if (_this.examid) {
             exam_paper.set("id", _this.examid);
           }
+          if (total_score < _this.exam_forms.pass_score) {
+            _this.exam_forms.pass_score = total_score;
+          }
+          _this.exam_forms.score = total_score;
           _this.exam_forms.questions = reuqestion_ids;
           // 试卷的生成
+          _this.exam_forms.time_count = parseInt(_this.exam_forms.time_count);
+          _this.exam_forms.pass_score = parseInt(_this.exam_forms.pass_score);
           Object.keys(_this.exam_forms).forEach(key => {
             exam_paper.set(key, _this.exam_forms[key]);
           });
+
           exam_paper.save().then(
             response => {
               _this.$Message.success("保存成功");
-              _this.cancel();
+              _this.cancel(response.id);
             },
             error => {
+              console.log(error);
               _this.$Message.error("保存失败");
             }
           );
@@ -510,6 +521,7 @@ export default {
     get_entity() {
       var query = new this.ParseServer.Query("ExamPaper");
       query.get(this.examid).then(response => {
+        console.log(response);
         Object.keys(this.exam_forms).forEach(key => {
           this.exam_forms[key] = response.get(key);
         });
