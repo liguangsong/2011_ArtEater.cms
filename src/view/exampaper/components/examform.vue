@@ -27,8 +27,8 @@
           :treeData="subjectTreeData"
         ></selectTree>
       </FormItem>
-      <FormItem label="选择范围" prop="range">
-        <Select v-model="exam_forms.range" placeholder="请选择范围">
+      <FormItem label="选择范围" prop="rang">
+        <Select v-model="exam_forms.rang" placeholder="请选择范围">
           <Option
             v-for="item in ranges"
             :value="item.value"
@@ -189,11 +189,11 @@ export default {
             score: ""
           }
         ],
-        time_count: "",
+        time_count: 0,
         score: 0,
         pass_score: "",
         subjects: "",
-        range: "请选择范围",
+        rang: "请选择范围",
         way: "试题选项顺序全部一致",
         questions: []
       },
@@ -230,7 +230,7 @@ export default {
             }
           }
         ],
-        range: [
+        rang: [
           {
             required: true,
             trigger: "blur",
@@ -311,11 +311,11 @@ export default {
             score: ""
           }
         ],
-        time_count: "",
+        time_count: 0,
         score: 0,
         pass_score: "",
         subjects: "",
-        range: "请选择范围",
+        rang: "请选择范围",
         way: "试题选项顺序全部一致",
         questions: []
       }
@@ -394,6 +394,7 @@ export default {
     bindSubjectTree() {
       var self = this;
       var query = new this.ParseServer.Query("Subjects");
+      query.descending('createdAt')
       query.find().then(res => {
         this.subjects = res;
         var tree = self.initSubjectTree(res, "0");
@@ -438,8 +439,8 @@ export default {
     create_questions() {
       let _this = this;
       var query = new this.ParseServer.Query("TestQuestions");
-      query.select("id", "type");
-      query.containedIn("subjects", this.exam_forms.subjects);
+      query.select("objectId", "type");
+      query.containsAll("subjects", this.exam_forms.subjects);
       var reuqestions = {
         1: [],
         2: [],
@@ -448,6 +449,7 @@ export default {
       var reuqestion_ids = [];
       query.find().then(
         response => {
+          debugger
           if (response.length > 0) {
             response.forEach((item, index) => {
               reuqestions[item.get("type")].push(item.id);
@@ -472,6 +474,8 @@ export default {
           Object.keys(_this.exam_forms).forEach(key => {
             exam_paper.set(key, _this.exam_forms[key]);
           });
+          exam_paper.set('time_count', parseInt(_this.exam_forms['time_count']))
+          exam_paper.set('pass_score', parseInt(_this.exam_forms['pass_score']))
           exam_paper.save().then(
             response => {
               _this.$Message.success("保存成功");
@@ -483,6 +487,7 @@ export default {
           );
         },
         error => {
+          debugger
           this.$Message.error("试题生成过程中出错");
         }
       );

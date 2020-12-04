@@ -109,7 +109,7 @@ export default {
             score: ""
           }
         ],
-        time_count: "",
+        time_count: 0,
         score: 0,
         pass_score: "",
         subjects: "",
@@ -244,6 +244,9 @@ export default {
       Object.keys(this.exam_forms).forEach(key => {
         exam_paper.set(key, this.exam_forms[key]);
       });
+      exam_paper.set('score', parseInt(_this.exam_forms['score']))
+      exam_paper.set('time_count', parseInt(_this.exam_forms['time_count']))
+      exam_paper.set('pass_score', parseInt(_this.exam_forms['pass_score']))
       exam_paper.save().then(
         response => {
           _this.$Message.success("提交成功");
