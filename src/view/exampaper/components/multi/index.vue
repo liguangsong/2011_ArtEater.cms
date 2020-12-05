@@ -110,36 +110,11 @@ export default {
     }
   }
 }
-<<<<<<< .mine
 .html{
   width: 580px!important;
   height: 200px;
   overflow-y: auto;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=======
 .scroll-wrap {
   width: 600px;
   height: 200px;
@@ -168,5 +143,4 @@ export default {
     height: 180px;
   }
 }
->>>>>>> .theirs
 </style>
