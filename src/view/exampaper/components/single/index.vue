@@ -28,7 +28,7 @@
         <Radio v-model="option.value != ''" disable>{{ option.content }}</Radio>
       </p>
     </div>
-    <div class="parsing clear-fix">
+    <div class="parsing  clear-fix">
       <p>解析:</p>
       <div v-html="question.comments" class="html"></div>
     </div>
@@ -89,6 +89,7 @@ export default {
     }
     div {
       float: left;
+      text-align: center;
       width: 20%;
     }
   }
@@ -111,9 +112,55 @@ export default {
     }
   }
 }
+<<<<<<< .mine
 .html{
   width: 580px!important;
   height: 200px;
   overflow-y: auto;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=======
+
+.scroll-wrap {
+  width: 600px;
+  height: 200px;
+  // border: 1px solid #d9d9d9;
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #d8d8d8;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-track-piece {
+    background: transparent;
+  }
+}
+.parsing-wrap {
+  width: 600px;
+  height: 200px;
+  p {
+    width: 100%;
+  }
+}
+>>>>>>> .theirs
 </style>

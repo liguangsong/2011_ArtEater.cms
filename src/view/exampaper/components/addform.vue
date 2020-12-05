@@ -101,6 +101,7 @@ export default {
   watch: {
     windows: function(new_val, old) {
       this.show_windows = new_val;
+      this.questions = [];
     },
     show_windows: function(new_val, old_val) {
       this.$emit("change-window", new_val);
