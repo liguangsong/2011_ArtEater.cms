@@ -40,7 +40,7 @@
       </Content>
 
     </Layout>
-      <Footer class="layout-footer-center footer">©2020 版权所有：西安爱儿派教育科技有限公司</Footer>
+      <Footer class="layout-footer-center footer">©2020 版权所有：食艺兽</Footer>
     </Layout>
 </template>
 <script>

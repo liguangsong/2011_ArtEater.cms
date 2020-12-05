@@ -12,9 +12,6 @@
     <Modal v-model='isShowUpdatePwd' mask title="修改密码" :loading='loading' ok-text="确认修改" @on-ok="handleUpdatePwd" width='450'>
         <div class="divDetail">
           <Form ref="form" :model="form" :label-width="100" :rules="ruleValidate">
-            <FormItem label='旧密码:' prop='OldPwd'>
-              <Input v-model="form.OldPwd" placeholder="请输入旧密码" type="password" password :maxlength="15" style="width:270px;" />
-            </FormItem>
             <FormItem label='新密码:' prop='NewPwd'>
               <Input v-model="form.NewPwd" placeholder="请输入新密码" type="password" password :maxlength="15" style="width:270px;" />
             </FormItem>
@@ -51,7 +48,7 @@ export default {
     return {
       isShowUpdatePwd: false,
       userName: 'BOSS',
-      loading: false,
+      loading: true,
       form: {
         UserId: '',
         OldPwd: '',
@@ -100,18 +97,14 @@ export default {
           }, 100)
           return false
         } else {
-          var userinfo = JSON.parse(sessionStorage.getItem('UserInfo'))
-          self.form.UserId = userinfo.Id
-          UpdateUserPwd(self.form).then(res => {
-            if (res.data === null || res.data === '') return
-            if (res.data.Status) {
-              this.$Message.success('修改成功')
-              // this.getData()
-              self.isShowUpdatePwd = false
-            } else {
-              this.loading = false
-              this.$Message.error(res.data.Message)
-            }
+          var user = self.ParseServer.User.current()
+          user.set('password',self.form.NewPwd)
+          user.save().then(res=>{
+            this.$Message.success('修改成功')
+            self.isShowUpdatePwd = false
+          },error=>{
+            this.loading = false
+            this.$Message.error(res.data.Message)
           })
         }
       })

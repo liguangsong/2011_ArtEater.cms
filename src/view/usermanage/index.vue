@@ -29,6 +29,7 @@
       v-model="show_window"
       :title="window_title"
       :mask-closable="close"
+      :loading="modalLoading"
       @on-ok="add_user"
     >
       <Form
@@ -43,6 +44,9 @@
         </FormItem>
         <FormItem label="手机号" prop="phone">
           <Input v-model="user_forms.phone" placeholder="请输入手机号"></Input>
+        </FormItem>
+        <FormItem label="密码" prop="password">
+          <Input type="password" v-model="user_forms.password" placeholder="请输入密码"></Input>
         </FormItem>
         <FormItem label="身份" prop="role">
           <Select v-model="user_forms.role" placeholder="请选择身份">
@@ -61,7 +65,7 @@ export default {
   name: "usermanageindex",
   data () {
     return {
-      close: false,
+      close: true,
       RoleACLs:[],
       roles: [
         { value: "teacher", label: "老师"},
@@ -71,6 +75,7 @@ export default {
       pageSize:10,
       total: 0,
       loading: true,
+      modalLoading: true,
       user_id: "",
       window_title: "新增用户",
       see: false,
@@ -144,7 +149,8 @@ export default {
         id:'',
         realname: "",
         phone: "",
-        role: ""
+        role: "",
+        password:''
       },
       ruleValidate: {
         realname: [
@@ -169,6 +175,7 @@ export default {
             validator: verification.validatePhone
           }
         ],
+        password: [{required: true, message: '请输入密码', trigger: 'blur'}, {validator: verification.validatePass, trigger: 'blur'}],
         role: [
           {
             required: true,
@@ -219,19 +226,25 @@ export default {
     add_user () {
       var self = this
       this.$refs["form"].validate(valid => {
-        if (valid) {
+        if (!valid) {
+          self.$Message.error('请检查表单项')
+          self.modalLoading = false
+          setTimeout(() => {
+              self.modalLoading = true
+          }, 100)
+          return false
+        } else {
           if(!self.user_forms.id) { // 需要注册
             var user = new self.ParseServer.User();
             user.set("username", self.user_forms.phone);
-            user.set("password", self.user_forms.phone);
+            user.set("password", self.user_forms.password);
             user.set("realname", self.user_forms.realname);
             user.set("phone", self.user_forms.phone);
             user.set("role", self.user_forms.role);
             user.signUp().then((ruser)=> {
               var postACL = new self.ParseServer.ACL();
               postACL.setRoleWriteAccess("admin", true);
-              postACL.setRoleReadAccess("admin", true);
-              postACL.setRoleReadAccess("teacher", true);
+              postACL.setPublicReadAccess(true);
               ruser.setACL(postACL);
               ruser.save()
               var role = self.RoleACLs.find(t=>{
@@ -240,8 +253,12 @@ export default {
               role.getUsers().add(user);
               role.save()
               self.page_list(self.page)
+              this.$Message.success("新增成功");
+              self.show_window = false
             },(error)=> {
+              self.show_window = false
               console.log("Error: " + error.code + " " + error.message);
+              this.$Message.error("新增失败，请确保手机号未在后台注册过");
             });
           } else {
             var query = new this.ParseServer.Query(this.ParseServer.User);
@@ -254,6 +271,8 @@ export default {
                 var role = self.RoleACLs.find(t=>{
                   return t.get('name') === self.user_forms.role
                 })
+                this.$Message.success("编辑成功");
+                self.show_window = false
                 role.getUsers().add(user);
                 role.save()
                 self.page_list(self.page)

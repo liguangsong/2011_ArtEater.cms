@@ -16,8 +16,8 @@
       </Card>
     </div>
     <div class="footer">
-      <p>西安爱儿派教育科技有限公司</p>
-      <p>备案号：陕ICP备13005305号-3Copyright©2015-2017..All Rights Reserved</p>
+      <!-- <p>西安爱儿派教育科技有限公司</p>
+      <p>备案号：陕ICP备13005305号-3Copyright©2015-2017..All Rights Reserved</p> -->
     </div>
   </div>
 </template>

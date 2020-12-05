@@ -18,6 +18,10 @@
                 <template slot-scope="{ row }" slot="answer">
                     <strong>{{getRightAnswer(row.options)}}</strong>
                 </template>
+                <template slot-scope="{ row }" slot="isImportant">
+                    <span v-if="row.isImportant==1">是</span>
+                    <span v-else>否</span>
+                </template>
                 <template slot-scope="{ row }" slot="type">
                     <strong v-if="row.type==1">单选</strong>
                     <strong v-if="row.type==2">多选</strong>
@@ -230,14 +234,15 @@ export default {
             subjectTreeData:[],
             subjects:[], // 所有科目和章节信息
             columns: [
-                { title: 'ID', key: 'id' },
-                { title: '科目', key: 'subjects', slot: 'subjects' },
-                { title: '类型', key: 'type', slot: 'type' },
+                { title: 'ID', key: 'id',width:150 },
+                { title: '科目', key: 'subjects', slot: 'subjects',width:200 },
+                { title: '类型', key: 'type', slot: 'type',width:100 },
+                { title: '重点题库', key: 'isImportant', slot: 'isImportant',width:100 },
                 { title: '题干', key: 'title' },
-                { title: "答案", key: 'answer', slot: 'answer' },
+                { title: "答案", key: 'answer', slot: 'answer',width:150 },
                 // { title: "更新人", key: 'updatedAt'},
-                { title: "更新时间", key: 'updatedAt'},
-                { title: '操作', key: 'action', slot: 'action', align: 'center'}
+                { title: "更新时间", key: 'updatedAt',width:170},
+                { title: '操作', key: 'action', slot: 'action', align: 'center',width:180}
                 ],
             question_datas: [],
             question_form:{
