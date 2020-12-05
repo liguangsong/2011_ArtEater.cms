@@ -25,7 +25,7 @@
         v-for="(option, option_index) in question.options"
         :key="option_index"
       >
-        <Radio v-model="option.value != ''" disable>{{ option.content }}</Radio>
+        <Radio :disabled="true" v-model="option.value != ''" disable>{{ option.content }}</Radio>
       </p>
     </div>
     <div class="parsing  clear-fix">
@@ -98,6 +98,8 @@ export default {
   }
   .option {
     margin: 5px 0;
+    display: inline-block;
+    padding-right: 10px;
   }
   .parsing {
     margin: 10px 0;

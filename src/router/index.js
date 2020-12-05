@@ -12,7 +12,7 @@ Router.prototype.push = function push(location) {
 }
 const router = new Router({
     routes,
-    mode: 'history',
+    mode: 'hash',// history
     base: urlConfig().VirtualDir
 })
 const LOGIN_PAGE_NAME = 'login'

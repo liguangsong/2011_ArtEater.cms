@@ -95,6 +95,8 @@ export default {
   }
   .option-wraps {
     margin: 10px 0;
+    display: inline-block;
+    padding-right: 10px;
   }
   .option {
     margin: 5px 0;
