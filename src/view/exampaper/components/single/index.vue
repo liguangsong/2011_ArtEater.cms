@@ -30,7 +30,7 @@
     </div>
     <div class="parsing clear-fix">
       <p>解析:</p>
-      <div v-html="question.comments"></div>
+      <div v-html="question.comments" class="html"></div>
     </div>
   </div>
 </template>
@@ -110,5 +110,10 @@ export default {
       width: 93%;
     }
   }
+}
+.html{
+  width: 580px!important;
+  height: 200px;
+  overflow-y: auto;
 }
 </style>

@@ -318,7 +318,7 @@ export default {
             images: response.get("images"),
             options: response.get("options"),
             type: response.get("type"),
-            comments: response.get("comments")
+            comments: response.get("comments").replace(/<img/g,"<img style='max-width:100%;height:auto;'")
           });
         });
       });
