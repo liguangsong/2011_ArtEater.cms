@@ -1,10 +1,12 @@
 <template>
     <div style="display:flex;margin-top:5px">
-        <div @click="before_upload" class="ivu-upload ivu-upload-drag" style="width:38px;">
+        <div @click="before_upload" class="ivu-upload ivu-upload-drag">
             <input @change="processFiles()" ref="uploader" type="file" class="ivu-upload-input" />
-            <div style="width: 38px; height: 38px; line-height: 38px;">
-                <i class="ivu-icon ivu-icon-ios-camera" style="font-size: 20px;"></i>
-            </div>
+            <slot>
+                <div style="width: 38px; height: 38px; line-height: 38px;">
+                    <i class="ivu-icon ivu-icon-ios-camera" style="font-size: 20px;"></i>
+                </div>
+            </slot>
         </div>
         <div style="margin-left:10px;color:#808695" v-if="tips">{{tips}}</div>
     </div>
@@ -24,6 +26,10 @@ export default {
         tips:{
             type: String,
             default: ''
+        },
+        type:{
+            type:String,
+            default:'img'
         }
     },
     data() {
@@ -36,15 +42,19 @@ export default {
         },
         processFiles(e){
             var files = this.$refs.uploader.files
-            var name = "photo.jpg";
-            var parseFile = new this.ParseServer.File(name, files[0]);
-            parseFile.save().then(res=>{
-                if(res._url){
-                    this.$emit('complate', res._url)
-                } else {
-                    this.$Message.error("上传失败");
-                }
-            })
+            if(this.type=='img'){
+                var name = files[0].name;
+                var parseFile = new this.ParseServer.File(name, files[0]);
+                parseFile.save().then(res=>{
+                    if(res._url){
+                        this.$emit('complate', res._url)
+                    } else {
+                        this.$Message.error("上传失败");
+                    }
+                })
+            } else {
+                this.$emit('complate', files)
+            }
         }
     },
     mounted() {

@@ -212,21 +212,17 @@
                 </FormItem>
                 <FormItem label="是否作为重点">
                     <div>{{question_form.isImportant==1?'是':'否'}}</div>
-                </FormItem>
+                </FormItem>     
             </Form>
          </Modal>
-         <Modal v-model="isUploadData" title="导入试题" width="600">
-            <Form label-position="right" :label-width="100">
-                <!-- <FormItem>
-                    <a style="text-decoration: underline;color:blue;font-size:14px" @click="handleDownLoad" href="#">还没有模板吗？立即下载导入模板.xls</a>
-                </FormItem> -->
-                <FormItem>
-                    <!-- <Upload :before-upload="handleUpload" action="//jsonplaceholder.typicode.com/posts/"> -->
-                    <Upload action="">
+         <Modal v-model="isUploadData" title="导入试题" width="300" :footer-hide="true">
+            <div style="height:100px;text-align:center">
+                <div style="display:inline-block;margin-top:30px">
+                    <myUpload v-if="isUploadData" @complate="handleUpload" type='excel'>
                         <Button icon="ios-cloud-upload-outline">选择要导入的文件</Button>
-                    </Upload>
-                </FormItem>
-            </Form>
+                    </myUpload>
+                </div>
+            </div>
          </Modal>
     </div>
 </template> 
@@ -240,6 +236,8 @@ import { urlConfig } from '@/api/urlconfig'
 import selectTree from '@/components/iview-select-tree'
 import { verification } from '@/api/verification'
 import { tool } from '@/api/tool'
+import XLSX,{utils} from 'xlsx'
+import editorVue from '../../components/editor/editor.vue'
 export default {
     name: "testquestions",
     components:{
@@ -649,6 +647,142 @@ export default {
             })
             return treeValue
         },
+        /**
+         * @description  解析表格文件数据，返回表格中内容，目前暂不支持导入有单元格合并的表格
+         * @param    {Object} file    导入的文件，二进制数据流
+         * @returns  {Object} data    返回的表格数据
+         * @returns  {Array}  data.title   表头
+         * @returns  {Array}  data.body    表格数据
+         */
+        importFromLocal(file) {
+            var self = this
+            return new Promise(function (resolve, reject) {
+                self.readerWorkBookFromLocal(file).then(workBook=>{
+                    let workSheet = workBook.Sheets[workBook.SheetNames[0]]
+                    let content = utils.sheet_to_json(workSheet)
+                    let data = {};
+                    data.title = Object.keys(content[0]);
+                    data.body = content;
+                    resolve(data)
+                })
+            })
+        },
+        /**
+         * @description              本地读取文件的方法
+         * @param {Object} file      文件流
+         */
+        readerWorkBookFromLocal(file) {
+            const reader = new FileReader();
+            reader.readAsBinaryString(file);
+            return new Promise(function (resolve, reject) {
+                reader.onload = function (e) {
+                    const fileData = e.target.result;
+                    if (reader.readyState === 2) {
+                        const workBook = XLSX.read(fileData, { type: 'binary' });
+                        resolve(workBook);
+                    } else {
+                        reject('读取文件失败');
+                    }
+                }
+            })
+        },
+        /**
+         * 导入模板
+         */
+        handleUpload(e){
+            var self = this
+            self.importFromLocal(e[0]).then(res=>{
+                let data = []
+                res.body.forEach(item=>{
+                    data.push({
+                        subjects:item["分类"],
+                        title:item["题目\n4个英文下划线(_)代表一个填空"],
+                        isImportant:item['是否重点\n(是、否)'],
+                        type:item['题型\n（单选、多选、填空）'],
+                        comments:item["题目解析"],
+                        rightAnswer:item["正确答案\n（多选以英文,隔开）\n填空题除外"],
+                        option1:item["选项1\n（填空题请在此处输入填空1的正确答案，有备选答案请用英文,隔开）"],
+                        option2:item["选项2\n（填空题请在此处输入填空2的正确答案，有备选答案请用英文,隔开）"],
+                        option3:item["选项3\n（填空题请在此处输入填空3的正确答案，有备选答案请用英文,隔开）"],
+                        option4:item["选项4\n（填空题请在此处输入填空4的正确答案，有备选答案请用英文,隔开）"],
+                        option5:item["选项...\n（填空题请在此处输入填空4的正确答案，有备选答案请用英文,隔开）"]
+                    })
+                })
+                var list = []
+                
+                var Questions = self.ParseServer.Object.extend("TestQuestions")
+                let _subjectIndex = self.maxIndex + 1
+                data.forEach((ques,index)=>{
+                    var _subject = self.subjects.find((_item,_index)=>{
+                        return _item.get('subject_name') == ques.subjects
+                    })
+                    var question = new Questions()
+                    if(_subject) {
+                        question.set('subjects',[_subject.id])
+                    }
+                    let _type = (ques.type=='单选'?1:(ques.type=='多选'?2:(ques.type=='填空'?3:0)))
+                    question.set('title', ques.title)
+                    question.set('comments', ques.comments)
+                    question.set('isImportant', (ques.isImportant=='是'?1:0))
+                    question.set('type', _type)
+                    question.set('index', _subjectIndex)
+                    question.set('options', self.getOptions(ques,_type))
+                    list.push(question)
+                    _subjectIndex++
+                })
+                self.ParseServer.Object.saveAll(list).then(ques_list=>{
+                    var query = new this.ParseServer.Query("TestQuestions")
+                    query.descending('createdAt')
+                    query.first().then(res=>{
+                        if(res){
+                            self.maxIndex = res.get('index')
+                        } else {
+                            self.maxIndex = 0
+                        }
+                    })
+                    self.$Message.success('导入成功')
+                    self.isUploadData = false
+                    self.page_list()
+                })
+            })
+        },
+        /**
+         * 构造options
+         */
+        getOptions(question,type) {
+            var self = this
+            let options = []
+            if(question.option1){
+                options.push(self.buildOption(type,'A',question.rightAnswer?(question.rightAnswer.indexOf('A')==-1?'':'1'):'',question.option1))
+            }
+            if(question.option2){
+                options.push(self.buildOption(type,'B',question.rightAnswer?(question.rightAnswer.indexOf('B')==-1?'':'1'):'',question.option2))
+            }
+            if(question.option3){
+                options.push(self.buildOption(type,'C',question.rightAnswer?(question.rightAnswer.indexOf('C')==-1?'':'1'):'',question.option3))
+            }
+            if(question.option4){
+                options.push(self.buildOption(type,'D',question.rightAnswer?(question.rightAnswer.indexOf('D')==-1?'':'1'):'',question.option4))
+            }
+            if(question.option5){
+                options.push(self.buildOption(type,'E',question.rightAnswer?(question.rightAnswer.indexOf('E')==-1?'':'1'):'',question.option5))
+            }
+            return options
+        },
+        buildOption(type,code, value, option){
+            if(type==3){
+                let values=[]
+                let txts = option.split(',')
+                txts.forEach(txt=>{
+                    if(txt){
+                        values.push({txt:txt})
+                    }
+                })
+                return { code: code, value: values, content: ''}
+            } else {
+                return { code: code, value: value, content: option}
+            }
+        },
         /*
         *富文本编辑框的内容发生变化
         *作者：gzt
@@ -688,9 +822,9 @@ export default {
             if(this.search_subject_name){
                 let subjectIds = []
                 this.subjects.forEach((sub,idx)=>{
-                if(sub.get('subject_name').indexOf(self.search_subject_name)!=-1){
-                    subjectIds.push(sub.id)
-                }
+                    if(sub.get('subject_name').indexOf(self.search_subject_name)!=-1){
+                        subjectIds.push(sub.id)
+                    }
                 })
                 query2.containedIn("subjects", subjectIds); // 科目名称
             }
