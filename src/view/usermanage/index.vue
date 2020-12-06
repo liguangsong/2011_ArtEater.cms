@@ -2,16 +2,16 @@
   <div class="container-wrap">
     <div class="header-wrap clear-fix">
       <div class="search-wrap clear-fix">
-        <div class="search-keyword">
-          <Input v-model="search_keyword" size="large" placeholder="ID 姓名 手机号关键字搜索" />
+        <div class="search-keyword" style="width:210px">
+          <Input v-model="search_keyword" size="large" style="width:200px" placeholder="姓名 手机号关键字搜索" />
         </div>
-        <div class="select-choice clear-fix">
-          <span>身份</span>
-          <Select size="large" v-model="search_role" class="choice" placeholder="请选择身份">
+        <div class="select-choice clear-fix" style="width:250px">
+          <span style="width:50px">身份</span>
+          <Select size="large" v-model="search_role" class="choice" :clearable="true" placeholder="请选择身份" style="width:200px">
             <Option v-for="item in roles" :value="item.value" :key="item.value">{{ item.label }}</Option>
           </Select>
         </div>
-        <div class="search-btn">
+        <div class="search-btn" style="width:100px">
           <Button type="primary" @click="search" size="large">查询</Button>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default {
             return h('div', txt)
           }
         },
-        { title: "注册时间", key: "createdAt",
+        { title: "注册时间", key: "createdAt",sortable: true,
             render:(h, params)=>{
               var txt = tool.dateFormat(params.row.createdAt, 'yyyy-MM-dd HH:mm:ss')
               return h('div', txt)
@@ -112,10 +112,15 @@ export default {
                   },
                   on: {
                     click: () => {
-                      this.user_id = params.row.id;
-                      this.get_entity();
-                      this.show_window = true;
-                      this.window_title = "后台账号信息";
+                      let role = this.ParseServer.User.current().get('role')
+                      if(role=='admin'){
+                        this.user_id = params.row.id;
+                        this.get_entity();
+                        this.show_window = true;
+                        this.window_title = "后台账号信息";
+                      } else {
+                        this.$Message.error('您没有编辑的权限')
+                      }
                     }
                   }
                 },
@@ -322,14 +327,24 @@ export default {
       roleQuery.find().then(res=>{
         this.RoleACLs = res
       })
-      let query = new this.ParseServer.Query(this.ParseServer.User);
-      if (this.search_keyword) {
-        query.startWith("realname", this.search_keyword);
+      let user1 = new this.ParseServer.Query(this.ParseServer.User);
+      user1.contains("realname", this.search_keyword);
+      let user2 = new this.ParseServer.Query(this.ParseServer.User);
+      user2.contains("phone", this.search_keyword);
+      let user3 = new this.ParseServer.Query(this.ParseServer.User);
+      if(this.search_role){
+        user3.equalTo("role", this.search_role);
+      } else {
+        user3.containedIn('role', ['admin', 'teacher'])
       }
+      var query = this.ParseServer.Query.and(
+        this.ParseServer.Query.or(user1,user2),
+        user3
+      );
+      
       query.count().then(count => {
         this.total = count;
       });
-      query.containedIn('role', ['admin', 'teacher'])
       query.descending('createdAt')
       query.skip((this.page - 1) * this.pageSize);
       query.limit(this.pageSize);
@@ -362,35 +377,40 @@ export default {
      *时间：2020-11-22 08:41:53
      */
     delete (user_id) {
-      let _this = this;
-      this.$Modal.confirm({
-        title: "删除提示",
-        content: "<p>删除用户后，用户将无法使用系统，确定要删除吗？</p>",
-        onOk: () => {
-          var ObjectClass = _this.ParseServer.Object.extend("_User"); //.Query(_this.ParseServer.User);
-          var query = new _this.ParseServer.Query(ObjectClass)
-          query.get(user_id).then(
-            user => {
-              user.destroy().then(
-                delete_result => {
-                  this.$Message.success("删除成功");
-                  this.page_list(this.page);
-                },
-                error => {
-                  console.log(error)
-                  this.$Message.error("删除失败");
-                }
-              );
-            },
-            error => {
-              this.$Message.error("清确保删除的数据真实存在");
-            }
-          );
-        },
-        onCancel: () => {
-          this.$Message.info("取消了操作");
-        }
-      });
+      let role = this.ParseServer.User.current().get('role')
+      if(role=='admin'){
+        let _this = this;
+        this.$Modal.confirm({
+          title: "删除提示",
+          content: "<p>删除用户后，用户将无法使用系统，确定要删除吗？</p>",
+          onOk: () => {
+            var ObjectClass = _this.ParseServer.Object.extend("_User"); //.Query(_this.ParseServer.User);
+            var query = new _this.ParseServer.Query(ObjectClass)
+            query.get(user_id).then(
+              user => {
+                user.destroy().then(
+                  delete_result => {
+                    this.$Message.success("删除成功");
+                    this.page_list(this.page);
+                  },
+                  error => {
+                    console.log(error)
+                    this.$Message.error("删除失败");
+                  }
+                );
+              },
+              error => {
+                this.$Message.error("清确保删除的数据真实存在");
+              }
+            );
+          },
+          onCancel: () => {
+            this.$Message.info("取消了操作");
+          }
+        });
+      } else {
+        this.$Message.error('您没有删除的权限')
+      }
     }
   }
 };

@@ -380,9 +380,15 @@ export default {
         */
         page_list(page_index){
             let _this=this
-            let query = new this.ParseServer.Query('Subjects')
+            let query1 = new this.ParseServer.Query("Subjects");
+            query1.equalTo('parent_ID', this.currParent.id)
+            query1.contains("subject_name", this.subjectName);
+
+            let query2 = new this.ParseServer.Query("Subjects");
+            query2.equalTo('parent_ID', this.currParent.id)
+            query2.contains("objectId", this.subjectId);
+            var query = this.ParseServer.Query.and(query1, query2);
             query.ascending('createdAt')
-            query.equalTo('parent_ID', this.currParent.id)
             query.count().then(count=>{
                 _this.total=count
             })

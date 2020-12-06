@@ -2,18 +2,18 @@
   <div class="container-wrap">
     <div class="header-wrap">
       <div class="search-wrap clear-fix">
-        <div class="search-keyword">
-          <Input v-model="search_keyword" size="large" placeholder="ID 昵称 姓名和关键字查询" />
+        <div class="search-keyword" style="width:200px">
+          <Input v-model="search_keyword" size="large" style="width:200px" placeholder="请输入ID/昵称/姓名" />
         </div>
-        <div class="select-choice clear-fix">
+        <div class="select-choice clear-fix" style="width:500px">
           <span>注册时间</span>
-          <div class="date-picker-wrap clear-fix">
-            <div class="date-picker">
-              <DatePicker :value="search_start_date" size="large" type="date" placeholder="请输入开始时间"></DatePicker>
+          <div class="date-picker-wrap clear-fix" style="width:400px">
+            <div class="date-picker" style="width:180px">
+              <DatePicker v-model="search_start_date" size="large" type="date" placeholder="请输入开始时间"></DatePicker>
             </div>
-            <label class="label-split">~</label>
-            <div class="date-picker">
-              <DatePicker :value="search_end_date" size="large" type="date" placeholder="请输入结束时间"></DatePicker>
+            <div class="label-split" style="height:36px;line-height:36px">-</div>
+            <div class="date-picker" style="width:180px">
+              <DatePicker v-model="search_end_date" size="large" type="date" placeholder="请输入结束时间"></DatePicker>
             </div>
           </div>
         </div>
@@ -75,6 +75,7 @@
 </template>
 
 <script>
+import { tool } from '@/api/tool'
 export default {
   name: "studentindex",
   data () {
@@ -89,12 +90,18 @@ export default {
       search_start_date: "",
       search_end_date: "",
       columns: [
+        { title: "ID", key: "id"},
         { title: "昵称", key: "nickName"},
         { title: "姓名",key: "realname"},
         { title: "手机号", key: "phone" },
-        { title: "注册时间", key: "registration_time"},
+        { title: "注册时间", key: "createdAt", sortable: true,
+          render:(h, params)=>{
+              var txt = tool.dateFormat(params.row.createdAt, 'yyyy-MM-dd HH:mm:ss')
+              return h('div', txt)
+            } 
+        },
         { title: "消费金额", key: "amount"},
-        { title: "积分", key: "score" },
+        { title: "积分", key: "score",sortable: true },
         { title: "操作", key: "action", align: "center",
           render: (h, params) => {
             var button = [
@@ -201,15 +208,32 @@ export default {
      */
     page_list (page_index) {
       this.loading = true;
-      let query = new this.ParseServer.Query(this.ParseServer.User);
-      query.descending("createdAt");
-      if (this.search_keyword) {
-        query.startWith("realname", this.search_keyword);
+      
+      let user1 = new this.ParseServer.Query(this.ParseServer.User);
+      user1.contains("realname", this.search_keyword);
+      user1.equalTo('role', 'student')
+      let user2 = new this.ParseServer.Query(this.ParseServer.User);
+      user2.contains("phone", this.search_keyword);
+      user2.equalTo('role', 'student')
+      let user3 = new this.ParseServer.Query(this.ParseServer.User);
+      user3.contains("nickName", this.search_keyword);
+      user3.equalTo('role', 'student')
+      let user4 = new this.ParseServer.Query(this.ParseServer.User);
+      if(this.search_start_date){
+        user4.greaterThan("createdAt", this.search_start_date);
       }
+      let user5 = new this.ParseServer.Query(this.ParseServer.User);
+      if(this.search_end_date){
+        user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+      }
+      var query = this.ParseServer.Query.and(
+        this.ParseServer.Query.or(user1,user2,user3),
+        user4,
+        user5
+      );
       query.count().then(count => {
         this.total = count;
       });
-      query.equalTo('role', 'student')
       query.descending('createdAt')
       query.skip((this.page - 1) * 10);
       query.limit(10);
@@ -227,7 +251,7 @@ export default {
                 amount: item.get("amount"),
                 score: item.get("score"),
                 avatarUrl: item.get('avatarUrl'),
-                registration_time: item.get("registration_time")
+                createdAt: item.get("createdAt")
               };
               return account;
             });

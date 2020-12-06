@@ -4,12 +4,8 @@
       <Row>
         <Col span="12">
           <div class="search-wrap clear-fix">
-            <div class="search-keyword">
-              <Input
-                v-model="search_keyword"
-                size="large"
-                placeholder="ID 主题关键字搜索"
-              />
+            <div class="search-keyword" style="width:200px">
+              <Input v-model="search_keyword" size="large" placeholder="请输入ID/用户昵称/反馈内容" style="width:200px" />
             </div>
             <div class="search-btn">
               <Button type="primary" @click="search" size="large">查询</Button>
@@ -112,11 +108,16 @@ export default {
      */
     page_list(page_index) {
       this.loading = true;
-      let query = new this.ParseServer.Query("Opinions");
+      
+      let query1 = new this.ParseServer.Query("Opinions");
+      query1.contains('objectId', this.search_keyword)
+      let query2 = new this.ParseServer.Query("Opinions");
+      query2.contains('nickName', this.search_keyword)
+      let query3 = new this.ParseServer.Query("Opinions");
+      query3.contains('content', this.search_keyword)
+      var query = this.ParseServer.Query.or(query1, query2, query3);
+
       query.descending("createdAt");
-      if (this.search_keyword) {
-        query.startWith("content", this.search_keyword);
-      }
       query.count().then(count => {
         this.total = count;
       });

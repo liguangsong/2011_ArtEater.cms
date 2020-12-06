@@ -94,7 +94,7 @@ export default {
     //富文本 方法
     onEditorChange({ editor, html, text }) {
       //内容改变事件
-      console.log("editor change!", editor, html, text);
+      // console.log("editor change!", editor, html, text);
       this.content = html;
       this.$emit('on-change', html)
     },

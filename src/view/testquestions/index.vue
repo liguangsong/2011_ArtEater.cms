@@ -1,11 +1,39 @@
 <template>
     <div class="container-wrap">
-        <div style="display:flex">
-            <div style="flex:1">
-                <Input v-model="search_keyword" size="large" placeholder="请输入试题名称" style="width: 400px" />
-                <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
+        <div class="header-wrap clear-fix" style="display:flex">
+            <div class="search-wrap clear-fix" style="flex:1">
+                <div class="search-keyword" style="width:150px">
+                    <span style="width:50px">ID：</span>
+                    <Input v-model="search_ID" size="large" style="width:100px" placeholder="请输入ID" />
+                </div>
+                <div class="search-keyword" style="width:225px">
+                    <span style="width:85px">科目名称：</span>
+                    <Input v-model="search_subject_name" size="large" style="width:150px" placeholder="请输入科目名称" />
+                </div>
+                <div class="select-choice clear-fix" style="width:140px">
+                    <span style="width:50px;padding:0">题型：</span>
+                    <Select size="large" v-model="search_type" class="choice" placeholder="题型" :clearable="true" style="width:70px">
+                        <Option :value="1" :key="1">单选</Option>
+                        <Option :value="2" :key="2">多选</Option>
+                        <Option :value="3" :key="3">填空</Option>
+                    </Select>
+                </div>
+                <div class="search-keyword" style="width:160px">
+                    <span style="width:85px">更新人：</span>
+                    <Input v-model="search_updateBy" size="large" style="width:100px" placeholder="更新人姓名" />
+                </div>
+                <div class="select-choice clear-fix" style="width:200px">
+                    <span style="width:85px;padding:0">是否重点：</span>
+                    <Select size="large" v-model="search_important" class="choice" :clearable="true" style="width:100px">
+                        <Option :value="1" :key="1">是</Option>
+                        <Option :value="0" :key="0">否</Option>
+                    </Select>
+                </div>
+                <div class="search-btn" style="width:100px;margin:0">
+                    <Button type="primary" @click="search" size="large">查询</Button>
+                </div>
             </div>
-            <div style="width:200px;text-align:right">
+            <div class="operation-wrap" style="width:175px">
                 <Button style="margin-right:10px" type="primary" @click="handleAddQuestion">新增试题</Button>
                 <Button type="info" @click="isUploadData=true">批量导入</Button>
             </div>
@@ -230,7 +258,11 @@ export default {
             total: 0,
             loading: true,
             modalLoading: true,
-            search_keyword:'',
+            search_ID:'',
+            search_subject_name:'',
+            search_type:-1,
+            search_updateBy:'',
+            search_important:-1,
             subjectTreeData:[],
             subjects:[], // 所有科目和章节信息
             columns: [
@@ -240,8 +272,7 @@ export default {
                 { title: '重点题库', key: 'isImportant', slot: 'isImportant',width:100 },
                 { title: '题干', key: 'title' },
                 { title: "答案", key: 'answer', slot: 'answer',width:150 },
-                // { title: "更新人", key: 'updatedAt'},
-                { title: "更新时间", key: 'updatedAt',width:170},
+                { title: "更新时间", key: 'updatedAt',width:170,sortable:true},
                 { title: '操作', key: 'action', slot: 'action', align: 'center',width:180}
                 ],
             question_datas: [],
@@ -647,9 +678,39 @@ export default {
         *时间：2020-11-21 23:30:27
         */
         page_list(){
+            var self = this
             let _this=this
-            let query = new this.ParseServer.Query('TestQuestions')
-            query.descending("createdAt")
+            
+            let query1 = new this.ParseServer.Query("TestQuestions");
+            query1.contains("objectId", this.search_ID);
+
+            let query2 = new this.ParseServer.Query("TestQuestions");
+            if(this.search_subject_name){
+                let subjectIds = []
+                this.subjects.forEach((sub,idx)=>{
+                if(sub.get('subject_name').indexOf(self.search_subject_name)!=-1){
+                    subjectIds.push(sub.id)
+                }
+                })
+                query2.containedIn("subjects", subjectIds); // 科目名称
+            }
+
+            let query3 = new this.ParseServer.Query("TestQuestions");
+            if(this.search_type && this.search_type!=-1){
+                query3.equalTo("type", this.search_type);
+            }
+
+            // let query4 = new this.ParseServer.Query("TestQuestions");
+            // query4.contains("updatedBy", this.search_updateBy); // 更新人
+            let query5 = new this.ParseServer.Query("TestQuestions");
+            if(this.search_important && this.search_important!=-1){
+                query5.equalTo("isImportant", this.search_important);
+            }
+
+            let query = this.ParseServer.Query.and(query1,query2, query3, query5);
+
+            // let query = new this.ParseServer.Query('TestQuestions')
+            query.descending("updatedAt")
             query.count().then(count=>{
                 _this.total=count
             })
@@ -745,4 +806,44 @@ export default {
         flex: 1;
         text-align: center;
     }
+
+    
+.search-wrap {
+  float: left;
+  width: 60%;
+  .search-keyword {
+    float: left;
+    width: 40%;
+  }
+  .select-choice {
+    float: left;
+    width: 35%;
+    span {
+      width: 20%;
+      display: inline-block;
+      box-sizing: border-box;
+      line-height: 36px;
+      padding: 0 10px;
+      text-align: right;
+    }
+    .choice {
+      width: 80%;
+    //   float: right;
+    }
+  }
+  .search-btn {
+    float: left;
+    width: 20%;
+    margin: 0 20px;
+  }
+}
+
+.operation-wrap {
+  width: 40%;
+  float: left;
+  .func {
+    // float: right;
+    margin-left: 10px;
+  }
+}
 </style>

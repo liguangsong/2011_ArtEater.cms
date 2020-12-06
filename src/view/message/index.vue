@@ -2,8 +2,8 @@
   <div class="container-wrap">
     <div class="header-wrap clear-fix">
       <div class="search-wrap clear-fix">
-        <div class="search-keyword">
-          <Input v-model="search_keyword" size="large" placeholder="ID 主题关键字搜索" />
+        <div class="search-keyword" style="width:300px">
+          <Input v-model="search_keyword" size="large" placeholder="请输入ID/主题" style="width:300px" />
         </div>
         <div class="search-btn">
           <Button type="primary" @click="search" size="large">查询</Button>
@@ -46,6 +46,7 @@
 </template>
 
 <script>
+import { tool } from '@/api/tool'
 import { verification } from "@/api/verification";
 export default {
   name: "messageindex",
@@ -60,6 +61,13 @@ export default {
       show_window: false,
       search_keyword: "",
       columns: [
+        { title: "ID",key: "id" },
+        { title: "时间",key: "createdAt",
+          render:(h, params)=>{
+            var txt = tool.dateFormat(params.row.createdAt, 'yyyy-MM-dd HH:mm:ss')
+            return h('div', txt)
+          } 
+        },
         {
           title: "主题",
           key: "title"
@@ -67,10 +75,6 @@ export default {
         {
           title: "内容",
           key: "content"
-        },
-        {
-          title: "时间",
-          key: "create_date"
         },
         {
           title: "操作",
@@ -229,11 +233,13 @@ export default {
      */
     page_list (page_index) {
       this.loading = true;
-      let query = new this.ParseServer.Query("Message");
+
+      let query1 = new this.ParseServer.Query("Message");
+      query1.contains('objectId', this.search_keyword)
+      let query2 = new this.ParseServer.Query("Message");
+      query2.contains('title', this.search_keyword)
+      var query = this.ParseServer.Query.or(query1, query2);
       query.descending("createdAt");
-      if (this.search_keyword) {
-        query.startWith("title", this.search_keyword);
-      }
       query.count().then(count => {
         this.total = count;
       });
@@ -249,7 +255,7 @@ export default {
                 id: item.id,
                 title: item.get("title"),
                 content: item.get("content"),
-                create_date: item.get("create_date")
+                createdAt: item.get("createdAt")
               };
               return message;
             });

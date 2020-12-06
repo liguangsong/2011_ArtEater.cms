@@ -2,32 +2,20 @@
   <div class="container-wrap">
     <div class="header-wrap clear-fix">
       <div class="search-wrap clear-fix">
-        <div class="search-keyword">
+        <div class="search-keyword" style="width:250px">
           <span>名称</span>
-          <Input
-            class="keyword-input"
-            v-model="subject_name"
-            size="large"
-            placeholder="请输入科目名称"
-          />
+          <Input class="keyword-input" v-model="search_subject_name" size="large" placeholder="请输入科目名称"  style="width:200px"/>
         </div>
-        <div class="search-keyword">
+        <div class="search-keyword" style="width:280px">
           <span>组卷名称</span>
-          <Input
-            class="keyword-input"
-            v-model="search_keyword"
-            size="large"
-            placeholder="请输入组卷名称"
-          />
+          <Input class="keyword-input" v-model="search_paper_name" size="large" placeholder="请输入组卷名称" style="width:200px" />
         </div>
         <div class="search-btn">
           <Button type="primary" @click="search" size="large">查询</Button>
         </div>
       </div>
       <div class="operation-wrap">
-        <Button class="func" type="success" @click="show_window = true"
-          >新增组卷</Button
-        >
+        <Button class="func" type="primary" @click="show_window = true">新增组卷</Button>
       </div>
     </div>
     <Row class="table-wrap">
@@ -83,7 +71,8 @@ export default {
       show_window: false,
       add_window: false,
       preview_form: false,
-      search_keyword: "",
+      search_paper_name: "",
+      search_subject_name:'',
       search_role: "",
       subject_name: "",
       columns: [
@@ -253,6 +242,7 @@ export default {
     bindSubjectTree() {
       var self = this;
       var query = new this.ParseServer.Query("Subjects");
+      query.ascending('createdAt')
       query.find().then(res => {
         this.subjects = res;
         var tree = self.initSubjectTree(res, "0");
@@ -296,14 +286,27 @@ export default {
      *时间：2020-11-21 23:30:27
      */
     page_list(page_index) {
+      var self = this
       this.loading = true;
-      let query = new this.ParseServer.Query("ExamPaper");
+      
+      let query1 = new this.ParseServer.Query("ExamPaper");
+      query1.contains("test_paper_name", this.search_paper_name);
+
+
+      let query2 = new this.ParseServer.Query("ExamPaper");
+      // query2.startsWith("subjects", this.search_subject_name); // 科目名称
+      if(this.search_subject_name){
+        let subjectIds = []
+        this.subjects.forEach((sub,idx)=>{
+          if(sub.get('subject_name').indexOf(self.search_subject_name)!=-1){
+            subjectIds.push(sub.id)
+          }
+        })
+        query2.containedIn("subjects", subjectIds); // 科目名称
+      }
+
+      var query = this.ParseServer.Query.and(query1, query2);
       query.descending("createdAt");
-      if (this.search_keyword) {
-        query.contains("test_paper_name", this.search_keyword);
-      }
-      if (this.subject_name) {
-      }
       query.count().then(count => {
         this.total = count;
       });

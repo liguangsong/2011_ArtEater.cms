@@ -19,6 +19,29 @@ const dateFormat = (date, fmt)=> {
   return fmt;
 }
 
+
+/** 增加天数 */
+const addDays = (date, number)=> {
+  var adjustDate = new Date(date.getTime() + 24 * 60 * 60 * 1000 * number)
+  // alert("Date" + adjustDate.getFullYear() + "-" + adjustDate.getMonth() + "-" + adjustDate.getDate());
+  return adjustDate;
+}
+/** 增加秒数 */
+const addSeconds=(date, number)=> {
+  var adjustDate = new Date(date.getTime() + 1000 * number)
+  // alert("Date" + adjustDate.getFullYear() + "-" + adjustDate.getMonth() + "-" + adjustDate.getDate());
+  return adjustDate;
+}
+
+/** 增加月数 */
+const addMonths=(date, number)=> {
+  return new Date(date.getFullYear(),date.getMonth()+number,date.getDate(),date.getHours(),date.getMinutes(),date.getSeconds());
+  // alert("Date" + adjustDate.getFullYear() + "-" + adjustDate.getMonth() + "-" + adjustDate.getDate());
+}
+
 export const tool = {
-  dateFormat
+  dateFormat,
+  addDays,
+  addMonths,
+  addSeconds,
 }
