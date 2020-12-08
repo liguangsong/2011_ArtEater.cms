@@ -39,6 +39,7 @@ const addMonths=(date, number)=> {
   // alert("Date" + adjustDate.getFullYear() + "-" + adjustDate.getMonth() + "-" + adjustDate.getDate());
 }
 
+
 export const tool = {
   dateFormat,
   addDays,

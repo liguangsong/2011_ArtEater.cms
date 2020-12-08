@@ -186,8 +186,8 @@
                     <strong v-if="question_form.type==2">多选</strong>
                     <strong v-if="question_form.type==3">填空</strong>
                 </FormItem>
-                <FormItem label="试题图片">
-                    <img src="@/assets/images/404.png" width="400px" />
+                <FormItem v-if="question_form.images" label="试题图片">
+                    <img :src="question_form.images" width="400px" />
                 </FormItem>
                 <FormItem label="题干">
                     <div>{{question_form.title}}</div>
@@ -217,10 +217,13 @@
          </Modal>
          <Modal v-model="isUploadData" title="导入试题" width="300" :footer-hide="true">
             <div style="height:100px;text-align:center">
-                <div style="display:inline-block;margin-top:30px">
+                <div v-if="uploadCount==0" style="display:inline-block;margin-top:30px">
                     <myUpload v-if="isUploadData" @complate="handleUpload" type='excel'>
                         <Button icon="ios-cloud-upload-outline">选择要导入的文件</Button>
                     </myUpload>
+                </div>
+                <div v-if="uploadCount>0">
+                    <label>共读取到{{uploadCount}}条数据，当前正在导入第{{uploadIndex}}条</label>
                 </div>
             </div>
          </Modal>
@@ -237,6 +240,8 @@ import selectTree from '@/components/iview-select-tree'
 import { verification } from '@/api/verification'
 import { tool } from '@/api/tool'
 import XLSX,{utils} from 'xlsx'
+import JsZip from 'jszip'
+import x2js from 'x2js'
 import editorVue from '../../components/editor/editor.vue'
 export default {
     name: "testquestions",
@@ -247,10 +252,24 @@ export default {
         // Single,
         // Multi
     },
+    watch:{
+        uploadIndex(val){
+            if(val==this.uploadCount&&val!=0){
+                this.$Message.success('导入成功')
+                setTimeout(() => {
+                    this.uploadIndex = 0
+                    this.uploadCount = 0
+                    this.isUploadData = false
+                }, 2000);
+            }
+        }
+    },
     data() {
         var self = this
         return {
             code:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            uploadCount:0,
+            uploadIndex:0,
             page:1,
             pSize: 10,
             total: 0,
@@ -686,65 +705,151 @@ export default {
                 }
             })
         },
+        /** 读取excel中的图片 */
+        readExcelImg(file){
+            return new Promise(function (resolve, reject) {
+                var new_zip = new JsZip();
+                new_zip.loadAsync(file).then(function() {
+                    var rels = new_zip.file("xl/drawings/_rels/drawing1.xml.rels")
+                    if(rels){
+                        rels.async("string").then(con=> {
+                            var _x2js = new x2js()
+                            var pathData = _x2js.xml2js(con)
+                            new_zip.file("xl/drawings/drawing1.xml").async("string").then(function (areaContent) {
+                                var areaData = _x2js.xml2js(areaContent)
+                                var rowcell = Array.isArray(areaData.wsDr.twoCellAnchor)?areaData.wsDr.twoCellAnchor:[areaData.wsDr.twoCellAnchor]
+                                var pics = []
+                                rowcell.forEach((_item,_index)=>{
+                                    let colIndex = _item.from.col.__text
+                                    let rowIndex = _item.from.row.__text
+                                    let Id = _item.pic.blipFill.blip["_r:embed"]
+                                    let ships = Array.isArray(pathData.Relationships.Relationship)?pathData.Relationships.Relationship:[pathData.Relationships.Relationship]
+                                    let _parhdata = ships.find(p=>{
+                                        return p._Id == Id
+                                    })
+                                    let flename = _parhdata._Target.substring(_parhdata._Target.lastIndexOf('/')+1,_parhdata._Target.length)
+                                    pics.push({col: parseInt(colIndex), row: parseInt(rowIndex), id: Id, path: _parhdata._Target, filename: flename})
+                                })
+                                resolve(pics)
+                            })
+                        });
+                    } else {
+                        resolve(null)
+                    }
+                })
+            });
+        },
+        /** 上传图片 */
+        uploadImg(excelfile, fileName){
+            var self = this
+            var new_zip = new JsZip();
+            return new Promise(function (resolve, reject) {
+                new_zip.loadAsync(excelfile).then(function() {
+                    new_zip.file('xl/media/'+fileName).async("base64").then(img=>{
+                        var parseFile = new self.ParseServer.File('excelimg.jpg',{base64:img});
+                        parseFile.save().then(res=>{
+                            if(res._url) {
+                                resolve(res._url)
+                            } else {
+                                self.$Message.error("图片上传失败");
+                            }
+                        })
+                    })
+                })
+            })
+        },
         /**
          * 导入模板
          */
         handleUpload(e){
             var self = this
-            self.importFromLocal(e[0]).then(res=>{
-                let data = []
-                res.body.forEach(item=>{
-                    data.push({
-                        subjects:item["分类"],
-                        title:item["题目\n4个英文下划线(_)代表一个填空"],
-                        isImportant:item['是否重点\n(是、否)'],
-                        type:item['题型\n（单选、多选、填空）'],
-                        comments:item["题目解析"],
-                        rightAnswer:item["正确答案\n（多选以英文,隔开）\n填空题除外"],
-                        option1:item["选项1\n（填空题请在此处输入填空1的正确答案，有备选答案请用英文,隔开）"],
-                        option2:item["选项2\n（填空题请在此处输入填空2的正确答案，有备选答案请用英文,隔开）"],
-                        option3:item["选项3\n（填空题请在此处输入填空3的正确答案，有备选答案请用英文,隔开）"],
-                        option4:item["选项4\n（填空题请在此处输入填空4的正确答案，有备选答案请用英文,隔开）"],
-                        option5:item["选项...\n（填空题请在此处输入填空4的正确答案，有备选答案请用英文,隔开）"]
+            var excelFile = e[0]
+            self.readExcelImg(excelFile).then(imgs=>{
+                if(imgs.length > 0) {
+                    imgs.forEach(img=>{
+                        // self.uploadImg(img.filename).then(url=>{})
                     })
-                })
-                var list = []
-                
-                var Questions = self.ParseServer.Object.extend("TestQuestions")
-                let _subjectIndex = self.maxIndex + 1
-                data.forEach((ques,index)=>{
-                    var _subject = self.subjects.find((_item,_index)=>{
-                        return _item.get('subject_name') == ques.subjects
+                }
+                self.importFromLocal(excelFile).then(res=>{
+                    let data = []
+                    res.body.forEach((item, index)=>{
+                        var img = imgs.find(t=>{
+                            return (t.row-1) == index
+                        })
+                        data.push({
+                            subjects:item["分类"],
+                            title:item["题目\n4个英文下划线(_)代表一个填空"],
+                            isImportant:item['是否重点\n(是、否)'],
+                            type:item['题型\n（单选、多选、填空）'],
+                            comments:item["题目解析"],
+                            rightAnswer:item["正确答案\n（多选以英文,隔开）\n填空题除外"],
+                            option1:item["选项1\n（填空题请在此处输入填空1的正确答案，有备选答案请用英文,隔开）"],
+                            option2:item["选项2\n（填空题请在此处输入填空2的正确答案，有备选答案请用英文,隔开）"],
+                            option3:item["选项3\n（填空题请在此处输入填空3的正确答案，有备选答案请用英文,隔开）"],
+                            option4:item["选项4\n（填空题请在此处输入填空4的正确答案，有备选答案请用英文,隔开）"],
+                            option5:item["选项...\n（填空题请在此处输入填空4的正确答案，有备选答案请用英文,隔开）"],
+                            imgFileName:img? img.filename:''
+                        })
+                        self.uploadCount = data.length
                     })
-                    var question = new Questions()
-                    if(_subject) {
-                        question.set('subjects',[_subject.id])
-                    }
-                    let _type = (ques.type=='单选'?1:(ques.type=='多选'?2:(ques.type=='填空'?3:0)))
-                    question.set('title', ques.title)
-                    question.set('comments', ques.comments)
-                    question.set('isImportant', (ques.isImportant=='是'?1:0))
-                    question.set('type', _type)
-                    question.set('index', _subjectIndex)
-                    question.set('options', self.getOptions(ques,_type))
-                    list.push(question)
-                    _subjectIndex++
-                })
-                self.ParseServer.Object.saveAll(list).then(ques_list=>{
-                    var query = new this.ParseServer.Query("TestQuestions")
-                    query.descending('createdAt')
-                    query.first().then(res=>{
-                        if(res){
-                            self.maxIndex = res.get('index')
+                    // var list = []
+                    
+                    var Questions = self.ParseServer.Object.extend("TestQuestions")
+                    let _subjectIndex = self.maxIndex + 1
+                    data.forEach((ques,index)=>{
+                        var _subject = self.subjects.find((_item,_index)=>{
+                            return _item.get('subject_name') == ques.subjects
+                        })
+                        var question = new Questions()
+                        if(_subject) {
+                            question.set('subjects',[_subject.id])
+                        }
+                        let _type = (ques.type=='单选'?1:(ques.type=='多选'?2:(ques.type=='填空'?3:0)))
+                        question.set('title', ques.title)
+                        question.set('comments', ques.comments)
+                        question.set('isImportant', (ques.isImportant=='是'?1:0))
+                        question.set('type', _type)
+                        question.set('index', _subjectIndex)
+                        question.set('options', self.getOptions(ques,_type))
+                        if(ques.imgFileName){
+                            self.uploadImg(excelFile, ques.imgFileName).then(url=>{
+                                question.set('images', url)
+                                question.save().then(_question=>{
+                                    // self.isUploadData = false
+                                    self.page_list()
+                                    self.maxIndex += 1
+                                    self.uploadIndex +=1
+                                    _subjectIndex++
+                                })
+                            })
                         } else {
-                            self.maxIndex = 0
+                            question.save().then(_question=>{
+                                // self.isUploadData = false
+                                self.page_list()
+                                self.maxIndex += 1
+                                self.uploadIndex +=1
+                                _subjectIndex++
+                            })
                         }
                     })
-                    self.$Message.success('导入成功')
-                    self.isUploadData = false
-                    self.page_list()
+                    // self.ParseServer.Object.saveAll(list).then(ques_list=>{
+                    //     var query = new this.ParseServer.Query("TestQuestions")
+                    //     query.descending('createdAt')
+                    //     query.first().then(res=>{
+                    //         if(res){
+                    //             self.maxIndex = res.get('index')
+                    //         } else {
+                    //             self.maxIndex = 0
+                    //         }
+                    //     })
+                    //     self.$Message.success('导入成功')
+                    //     self.isUploadData = false
+                    //     self.page_list()
+                    // })
                 })
             })
+
+            return ''
         },
         /**
          * 构造options

@@ -294,7 +294,6 @@ export default {
 
 
       let query2 = new this.ParseServer.Query("ExamPaper");
-      // query2.startsWith("subjects", this.search_subject_name); // 科目名称
       if(this.search_subject_name){
         let subjectIds = []
         this.subjects.forEach((sub,idx)=>{
