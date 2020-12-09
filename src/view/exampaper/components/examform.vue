@@ -131,7 +131,7 @@ export default {
     selectTree
   },
   data() {
-    var self = this
+    var self = this;
     return {
       close: false,
       show_windows: false,
@@ -210,8 +210,8 @@ export default {
             required: true,
             trigger: "blur",
             validator: (rule, value, callback) => {
-              let _val = parseInt(value)
-              if(_val > self.total_score) {
+              let _val = parseInt(value);
+              if (_val > self.total_score) {
                 callback(new Error("及格分数不能大于总分"));
               } else if (_val == 0) {
                 callback(new Error("请输入及格分数"));
@@ -396,7 +396,7 @@ export default {
     bindSubjectTree() {
       var self = this;
       var query = new this.ParseServer.Query("Subjects");
-      query.ascending('createdAt')
+      query.ascending("createdAt");
       query.find().then(res => {
         this.subjects = res;
         var tree = self.initSubjectTree(res, "0");
@@ -457,21 +457,32 @@ export default {
             });
           }
           var total_score = 0;
+          var right = true;
           // 随机计算试题
           Object.keys(reuqestions).forEach(key => {
             var random_questions = this.get_random_array_elements(
               reuqestions[key],
               this.exam_forms.options[parseInt(key) - 1].number
             );
-            total_score +=
-              this.exam_forms.options[parseInt(key) - 1].score *
-              random_questions.length;
-            this.exam_forms.options[parseInt(key) - 1].number =
-              random_questions.length;
+            // total_score +=
+            //   this.exam_forms.options[parseInt(key) - 1].score *
+            //   random_questions.length;
+            // this.exam_forms.options[parseInt(key) - 1].number =
+            //   random_questions.length;
+            if (
+              random_questions <
+              this.exam_forms.options[parseInt(key) - 1].number
+            ) {
+              right = false;
+            }
             random_questions.forEach(item => {
               reuqestion_ids.push(item);
             });
           });
+          if (!right) {
+            this.$Message.error("试题数量不足，试卷生成失败");
+            return;
+          }
           var Exampaper = _this.ParseServer.Object.extend("ExamPaper");
           var exam_paper = new Exampaper();
           if (_this.examid) {
@@ -480,7 +491,7 @@ export default {
           if (total_score < _this.exam_forms.pass_score) {
             _this.exam_forms.pass_score = total_score;
           }
-          _this.exam_forms.score = total_score;
+          // _this.exam_forms.score = total_score;
           _this.exam_forms.questions = reuqestion_ids;
           // 试卷的生成
           _this.exam_forms.time_count = parseInt(_this.exam_forms.time_count);
@@ -494,7 +505,6 @@ export default {
               _this.cancel(response.id);
             },
             error => {
-              console.log(error);
               _this.$Message.error("保存失败");
             }
           );
