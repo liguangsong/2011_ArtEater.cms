@@ -456,8 +456,9 @@ export default {
               reuqestions[item.get("type")].push(item.id);
             });
           }
-          var total_score = 0;
+          // var total_score = 0;
           var right = true;
+          var exam_type = 0;
           // 随机计算试题
           Object.keys(reuqestions).forEach(key => {
             var random_questions = this.get_random_array_elements(
@@ -474,13 +475,24 @@ export default {
               this.exam_forms.options[parseInt(key) - 1].number
             ) {
               right = false;
+              exam_type = key;
             }
             random_questions.forEach(item => {
               reuqestion_ids.push(item);
             });
           });
           if (!right) {
-            this.$Message.error("试题数量不足，试卷生成失败");
+            var msg = "";
+            if (exam_type == 1) {
+              msg = "单选题试题数量不足";
+            }
+            if (exam_type == 2) {
+              msg = "多选题试题数量不足";
+            }
+            if (exam_type == 3) {
+              msg = "单选题试题数量不足";
+            }
+            this.$Message.error(msg);
             return;
           }
           var Exampaper = _this.ParseServer.Object.extend("ExamPaper");
@@ -488,8 +500,8 @@ export default {
           if (_this.examid) {
             exam_paper.set("id", _this.examid);
           }
-          if (total_score < _this.exam_forms.pass_score) {
-            _this.exam_forms.pass_score = total_score;
+          if (_this.exam_forms.score < _this.exam_forms.pass_score) {
+            _this.exam_forms.pass_score = _this.exam_forms.score;
           }
           // _this.exam_forms.score = total_score;
           _this.exam_forms.questions = reuqestion_ids;
@@ -537,7 +549,6 @@ export default {
     get_entity() {
       var query = new this.ParseServer.Query("ExamPaper");
       query.get(this.examid).then(response => {
-        console.log(response);
         Object.keys(this.exam_forms).forEach(key => {
           this.exam_forms[key] = response.get(key);
         });
