@@ -186,8 +186,8 @@ export default {
                 } else {
                     var dbConfig = this.ParseServer.Object.extend("ActionConfig")
                     var data = [
-                        {page: '首页',code:'cuotiji',action:'错题集',isNeedPay:1, price:50.10,updatedBy:'管理员'},
                         {page: '首页',code:'zhongdiantiku',action:'重点题库',isNeedPay:0, price:0, updatedBy:'管理员'},
+                        {page: '首页',code:'monishiti',action:'模拟试题',isNeedPay:1, price:50.10,updatedBy:'管理员'},
                     ]
                     for(var i = 0; i < data.length; i++) {
                         var item = data[i]

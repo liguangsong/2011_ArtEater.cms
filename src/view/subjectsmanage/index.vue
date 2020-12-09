@@ -47,7 +47,7 @@
                 <FormItem label="是否收费" prop='price'>
                     <div style="display:flex">
                         <div style="width:80px">
-                            <i-switch v-model="subject_form.free" size="large">
+                            <i-switch v-model="subject_form.free" @on-change="handleChangeFree" size="large">
                                 <span slot="open">收费</span>
                                 <span slot="close">免费</span>
                             </i-switch>
@@ -185,7 +185,14 @@ export default {
             this.isShowAddForm=false,
             this.window_title="新增科目"
         },
-
+        /**
+         * 免费，收费
+         */
+        handleChangeFree(e){
+            if(!e){
+                this.subject_form.price = 0
+            }
+        },
          /*
         *获取科目实体
         *作者：gzt
@@ -204,6 +211,7 @@ export default {
         },
         /** 弹出添加科目弹框 */
         addSubject(){
+            this.subjectid = ''
             this.subject_form = {
                 subject_name:'',
                 subject_ID:'',
@@ -277,6 +285,7 @@ export default {
             var self = this
             var subjects = this.ParseServer.Object.extend("Subjects")
             var subject = new subjects()
+            debugger
             if(this.subjectid) {
                 subject.set('id', this.subjectid)
             }

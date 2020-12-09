@@ -5,7 +5,26 @@
 </template>
 <script>
 export default {
-  name: "App"
+  name: "App",
+  mounted () {
+    if (window.history && window.history.pushState) {
+        // 向历史记录中插入了当前页
+        history.pushState(null, null, document.URL);
+        window.addEventListener('popstate', this.goBack, false);
+    }
+},
+  destroyed(){
+    window.removeEventListener('popstate', this.goBack, false);
+  },
+  methods:{
+    goBack () {
+        // console.log("点击了浏览器的返回按钮");
+        sessionStorage.clear();
+        if (window.history){
+          window.history.back();
+        }
+    },
+  }
 };
 </script>
 

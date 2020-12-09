@@ -45,7 +45,7 @@
         <FormItem label="手机号" prop="phone">
           <Input v-model="user_forms.phone" placeholder="请输入手机号"></Input>
         </FormItem>
-        <FormItem label="密码" prop="password">
+        <FormItem v-if="!user_forms.id" label="密码" prop="password">
           <Input type="password" v-model="user_forms.password" placeholder="请输入密码"></Input>
         </FormItem>
         <FormItem label="身份" prop="role">
@@ -271,6 +271,8 @@ export default {
               user.set('id',self.user_forms.id)
               user.set("realname", self.user_forms.realname);
               user.set("phone", self.user_forms.phone);
+              user.set("username", self.user_forms.phone);
+              // user.set("password", self.user_forms.password);
               user.set("role", self.user_forms.role);
               user.save().then(ruser=>{
                 var role = self.RoleACLs.find(t=>{

@@ -71,7 +71,7 @@
             :loading='modalLoading'
             @on-ok="add_questions"
             @on-cancel="cancel">
-            <Form ref="form" :model="question_form" label-position="right" :label-width="80" :rules="ruleValidate">
+            <Form v-if="show_window" ref="form" :model="question_form" label-position="right" :label-width="80" :rules="ruleValidate">
                 <FormItem label="科目章节" prop="subjects">
                     <selectTree id="mySelectTree" v-model="question_form.subjects" multiple :treeData="subjectTreeData"></selectTree>
                 </FormItem>
@@ -208,7 +208,7 @@
                     </template>
                 </FormItem>
                 <FormItem label="答案解析">
-                    <div>{{question_form.comments}}</div>
+                    <div v-html="showComments" class="comments"></div>
                 </FormItem>
                 <FormItem label="是否作为重点">
                     <div>{{question_form.isImportant==1?'是':'否'}}</div>
@@ -282,6 +282,7 @@ export default {
             search_important:-1,
             subjectTreeData:[],
             subjects:[], // 所有科目和章节信息
+            showComments:'',
             columns: [
                 { title: 'ID', key: 'id',width:150 },
                 { title: '科目', key: 'subjects', slot: 'subjects',width:200 },
@@ -382,6 +383,8 @@ export default {
         /** 查看题目 */
         handleShowQuestion(row){
             this.isShowDetail = true
+            let _comments = row.comments.replace(/<img/g,"<img style='max-width:100%;height:auto;'")
+            this.showComments = _comments
             this.question_form = {
                 title: row.title,
                 isImportant: row.isImportant,
@@ -395,6 +398,7 @@ export default {
         },
         /** 编辑试题 */
         handleEditQuestion(row) {
+            debugger
             this.show_window = true
             this.question_form = {
                 id: row.id,
@@ -413,7 +417,6 @@ export default {
                     this.rightAnswer = item.code
                 }
             })
-            this.$refs['form'].validate()
         },
         /**
          * 切换题型
@@ -777,7 +780,7 @@ export default {
                             return (t.row-1) == index
                         })
                         data.push({
-                            subjects:item["分类"],
+                            subjects:item["科目ID\n（多项以英文,隔开）"],
                             title:item["题目\n4个英文下划线(_)代表一个填空"],
                             isImportant:item['是否重点\n(是、否)'],
                             type:item['题型\n（单选、多选、填空）'],
@@ -797,12 +800,13 @@ export default {
                     var Questions = self.ParseServer.Object.extend("TestQuestions")
                     let _subjectIndex = self.maxIndex + 1
                     data.forEach((ques,index)=>{
-                        var _subject = self.subjects.find((_item,_index)=>{
-                            return _item.get('subject_name') == ques.subjects
-                        })
+                        // var _subject = self.subjects.find((_item,_index)=>{
+                        //     return _item.id == ques.subjects
+                        // })
                         var question = new Questions()
-                        if(_subject) {
-                            question.set('subjects',[_subject.id])
+                        var _subjects = ques.subjects.split(',')
+                        if(_subjects.length > 0) {
+                            question.set('subjects', _subjects)
                         }
                         let _type = (ques.type=='单选'?1:(ques.type=='多选'?2:(ques.type=='填空'?3:0)))
                         question.set('title', ques.title)
@@ -1084,5 +1088,9 @@ export default {
     // float: right;
     margin-left: 10px;
   }
+}
+.comments{
+    overflow-y: auto;
+    width: 400px!important;
 }
 </style>

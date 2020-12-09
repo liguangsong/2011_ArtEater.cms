@@ -124,24 +124,6 @@ export default {
                   }
                 },
                 "用户信息"
-              ),
-              h(
-                "Button",
-                {
-                  props: {
-                    type: "error",
-                    size: "small"
-                  },
-                  style: {
-                    marginRight: "5px"
-                  },
-                  on: {
-                    click: () => {
-                      this.delete(params.row.id);
-                    }
-                  }
-                },
-                "删除"
               )
             ];
             return h("div", button);

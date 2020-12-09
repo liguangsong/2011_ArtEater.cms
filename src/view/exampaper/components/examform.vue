@@ -131,6 +131,7 @@ export default {
     selectTree
   },
   data() {
+    var self = this
     return {
       close: false,
       show_windows: false,
@@ -209,7 +210,10 @@ export default {
             required: true,
             trigger: "blur",
             validator: (rule, value, callback) => {
-              if (value == 0) {
+              let _val = parseInt(value)
+              if(_val > self.total_score) {
+                callback(new Error("及格分数不能大于总分"));
+              } else if (_val == 0) {
                 callback(new Error("请输入及格分数"));
               } else {
                 callback();
@@ -370,6 +374,7 @@ export default {
       });
       _subjects.forEach((_subject, _index) => {
         let subject = {
+          count: 1,
           title: _subject.get("subject_name"),
           value: _subject.id
         };
@@ -385,13 +390,13 @@ export default {
     },
     /*
      * 加载科目的树形结构
-     *作者：gzt
-     *时间：2020-11-22 14:42:57
+     * 作者：gzt
+     * 时间：2020-11-22 14:42:57
      */
     bindSubjectTree() {
       var self = this;
       var query = new this.ParseServer.Query("Subjects");
-      query.descending('createdAt')
+      query.ascending('createdAt')
       query.find().then(res => {
         this.subjects = res;
         var tree = self.initSubjectTree(res, "0");
@@ -446,7 +451,6 @@ export default {
       var reuqestion_ids = [];
       query.find().then(
         response => {
-          debugger
           if (response.length > 0) {
             response.forEach((item, index) => {
               reuqestions[item.get("type")].push(item.id);
@@ -496,7 +500,6 @@ export default {
           );
         },
         error => {
-          debugger
           this.$Message.error("试题生成过程中出错");
         }
       );

@@ -43,6 +43,7 @@ export default {
         processFiles(e){
             var files = this.$refs.uploader.files
             if(this.type=='img'){
+                debugger
                 var name = files[0].name;
                 var parseFile = new this.ParseServer.File(name, files[0]);
                 parseFile.save().then(res=>{
