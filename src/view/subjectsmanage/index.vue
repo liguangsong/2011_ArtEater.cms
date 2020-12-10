@@ -13,7 +13,10 @@
             </div>
         </div>
         <Row class="table-wrap">
-            <Table  :loading="loading" :columns="columns" :data="subjects_datas">
+            <Table  :loading="loading" :columns="currLevel==0?columns:columns1" :data="subjects_datas">
+                <template slot-scope="{ row }" slot="img">
+                    <div style="margin:5px 0"><img :src="row.backgroundImg" @click="handleShowImg(row)" width="84" height="38"></div>
+                </template>
                 <template slot-scope="{ row }" slot="price">
                     <strong v-if="row.price&&row.price>0">¥{{ row.price }}元</strong>
                     <strong v-else>免费</strong>
@@ -31,7 +34,7 @@
                 </template>
             </Table>
             <div class="page-wrap">
-                <Page :total="total" @on-change="page_list"  v-if="total!=0" />
+                <Page :total="total" @on-change="pagechange"  v-if="total!=0" />
             </div>
         </Row>
          <Modal v-model="isShowAddForm"
@@ -70,6 +73,9 @@
          <Modal v-model="isShowContentForm" :title="window_title" width="800" @on-ok="saveContent()">
             <Editor :value="subject_form.content" @on-change="change_value"></Editor>
          </Modal>
+        <Modal @on-visible-change="handleVChange" width="450" title="查看大图" v-model="isShowImg" :styles="{top: '20px'}">
+            <div style="margin:5px 0;text-align:center"><img :src="currBackgroundImg" width="336" height="152"></div>
+        </Modal>
     </div>
 </template> 
 
@@ -89,6 +95,8 @@ export default {
             page:1,
             pageSize: 10,
             total:0,
+            isShowImg: false,
+            currBackgroundImg: '',
             subjectName:'',
             subjectId:'',
             currLevel:0,
@@ -100,32 +108,19 @@ export default {
                 id:'0',
                 price: 0
             }],
-            columns: [
-                    {
-                        title: '科目名称',
-                        key: 'subject_name'
-                    },
-                    {
-                        title: 'ID',
-                        key: 'id'
-                    },
-                    {
-                        title: "内容添加",
-                        key: 'content',
-                        slot:'content'
-                    },
-                    {
-                        title: "收费状态",
-                        key: 'price',
-                        slot:'price'
-                    },
-                    {
-                        title: '操作',
-                        key: 'action',
-                        width:380,
-                        slot:'action'
-                    }
+            columns: [{title: '科目名称',key: 'subject_name'},
+                    { title: 'ID', key: 'id' },
+                    { title: '展示图', key: 'img', slot:'img' },
+                    { title: "内容添加", key: 'content', slot:'content' },
+                    { title: "收费状态", key: 'price', slot:'price' },
+                    { title: '操作', key: 'action', width:380, slot:'action'}
                 ],
+            columns1: [{title: '科目名称',key: 'subject_name'},
+                { title: 'ID', key: 'id' },
+                { title: "内容添加", key: 'content', slot:'content' },
+                { title: "收费状态", key: 'price', slot:'price' },
+                { title: '操作', key: 'action', width:380, slot:'action'}
+            ],
             subjects_datas: [],
             subject_form:{
                 subject_name:'',
@@ -184,6 +179,13 @@ export default {
             this.subject_form=JSON.parse(this.init_data)
             this.isShowAddForm=false,
             this.window_title="新增科目"
+        },
+        handleVChange(r){
+            this.isShowImg = r
+        },
+        handleShowImg(row){
+            this.isShowImg = true
+            this.currBackgroundImg = row.backgroundImg
         },
         /**
          * 免费，收费
@@ -382,6 +384,10 @@ export default {
             this.page=1
            this.page_list(this.page) 
         },
+        pagechange(e){
+            this.page = e
+            this.page_list() 
+        },
         /*
         *分页加载数据
         *作者：gzt
@@ -415,6 +421,7 @@ export default {
                             price: parseFloat(item.get("price")),
                             level: item.get('level'),
                             content: item.get('content'),
+                            backgroundImg: item.get('backgroundImg'),
                             has_down_level: item.get('has_down_level')
                         })
                     })
@@ -491,6 +498,9 @@ export default {
                         this.$Message.info('取消了操作');
                     }
                 });
+        },
+        checkLogin(){
+            
         }
     }
 }

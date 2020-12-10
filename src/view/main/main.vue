@@ -33,7 +33,7 @@
           </Card>
           <Content class="content-wrapper">
             <keep-alive :include="NavList">
-              <router-view />
+              <router-view  v-if="isRouterAlive" />
             </keep-alive>
           </Content>
         </Layout>
@@ -74,6 +74,7 @@ export default {
   },
   data () {
     return {
+      isRouterAlive: true,
       collapsed: false,
       minLogo,
       maxLogo,
@@ -82,6 +83,11 @@ export default {
       firstNav: this.$store.getters.menuList,
       userName: '系统管理员',
       menuList: this.$store.getters.menuList[0].children
+    }
+  },
+  provide() {
+    return {
+      reload:this.reload
     }
   },
   computed: {
@@ -125,7 +131,12 @@ export default {
     handleCollapsedChange (e) {
       this.collapsed = !this.collapsed
     },
-
+    reload() {
+      this.isRouterAlive = false;
+      this.$nextTick( () => {
+        this.isRouterAlive = true;
+      })
+    },
     turnToPage (routeName) {
       let { name, params, query } = {}
       if (typeof routeName === 'string') name = routeName

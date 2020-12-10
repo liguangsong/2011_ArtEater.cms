@@ -3,7 +3,7 @@
     <Breadcrumb :style="{fontSize: `${fontSize}px`}">
       <BreadcrumbItem v-for="item in list" :to="item.to" :key="`bread-crumb-${item.name}`">
         <common-icon style="margin-right: 4px;" :type="item.icon || ''"/>
-        {{ showTitle(item) }}
+        <div style="display:inline-block" @click="handleItemClick(item)">{{ showTitle(item) }}</div>
       </BreadcrumbItem>
     </Breadcrumb>
   </div>
@@ -17,6 +17,8 @@ export default {
   components: {
     CommonIcon
   },
+  inject:['reload'],
+  
   props: {
     list: {
       type: Array,
@@ -40,6 +42,9 @@ export default {
     },
     getCustomIconName (iconName) {
       return iconName.slice(1)
+    },
+    handleItemClick(item){
+      this.reload()
     }
   }
 }

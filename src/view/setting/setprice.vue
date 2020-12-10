@@ -155,6 +155,10 @@ export default {
             this.page=1
             this.page_list(this.page) 
         },
+        pagechange(e){
+        this.page = e
+        this.page_list()
+        },
         /*
         *分页加载数据
         *作者：gzt

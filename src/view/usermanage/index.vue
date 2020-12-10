@@ -22,7 +22,7 @@
     <Row class="table-wrap">
       <Table :loading="loading" :columns="columns" :data="users_datas"></Table>
       <div class="page-wrap">
-        <Page :total="total" @on-change="page_list" v-if="total != 0" />
+        <Page :total="total" @on-change="pagechange" v-if="total != 0" />
       </div>
     </Row>
     <Modal
@@ -316,6 +316,11 @@ export default {
     search () {
       this.page = 1;
       this.page_list(this.page);
+    },
+    
+    pagechange(e){
+      this.page = e
+      this.page_list()
     },
     /*
      *分页加载数据

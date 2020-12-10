@@ -44,7 +44,8 @@
                     <strong v-for="(_sub,_idx) in row.subjects">{{getSubjectName(_sub)+(_idx==row.subjects.length-1?'':'；')}}</strong>
                 </template>
                 <template slot-scope="{ row }" slot="answer">
-                    <strong>{{getRightAnswer(row.options)}}</strong>
+                    <strong v-if="row.type==3">{{row.options.length>1?(row.options[0].value[0].txt+'...'):(row.options[0].value.length>1?(row.options[0].value[0].txt + '|' + row.options[0].value[1].txt +'...'):(row.options[0].value[0].txt))}}</strong>
+                    <strong v-else>{{getRightAnswer(row.options)}}</strong>
                 </template>
                 <template slot-scope="{ row }" slot="isImportant">
                     <span v-if="row.isImportant==1">是</span>
@@ -83,11 +84,7 @@
                     </RadioGroup>
                 </FormItem>
                 <FormItem label="试题图片">
-                    <div>
-                        <!-- <img v-if="form.Pic" :src="basePath + form.Pic" width="100" height="100" /> -->
-                        <img v-if="question_form.images" :src="question_form.images" width="200" height="150"/>
-                    </div>
-                    <myUpload @complate="handleUploadComplate"></myUpload>
+                    <myUploadMuti :images="question_form.images" @complate="handleUploadComplate"></myUploadMuti>
                 </FormItem>
                 <FormItem label="题干" prop="title">
                     <Tooltip :disabled="question_form.type!=3" placement="top" style="width:100%">
@@ -187,7 +184,7 @@
                     <strong v-if="question_form.type==3">填空</strong>
                 </FormItem>
                 <FormItem v-if="question_form.images" label="试题图片">
-                    <img :src="question_form.images" width="400px" />
+                    <img :src="img" v-for="img in question_form.images" width="400px" style="margin-bottom:5px" />
                 </FormItem>
                 <FormItem label="题干">
                     <div>{{question_form.title}}</div>
@@ -233,6 +230,7 @@
 <script>
 import Editor from "@/components/editor"
 import myUpload from "@/components/myUpload"
+import myUploadMuti from "@/components/myUploadMuti"
 // import Single from "./components/single/index"
 // import Multi from "./components/multiselect/index"
 import { urlConfig } from '@/api/urlconfig'
@@ -249,6 +247,7 @@ export default {
         Editor,
         selectTree,
         myUpload,
+        myUploadMuti,
         // Single,
         // Multi
     },
@@ -290,6 +289,7 @@ export default {
                 { title: '重点题库', key: 'isImportant', slot: 'isImportant',width:100 },
                 { title: '题干', key: 'title' },
                 { title: "答案", key: 'answer', slot: 'answer',width:150 },
+                { title: "更新人", key: 'updatedBy',width:170},
                 { title: "更新时间", key: 'updatedAt',width:170,sortable:true},
                 { title: '操作', key: 'action', slot: 'action', align: 'center',width:180}
                 ],
@@ -297,7 +297,7 @@ export default {
             question_form:{
                 title: '',
                 isImportant: 0,
-                images:"",
+                images: [],
                 options:[
                     { code:'A',content:'',value:'' },
                     { code:'B',content:'',value:'' },
@@ -365,7 +365,7 @@ export default {
             this.question_form = {
                 title: '',
                 isImportant: 0,
-                images:"",
+                images: [],
                 options:[
                     { code:'A',content:'',value:'' },
                     { code:'B',content:'',value:'' },
@@ -398,7 +398,6 @@ export default {
         },
         /** 编辑试题 */
         handleEditQuestion(row) {
-            debugger
             this.show_window = true
             this.question_form = {
                 id: row.id,
@@ -566,8 +565,8 @@ export default {
         /**
          * 图片上传完成
          */
-        handleUploadComplate(url){
-            this.question_form.images = url
+        handleUploadComplate(urls){
+            this.question_form.images = urls
         },
         /*
         * 取消操作
@@ -606,6 +605,8 @@ export default {
             var question=new questions()
             if(this.question_form.id){
                 question.set('id', this.question_form.id)
+                let realName = this.ParseServer.User.current().get('realname')
+                question.set('updatedBy', realName)
             } else {
                 question.set('index', self.maxIndex + 1)
             }
@@ -618,20 +619,21 @@ export default {
                     }, 100)
                     return false
                 } else {
-                    question.set('title',this.question_form.title)
-                    question.set("subjects",this.question_form.subjects)
-                    question.set("isImportant",this.question_form.isImportant)
-                    question.set("type",this.question_form.type)
-                    question.set("options",this.question_form.options)
-                    question.set("comments",this.question_form.comments)
-                    question.set("images",this.question_form.images)
+                    question.set('title',self.question_form.title)
+                    question.set("subjects",self.question_form.subjects)
+                    question.set("isImportant",self.question_form.isImportant)
+                    question.set("type",self.question_form.type)
+                    question.set("options",self.question_form.options)
+                    question.set("comments",self.question_form.comments)
+                    question.set("images",self.question_form.images)
                     question.save().then((qres)=>{
                         self.maxIndex++
-                        this.$Message.success('保存成功')
-                        this.page_list(1)
-                        this.cancel()
+                        self.$Message.success('保存成功')
+                        self.page_list(1)
+                        self.cancel()
                     },(error)=>{
-                        this.$Message.error('保存失败')
+                        debugger
+                        self.$Message.error('保存失败')
                     })
                 }
             })
@@ -817,7 +819,7 @@ export default {
                         question.set('options', self.getOptions(ques,_type))
                         if(ques.imgFileName){
                             self.uploadImg(excelFile, ques.imgFileName).then(url=>{
-                                question.set('images', url)
+                                question.set('images', [url])
                                 question.save().then(_question=>{
                                     // self.isUploadData = false
                                     self.page_list()
@@ -836,20 +838,6 @@ export default {
                             })
                         }
                     })
-                    // self.ParseServer.Object.saveAll(list).then(ques_list=>{
-                    //     var query = new this.ParseServer.Query("TestQuestions")
-                    //     query.descending('createdAt')
-                    //     query.first().then(res=>{
-                    //         if(res){
-                    //             self.maxIndex = res.get('index')
-                    //         } else {
-                    //             self.maxIndex = 0
-                    //         }
-                    //     })
-                    //     self.$Message.success('导入成功')
-                    //     self.isUploadData = false
-                    //     self.page_list()
-                    // })
                 })
             })
 
@@ -943,14 +931,17 @@ export default {
                 query3.equalTo("type", this.search_type);
             }
 
-            // let query4 = new this.ParseServer.Query("TestQuestions");
-            // query4.contains("updatedBy", this.search_updateBy); // 更新人
+            let query4 = new this.ParseServer.Query("TestQuestions");
+            if(this.search_updateBy){
+                query4.contains("updatedBy", this.search_updateBy); // 更新人
+            }
+
             let query5 = new this.ParseServer.Query("TestQuestions");
             if(this.search_important && this.search_important!=-1){
                 query5.equalTo("isImportant", this.search_important);
             }
 
-            let query = this.ParseServer.Query.and(query1,query2, query3, query5);
+            let query = this.ParseServer.Query.and(query1,query2, query3,query4, query5);
 
             // let query = new this.ParseServer.Query('TestQuestions')
             query.descending("updatedAt")
@@ -963,7 +954,6 @@ export default {
                 _this.question_datas=[]
                 if (list && list.length>0){
                     list.forEach((item)=>{
-                        console.log(item.get('subjects'))
                         _this.question_datas.push({
                             id: item.id,
                             subjects: item.get('subjects'),
@@ -973,6 +963,7 @@ export default {
                             options: item.get('options'),
                             comments: item.get('comments'),
                             isImportant: item.get('isImportant'),
+                            updatedBy: item.get('updatedBy'),
                             updatedAt:  tool.dateFormat(item.updatedAt, 'yyyy-MM-dd HH:mm:ss')
                         })
                     })

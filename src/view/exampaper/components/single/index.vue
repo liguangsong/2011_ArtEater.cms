@@ -3,22 +3,20 @@
     <div class="title clear-fix">
       <p>{{ number }}. <span>(单选)</span>{{ question.title }}</p>
       <div>
-        <Button class="save" v-if="add" @click="add_question(question.id)"
-          >添加</Button
-        >
+        <Button class="save" v-if="add" @click="add_question(question.id)">添加</Button>
         <Button class="save" v-else @click="del(question.id)">删除</Button>
       </div>
     </div>
 
-    <div v-if="question.images">
+    <!-- <div v-if="question.images">
       <Avatar
         shape="square"
         :src="url"
         size="large"
-        v-for="(url, i) in question.images.split(',')"
+        v-for="(url, i) in question.images"
         :key="i"
       />
-    </div>
+    </div> -->
     <div class="option-wraps">
       <p
         class="option"
@@ -116,7 +114,8 @@ export default {
 }
 .html{
   width: 580px!important;
-  height: 200px;
+  max-height: 200px;
+  margin-bottom: 5px;
   overflow-y: auto;
 }
 

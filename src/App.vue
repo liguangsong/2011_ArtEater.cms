@@ -20,8 +20,12 @@ export default {
     goBack () {
         // console.log("点击了浏览器的返回按钮");
         sessionStorage.clear();
-        if (window.history){
-          window.history.back();
+        if(this.$router.history){
+          // this.$router.go(-1)
+        } else {
+          // if (window.history){
+          //   window.history.back();
+          // }
         }
     },
   }

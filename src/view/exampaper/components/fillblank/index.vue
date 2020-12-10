@@ -10,15 +10,15 @@
       </div>
     </div>
 
-    <div v-if="question.images">
+    <!-- <div v-if="question.images">
       <Avatar
         shape="square"
         :src="url"
         size="large"
-        v-for="(url, i) in question.images.split(',')"
+        v-for="(url, i) in question.images"
         :key="i"
       />
-    </div>
+    </div> -->
     <div class="option-wraps">
       <div
         class="option"
@@ -123,7 +123,8 @@ export default {
 }
 .html{
   width: 580px!important;
-  height: 200px;
+  max-height: 200px;
+  margin-bottom: 5px;
   overflow-y: auto;
 }
 
