@@ -15,7 +15,7 @@
         <Row class="table-wrap">
             <Table  :loading="loading" :columns="currLevel==0?columns:columns1" :data="subjects_datas">
                 <template slot-scope="{ row }" slot="img">
-                    <div style="margin:5px 0"><img :src="row.backgroundImg" @click="handleShowImg(row)" width="84" height="38"></div>
+                    <div style="margin:5px 0"><img v-if="row.backgroundImg" :src="row.backgroundImg" @click="handleShowImg(row)" width="84" height="38"></div>
                 </template>
                 <template slot-scope="{ row }" slot="price">
                     <strong v-if="row.price&&row.price>0">¥{{ row.price }}元</strong>
@@ -459,45 +459,47 @@ export default {
             var subject_id = row.id
             let _this=this
             this.$Modal.confirm({
-                    title: '删除提示',
-                    content: '<p>删除当前科目后，包含的子科目都会被删除，确定要删除吗？</p>',
-                    onOk: () => {
-                        var query = new this.ParseServer.Query("Subjects")
-                        query.get(subject_id).then((response)=>{
+                title: '删除提示',
+                content: '<p>删除当前科目后，包含的子科目都会被删除，确定要删除吗？</p>',
+                onOk: () => {
+                    var query = new this.ParseServer.Query("Subjects")
+                    query.get(subject_id).then((response)=>{
 
-                            // 删除所有的子组件
-                           this.recursive_delete(response.id)
-                            // 删除当前组件
-                            response.destroy().then((delete_result)=>{
-                                // 更新当前的父级组件是否还存在其他的子组件
-                                    query.equalTo("parent_ID",response.get("parent_ID"))
-                                    query.find().then((result)=>{
-                                        if(result.length==0){
-                                            var query_get = new this.ParseServer.Query("Subjects")
-                                            if(response.get("parent_ID")=="0"||response.get("parent_ID")==""){
-                                                this.$Message.success('删除成功');
-                                                _this.page_list(this.page)
-                                                return
-                                            }
-                                            query_get.get(response.get("parent_ID")).then((subject)=>{
-                                                subject.set('has_down_level',false)
-                                                subject.save().then((r)=>{
-                                                     this.$Message.success('删除成功');
-                                                    _this.page_list(this.page)
-                                                })
-                                            })
-                                        }else{
+                        // 删除所有的子组件
+                        this.recursive_delete(response.id)
+                        // 删除当前组件
+                        response.destroy().then((delete_result)=>{
+                            // 更新当前的父级组件是否还存在其他的子组件
+                            var query1 = new this.ParseServer.Query("Subjects")
+                            query1.equalTo("parent_ID",response.get("parent_ID"))
+                            query1.find().then((result)=>{
+                                if(result.length==0){
+                                    var query_get = new this.ParseServer.Query("Subjects")
+                                    if(response.get("parent_ID")=="0"||response.get("parent_ID")==""){
+                                        this.$Message.success('删除成功');
+                                        _this.page_list(this.page)
+                                        return
+                                    }
+                                    query_get.get(response.get("parent_ID")).then((subject)=>{
+                                        subject.set('has_down_level',false)
+                                        subject.save().then((r)=>{
                                             this.$Message.success('删除成功');
                                             _this.page_list(this.page)
-                                        }
+                                            _this.ShowParents()
+                                        })
                                     })
-                                })
+                                }else{
+                                    this.$Message.success('删除成功');
+                                    _this.page_list(this.page)
+                                }
+                            })
                         })
-                    },
-                    onCancel: () => {
-                        this.$Message.info('取消了操作');
-                    }
-                });
+                    })
+                },
+                onCancel: () => {
+                    this.$Message.info('取消了操作');
+                }
+            });
         },
         checkLogin(){
             

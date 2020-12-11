@@ -1,22 +1,5 @@
 <template>
   <div class="newsEdit">
-    <!-- <Upload
-        id="iviewUp"
-        ref="upload"
-      :show-upload-list="false"
-      :on-success="handleSingleSuccess"
-      :format="['jpg','jpeg','png']"
-      :max-size="2048"
-      type="drag"
-      action="/api/uploadPicFile"
-      style="display: none;width:0"
-      >
-        <div style="width: 0">
-          <Icon type="ios-camera" size="50"></Icon>
-      </div>
-    </Upload>
-     -->
-    <!-- <myUpload @complate="handleUploadComplate"></myUpload> -->
     <input id="iviewUp" @change="handleUploadComplate()" ref="uploader" type="file" class="ivu-upload-input" style="display:none" />
     <quillEditor
         class="quillEditor"
@@ -26,6 +9,7 @@
       @blur="onEditorBlur($event)"
       @focus="onEditorFocus($event)"
       @change="onEditorChange($event)"
+      @ready="onEditorReady($event)"
     ></quillEditor>
   </div>
 </template>
@@ -94,7 +78,7 @@ export default {
     //富文本 方法
     onEditorChange({ editor, html, text }) {
       //内容改变事件
-      // console.log("editor change!", editor, html, text);
+      console.log("editor change!", editor, html, text);
       this.content = html;
       this.$emit('on-change', html)
     },
@@ -109,7 +93,7 @@ export default {
     onEditorReady(editor) {
       //准备编辑器
       // console.log("editor ready!", editor);
-      // this.content = this.value
+      this.content = this.value
     },
     //富文本 自定义图片上传 
     handleUploadComplate(e) {

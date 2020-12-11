@@ -470,9 +470,10 @@ export default {
             //   random_questions.length;
             // this.exam_forms.options[parseInt(key) - 1].number =
             //   random_questions.length;
+            debugger
             if (
-              random_questions <
-              this.exam_forms.options[parseInt(key) - 1].number
+              random_questions.length <
+              parseInt(_this.exam_forms.options[parseInt(key) - 1].number)
             ) {
               right = false;
               exam_type = key;
@@ -490,7 +491,7 @@ export default {
               msg = "多选题试题数量不足";
             }
             if (exam_type == 3) {
-              msg = "单选题试题数量不足";
+              msg = "填空题试题数量不足";
             }
             this.$Message.error(msg);
             return;

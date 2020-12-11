@@ -43,9 +43,11 @@ export default {
         processFiles(e){
             var files = this.$refs.uploader.files
             if(this.type=='img'){
-                debugger
-                var name = files[0].name;
-                var parseFile = new this.ParseServer.File(name, files[0]);
+                var file = files[0]
+                var name = file.name;
+                var extendName = name.substring(name.lastIndexOf('.'),name.length)
+                let filename = 'a'+extendName
+                var parseFile = new this.ParseServer.File(filename, file);
                 parseFile.save().then(res=>{
                     if(res._url){
                         this.$emit('complate', res._url)

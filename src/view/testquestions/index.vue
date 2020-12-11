@@ -163,7 +163,7 @@
                 </FormItem>
                 <FormItem label="答案解析" prop="comments">
                     <!-- <Input  :rows="3" type="textarea" v-model="question_form.comments" placeholder="请输入答案解析"></Input> -->
-                    <Editor v-model="question_form.comments" placeholder="请输入答案解析" @on-change="change_value"></Editor>
+                    <Editor v-if="show_window" :value="question_form.comments" placeholder="请输入答案解析" @on-change="change_value"></Editor>
                 </FormItem>
                 <FormItem label="是否重点">
                     <RadioGroup v-model="question_form.isImportant">
@@ -240,7 +240,7 @@ import { tool } from '@/api/tool'
 import XLSX,{utils} from 'xlsx'
 import JsZip from 'jszip'
 import x2js from 'x2js'
-import editorVue from '../../components/editor/editor.vue'
+// import editorVue from '../../components/editor/editor.vue'
 export default {
     name: "testquestions",
     components:{
@@ -605,8 +605,6 @@ export default {
             var question=new questions()
             if(this.question_form.id){
                 question.set('id', this.question_form.id)
-                let realName = this.ParseServer.User.current().get('realname')
-                question.set('updatedBy', realName)
             } else {
                 question.set('index', self.maxIndex + 1)
             }
@@ -619,6 +617,8 @@ export default {
                     }, 100)
                     return false
                 } else {
+                    let realName = this.ParseServer.User.current().get('realname')
+                    question.set('updatedBy', realName)
                     question.set('title',self.question_form.title)
                     question.set("subjects",self.question_form.subjects)
                     question.set("isImportant",self.question_form.isImportant)
@@ -996,22 +996,22 @@ export default {
         handleRemove(row){
             let _this=this
             this.$Modal.confirm({
-                    title: '删除提示',
-                    content: '<p>确定删除当前试题吗？</p>',
-                    onOk: () => {
-                        var query = new this.ParseServer.Query("TestQuestions")
-                        query.get(row.id).then((response)=>{
-                            // 删除当前题目
-                            response.destroy().then((delete_result)=>{
-                                _this.$Message.success('删除成功')
-                                _this.page_list(1)
-                            })
+                title: '删除提示',
+                content: '<p>确定删除当前试题吗？</p>',
+                onOk: () => {
+                    var query = new this.ParseServer.Query("TestQuestions")
+                    query.get(row.id).then((response)=>{
+                        // 删除当前题目
+                        response.destroy().then((delete_result)=>{
+                            _this.$Message.success('删除成功')
+                            _this.page_list(1)
                         })
-                    },
-                    onCancel: () => {
-                        // this.$Message.info('取消了操作');
-                    }
-                });
+                    })
+                },
+                onCancel: () => {
+                    // this.$Message.info('取消了操作');
+                }
+            });
         },
     }
 }
