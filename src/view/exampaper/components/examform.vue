@@ -1,5 +1,5 @@
 <template>
-  <Modal v-model="show_windows" :title="window_title" width="700px">
+  <Modal v-model="show_windows" :title="window_title" width="600px">
     <Form
       :model="exam_forms"
       label-position="right"
@@ -20,7 +20,7 @@
         </Input>
       </FormItem>
       <FormItem label="科目" prop="subjects">
-        <selectTree
+        <selectTree  v-if="show_windows"
           id="mySelectTree"
           v-model="exam_forms.subjects"
           multiple
@@ -55,14 +55,10 @@
       </FormItem>
       <div class="options-wrap">
         <p class="title">题目</p>
-        <div
-          class="options clear-fix"
-          v-for="(item, index) in exam_forms.options"
-          :key="index"
-        >
-          <div class="question-label">
-            <span>选择类型</span>
-            <span>{{ item.type }}</span>
+        <div class="options clear-fix" v-for="(item, index) in exam_forms.options" :key="index">
+          <div class="question-label" style="display:flex;height:33px;line-height:33px">
+            <div style="flex:1;text-align:right"><label>选择类型</label></div>
+            <div style="width:60px;text-align:right"><label>{{item.title}}</label></div>
           </div>
           <div class="question-info">
             <FormItem
@@ -139,61 +135,50 @@ export default {
       subjectTreeData: [],
       ranges: [
         {
-          value: "请选择范围",
+          value: "-1",
           label: "请选择范围"
         },
         {
-          value: "普通试题",
+          value: "0",
           label: "普通试题"
         },
         {
-          value: "重点试题",
+          value: "1",
           label: "重点试题"
         }
       ],
       draw_ways: [
         {
-          value: "试题选项顺序全部一致",
+          value: "1",
           label: "试题选项顺序全部一致"
         },
         {
-          value: "选项顺序随机",
+          value: "2",
           label: "选项顺序随机"
         },
         {
-          value: "试题顺序随机",
+          value: "3",
           label: "试题顺序随机"
         },
         {
-          value: "试题选项顺序全部随机",
+          value: "4",
           label: "试题选项顺序全部随机"
         }
       ],
       exam_forms: {
         test_paper_name: "",
         options: [
-          {
-            type: "单选",
-            number: "",
-            score: ""
-          },
-          {
-            type: "多选",
-            number: "",
-            score: ""
-          },
-          {
-            type: "填空",
-            number: "",
-            score: ""
-          }
+          { title:'单选', type: "1", number: "", score: ""},
+          { title: '多选', type: "2", number: "", score: "" },
+          { title:'填空', type: "3", number: "", score: "" },
+          { title:'多项选择', type: "4", number: "", score: "" }
         ],
         time_count: 0,
         score: 0,
         pass_score: 0,
-        subjects: "",
+        subjects: [],
         rang: "请选择范围",
-        way: "试题选项顺序全部一致",
+        way: "1",
         questions: []
       },
       ruleValidate: {
@@ -296,28 +281,17 @@ export default {
       init_data: {
         test_paper_name: "",
         options: [
-          {
-            type: "单选",
-            number: "",
-            score: ""
-          },
-          {
-            type: "多选",
-            number: "",
-            score: ""
-          },
-          {
-            type: "填空",
-            number: "",
-            score: ""
-          }
+          { title:'单选', type: "1", number: "", score: ""},
+          { title: '多选', type: "2", number: "", score: "" },
+          { title:'填空', type: "3", number: "", score: "" },
+          { title:'多项选择', type: "4", number: "", score: "" }
         ],
         time_count: 0,
         score: 0,
         pass_score: 0,
-        subjects: "",
+        subjects: [],
         rang: "请选择范围",
-        way: "试题选项顺序全部一致",
+        way: "1",
         questions: []
       }
     };
@@ -367,26 +341,25 @@ export default {
      *时间：2020-11-28 21:09:50
      */
     initSubjectTree(subjects, parentId) {
-      var self = this;
-      var treeValue = [];
-      let _subjects = subjects.filter(_item => {
-        return _item.get("parent_ID") == parentId;
-      });
-      _subjects.forEach((_subject, _index) => {
-        let subject = {
-          count: 1,
-          title: _subject.get("subject_name"),
-          value: _subject.id
-        };
-        let childrens = subjects.filter(_item => {
-          return _item.get("parent_ID") == _subject.id;
-        });
-        if (childrens.length > 0) {
-          subject.children = self.initSubjectTree(subjects, _subject.id);
-        }
-        treeValue.push(subject);
-      });
-      return treeValue;
+      var self = this
+      var treeValue = []
+      let _subjects = subjects.filter((_item)=>{
+          return _item.get('parent_ID') == parentId
+      })
+      _subjects.forEach((_subject, _index)=> {
+          let subject = {
+              title: _subject.get('subject_name'),
+              value: _subject.id,
+          }
+          let childrens = subjects.filter(_item=>{
+              return _item.get('parent_ID') == _subject.id
+          })
+          if(childrens.length>0){
+              subject.children = self.initSubjectTree(subjects, _subject.id)
+          }
+          treeValue.push(subject)
+      })
+      return treeValue
     },
     /*
      * 加载科目的树形结构
@@ -394,14 +367,14 @@ export default {
      * 时间：2020-11-22 14:42:57
      */
     bindSubjectTree() {
-      var self = this;
-      var query = new this.ParseServer.Query("Subjects");
-      query.ascending("createdAt");
-      query.find().then(res => {
-        this.subjects = res;
-        var tree = self.initSubjectTree(res, "0");
-        self.subjectTreeData = tree;
-      });
+      var self = this
+      var query = new this.ParseServer.Query("Subjects")
+      query.ascending('createdAt')
+      query.find().then(res=>{
+          this.subjects = res
+          var tree = self.initSubjectTree(res,'0')
+          self.subjectTreeData = tree
+      })
     },
     /*
      *取消操作
@@ -442,11 +415,15 @@ export default {
       let _this = this;
       var query = new this.ParseServer.Query("TestQuestions");
       query.select("objectId", "type");
+      if(this.exam_forms.rang!='-1'){
+        query.equalTo('isImportant', parseInt(this.exam_forms.rang))
+      }
       query.containedIn("subjects", this.exam_forms.subjects);
       var reuqestions = {
         1: [],
         2: [],
-        3: []
+        3: [],
+        4: []
       };
       var reuqestion_ids = [];
       query.find().then(
@@ -470,7 +447,6 @@ export default {
             //   random_questions.length;
             // this.exam_forms.options[parseInt(key) - 1].number =
             //   random_questions.length;
-            debugger
             if (
               random_questions.length <
               parseInt(_this.exam_forms.options[parseInt(key) - 1].number)
@@ -493,11 +469,15 @@ export default {
             if (exam_type == 3) {
               msg = "填空题试题数量不足";
             }
+            if (exam_type == 4) {
+              msg = "多项选择试题数量不足";
+            }
             this.$Message.error(msg);
             return;
           }
           var Exampaper = _this.ParseServer.Object.extend("ExamPaper");
           var exam_paper = new Exampaper();
+          debugger
           if (_this.examid) {
             exam_paper.set("id", _this.examid);
           }
@@ -518,6 +498,7 @@ export default {
               _this.cancel(response.id);
             },
             error => {
+              debugger
               _this.$Message.error("保存失败");
             }
           );
@@ -548,10 +529,11 @@ export default {
      *时间：2020-11-22 09:21:48
      */
     get_entity() {
+      var self = this
       var query = new this.ParseServer.Query("ExamPaper");
-      query.get(this.examid).then(response => {
-        Object.keys(this.exam_forms).forEach(key => {
-          this.exam_forms[key] = response.get(key);
+      query.get(self.examid).then(response => {
+        Object.keys(self.exam_forms).forEach(key => {
+          self.exam_forms[key] = response.get(key);
         });
       });
     }
@@ -604,15 +586,15 @@ export default {
       font-weight: 500;
     }
     .question-label {
-      width: 22%;
+      width: 150px;
       float: left;
     }
     .question-info {
-      width: 36%;
+      width: 180px;
       float: left;
 
       .input {
-        width: 72%;
+        width: 100px;
       }
     }
   }

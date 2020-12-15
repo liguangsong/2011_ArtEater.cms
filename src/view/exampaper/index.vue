@@ -30,26 +30,9 @@
         <Page :total="total" @on-change="pagechange"  v-if="total!=0" />
       </div>
     </Row>
-    <ExalForm
-      :windows="show_window"
-      :examid="paper_id"
-      @change-window="change_window"
-      @preview="preview_window"
-    ></ExalForm>
-    <PreviewForm
-      :windows="preview_form"
-      :examid="exam_id"
-      :question="question"
-      @change-window="close_preview"
-      @add-window="change_add_window"
-    >
-    </PreviewForm>
-    <AddForm
-      :windows="add_window"
-      @change-window="close_add_window"
-      @add-question="add_question"
-    >
-    </AddForm>
+    <ExalForm :windows="show_window" :examid="paper_id" @change-window="change_window" @preview="preview_window"></ExalForm>
+    <PreviewForm :windows="preview_form" :examid="exam_id" :question="question" @change-window="close_preview" @add-type-change="handleAddTypeChange" @add-window="change_add_window"></PreviewForm>
+    <AddForm :windows="add_window" :quesType="quesType" :examRow="examRow" @change-window="close_add_window" @add-question="add_question"></AddForm>
   </div>
 </template>
 
@@ -71,10 +54,12 @@ export default {
       show_window: false,
       add_window: false,
       preview_form: false,
+      examRow:{},
       search_paper_name: "",
       search_subject_name:'',
       search_role: "",
       subject_name: "",
+      quesType: 1,
       columns: [
         {
           title: "ID",
@@ -107,8 +92,7 @@ export default {
           align: "center",
           render: (h, params) => {
             var button = [
-              h(
-                "Button",
+              h("Button",
                 {
                   props: {
                     type: "info",
@@ -120,6 +104,7 @@ export default {
                   on: {
                     click: () => {
                       this.exam_id = params.row.id;
+                      this.examRow = params.row
                       this.preview_form = true;
                     }
                   }
@@ -139,7 +124,7 @@ export default {
                   on: {
                     click: () => {
                       this.paper_id = params.row.id;
-
+                      this.examRow = params.row
                       this.show_window = true;
                     }
                   }
@@ -203,6 +188,7 @@ export default {
         this.preview_form = true;
       }
       this.add_window = value;
+      this.exam_id = this.examRow.id
     },
     close_preview(value) {
       if (!value) {
@@ -226,10 +212,21 @@ export default {
       }
       this.show_window = value;
     },
+    /** 切换添加题目的类型 */
+    handleAddTypeChange(type){
+      this.quesType = type
+    },
     preview_window(value, exam_id) {
+      var self = this
       this.show_window = false;
       this.preview_form = value;
       this.exam_id = exam_id;
+      let query = new this.ParseServer.Query("ExamPaper");
+      query.get(exam_id).then(res=>{
+        self.examRow = res
+        self.examRow.rang = res.get('rang')
+        self.examRow.subjects = res.get('subjects')
+      })
     },
 
     getSubjectName(id) {
@@ -327,6 +324,7 @@ export default {
                 test_paper_name: item.get("test_paper_name"),
                 score: item.get("score"),
                 pass_score: item.get("pass_score"),
+                rang: item.get('rang'),
                 create_date: tool.dateFormat(
                   item.updatedAt,
                   "yyyy-MM-dd HH:mm:ss"

@@ -346,6 +346,7 @@
                     return t.value == val
                 })
                 if(item) {
+                    item.selected = true
                     this.multipleShowVal.push(item.title)
                     this.multipleHideVal.push(item.value)
                 } else {
@@ -386,12 +387,13 @@
                         this.removeVal(_index)
                     })
                 } else {
-                    let _tree = this.treeData
+                    let _tree = JSON.parse(JSON.stringify(this.queryData))
                     this.multipleShowVal = []
                     this.multipleHideVal = []
                     val.forEach(v=>{
                         this.initData(_tree, v)
                     })
+                    this.queryData = _tree
                 }
             }
         },

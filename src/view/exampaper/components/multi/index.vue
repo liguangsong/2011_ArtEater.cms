@@ -52,6 +52,12 @@ export default {
     add: {
       type: Boolean,
       default: false
+    },
+    examRow:{
+      type: Object,
+      default:function(){
+        return {}
+      }
     }
   },
   data() {

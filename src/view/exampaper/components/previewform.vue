@@ -1,7 +1,7 @@
 <template>
   <Modal v-model="show_windows" :title="window_title" width="700px">
-    <Tabs v-if="ready">
-      <TabPane label="单选题">
+    <Tabs v-if="ready" @on-click='handleTabChange'>
+      <TabPane name='1' label="单选题">
         <SingleQues
           :question="item"
           :number="parseInt((single_page - 1) * 10 + parseInt(index + 1))"
@@ -16,7 +16,7 @@
           v-if="questions['1'].length"
         />
       </TabPane>
-      <TabPane label="多选题">
+      <TabPane name='2' label="多选题">
         <Multi
           :question="item"
           :number="parseInt((multis_page - 1) * 10 + parseInt(index + 1))"
@@ -31,7 +31,7 @@
           v-if="questions['2'].length"
         />
       </TabPane>
-      <TabPane label="填空题">
+      <TabPane name='3' label="填空题">
         <FillBlank
           :question="item"
           :number="parseInt((fillblank_page - 1) * 10 + parseInt(index + 1))"
@@ -44,6 +44,21 @@
           :total="questions['3'].length"
           @on-change="switch_value_3"
           v-if="questions['3'].length"
+        />
+      </TabPane>
+      <TabPane name='4' label="多项选择">
+        <MultiCheck
+          :question="item"
+          :number="parseInt((multisCheck_page - 1) * 10 + parseInt(index + 1))"
+          v-for="(item, index) in multisCheck"
+          :key="index"
+          @del="del"
+        ></MultiCheck>
+        <Page
+          :page-size="page_size"
+          :total="questions['4'].length"
+          @on-change="switch_value_4"
+          v-if="questions['4'].length"
         />
       </TabPane>
       <Button @click="add_window = true" type="primary" slot="extra"
@@ -63,8 +78,15 @@ import { verification } from "@/api/verification";
 import SingleQues from "./single/index";
 import Multi from "./multi/index";
 import FillBlank from "./fillblank/index";
+import MultiCheck from "./multicheck/index";
 export default {
   name: "exam-preview-form",
+  components: {
+    SingleQues,
+    Multi,
+    FillBlank,
+    MultiCheck
+  },
   props: {
     windows: false,
     examid: "",
@@ -85,10 +107,13 @@ export default {
       single_page: 1,
       multis_page: 1,
       fillblank_page: 1,
+      multisCheck_page:1,
+      type: 1,
       questions: {
         1: [],
         2: [],
-        3: []
+        3: [],
+        4: []
       },
       exam_forms: {
         test_paper_name: "",
@@ -107,6 +132,11 @@ export default {
             type: "填空",
             number: 0,
             score: 0
+          },
+          {
+            type: "多项选择",
+            number: 0,
+            score: 0
           }
         ],
         time_count: 0,
@@ -114,15 +144,10 @@ export default {
         pass_score: 0,
         subjects: "",
         rang: "请选择范围",
-        way: "试题选项顺序全部一致",
+        way: "1",
         questions: []
       }
     };
-  },
-  components: {
-    SingleQues,
-    Multi,
-    FillBlank
   },
 
   watch: {
@@ -153,9 +178,9 @@ export default {
      *时间：2020-11-29 12:06:10
      */
     add_window: function(new_val, old_val) {
-      if (new_val) {
+      // if (new_val) {
         this.$emit("add-window", new_val);
-      }
+      // }
     },
     /*
      *试题
@@ -167,6 +192,9 @@ export default {
         this.add_question(new_val);
       },
       deep: true
+    },
+    type(newval){
+      this.$emit("add-type-change", newval);
     }
   },
 
@@ -215,6 +243,21 @@ export default {
         );
       }
       return [];
+    },
+    /*
+     *多项选择
+     *作者：gzt
+     *时间：2020-11-29 09:41:28
+     */
+    multisCheck() {
+      var questions = this.questions["4"];
+      if (questions.length > 0) {
+        return questions.slice(
+          (this.fillblank_page - 1) * this.page_size,
+          this.fillblank_page * this.page_size
+        );
+      }
+      return [];
     }
   },
   mounted() {
@@ -230,7 +273,13 @@ export default {
     switch_value_3(page) {
       this.fillblank_page = page;
     },
-
+    switch_value_4(page){
+      this.multisCheck_page = page
+    },
+    /** 切换tab */
+    handleTabChange(name){
+      this.type = parseInt(name)
+    },
     /*
      *提交保存
      *作者：gzt
@@ -265,43 +314,45 @@ export default {
      *时间：2020-11-29 10:43:35
      */
     add_question(question) {
-      if (
-        this.exam_forms.questions.findIndex(
-          ent => ent == question.question_id
-        ) != -1
-      ) {
-        this.$Message.warning("该套试卷中以存在此题");
-        return;
-      }
-      let _this = this;
-      var query = new this.ParseServer.Query("TestQuestions");
-      query.get(question.question_id).then(response => {
-        _this.questions[response.get("type")].push({
-          id: response.id,
-          title: response.get("title"),
-          images: response.get("images"),
-          options: response.get("options"),
-          type: response.get("type"),
-          comments: response.get("comments")
+      if (this.exam_forms.questions.findIndex(ent => ent == question.question_id) != -1) {
+        this.$Message.warning("该套试卷中已存在此题");
+      } else {
+        let _this = this;
+        var query = new this.ParseServer.Query("TestQuestions");
+        query.get(question.question_id).then(response => {
+          _this.questions[response.get("type")].push({
+            id: response.id,
+            title: response.get("title"),
+            images: response.get("images"),
+            options: response.get("options"),
+            type: response.get("type"),
+            comments: response.get("comments")
+          });
+          _this.exam_forms.questions.push(response.id);
+          // 计算分数和题数
+          if (question.type == 1) {
+            // 单选
+            _this.exam_forms.options[0].number += 1;
+            _this.exam_forms.score += parseInt(_this.exam_forms.options[0].score);
+          }
+          if (question.type == 2) {
+            // 多选
+            _this.exam_forms.options[1].number += 1;
+            _this.exam_forms.score += parseInt(_this.exam_forms.options[1].score);
+          }
+          if (question.type == 3) {
+            // 填空
+            _this.exam_forms.options[2].number += 1;
+            _this.exam_forms.score += parseInt(_this.exam_forms.options[2].score);
+          }
+          if (question.type == 4) {
+            // 填空
+            _this.exam_forms.options[2].number += 1;
+            _this.exam_forms.score += parseInt(_this.exam_forms.options[2].score);
+          }
+          _this.add_window = false
         });
-        _this.exam_forms.questions.push(response.id);
-        // 计算分数和题数
-        if (question.type == "1") {
-          // 单选
-          _this.exam_forms.options[0].number += 1;
-          _this.exam_forms.score += parseInt(_this.exam_forms.options[0].score);
-        }
-        if (question.type == "2") {
-          // 多选
-          _this.exam_forms.options[1].number += 1;
-          _this.exam_forms.score += parseInt(_this.exam_forms.options[1].score);
-        }
-        if (question.type == "3") {
-          // 填空
-          _this.exam_forms.options[2].number += 1;
-          _this.exam_forms.score += parseInt(_this.exam_forms.options[2].score);
-        }
-      });
+      }
     },
     /*
      *查询试题
@@ -335,7 +386,8 @@ export default {
       this.questions = {
         1: [],
         2: [],
-        3: []
+        3: [],
+        4: []
       };
       let _this = this;
       var query = new this.ParseServer.Query("ExamPaper");

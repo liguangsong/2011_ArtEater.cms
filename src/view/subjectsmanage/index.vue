@@ -254,6 +254,7 @@ export default {
             this.route.pop()
             this.currLevel -= 1
             this.currParent = this.route[this.route.length-1]
+            this.page = 1
             this.page_list(1)
         },
         /** 查看下一级 */
@@ -261,6 +262,7 @@ export default {
             this.route.push(row)
             this.currLevel += 1
             this.currParent = row
+            this.page = 1
             // this.old_price = row.price
             this.page_list(1)
         },
@@ -274,6 +276,7 @@ export default {
                     self.route.push(row.id)
                     self.currLevel += 1
                     self.currParent = row
+                    self.page = 1
                     self.page_list(1)
                 }
             })
@@ -427,6 +430,8 @@ export default {
                     })
                 }
                 this.loading=false
+            },error=>{
+                debugger
             })
         },
 
@@ -477,6 +482,7 @@ export default {
                                     var query_get = new this.ParseServer.Query("Subjects")
                                     if(response.get("parent_ID")=="0"||response.get("parent_ID")==""){
                                         this.$Message.success('删除成功');
+                                        this.page = 1
                                         _this.page_list(this.page)
                                         return
                                     }
@@ -484,12 +490,14 @@ export default {
                                         subject.set('has_down_level',false)
                                         subject.save().then((r)=>{
                                             this.$Message.success('删除成功');
+                                            this.page = 1
                                             _this.page_list(this.page)
                                             _this.ShowParents()
                                         })
                                     })
                                 }else{
                                     this.$Message.success('删除成功');
+                                    this.page = 1
                                     _this.page_list(this.page)
                                 }
                             })

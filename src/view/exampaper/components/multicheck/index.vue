@@ -1,7 +1,7 @@
 <template>
   <div class="question">
     <div class="title clear-fix">
-      <p>{{ number }}. <span>(单选)</span>{{ question.title }}</p>
+      <p>{{ number }}. <span>(多项选择)</span>{{ question.title }}</p>
       <div>
         <Button class="save" v-if="add" @click="add_question(question.id)">添加</Button>
         <Button class="save" v-else @click="del(question.id)">删除</Button>
@@ -18,13 +18,14 @@
       />
     </div> -->
     <div class="option-wraps">
-      <p
-        class="option"
-        v-for="(option, option_index) in question.options"
-        :key="option_index"
-      >
-        <Radio :disabled="true" v-model="option.value != ''" disable>{{ option.content }}</Radio>
-      </p>
+        <template v-for="(_option,_idx) in question.options">
+            <div>
+                <label style="padding-right:20px">选择项{{_idx+1}}</label>
+                <p class="option" v-for="(option, option_index) in _option.options" :key="option_index">
+                    <Radio :disabled="true" v-model="option.value != ''" disable>{{ option.content }}</Radio>
+                </p>
+            </div>
+        </template>
     </div>
     <div class="parsing  clear-fix">
       <p>解析:</p>
@@ -38,10 +39,10 @@ export default {
   name: "single-question",
   props: {
     question: {
-      type: Object,
-      default: function() {
-        return {};
-      }
+        type: Object,
+        default: function() {
+            return {}
+        }
     },
     number: {
       type: Number,
