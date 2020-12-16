@@ -370,6 +370,7 @@ export default {
       var self = this
       var query = new this.ParseServer.Query("Subjects")
       query.ascending('createdAt')
+      query.limit(10000)
       query.find().then(res=>{
           this.subjects = res
           var tree = self.initSubjectTree(res,'0')

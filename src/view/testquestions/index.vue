@@ -193,7 +193,7 @@
                         </div>
                     </div>
                 </FormItem>
-                <FormItem label="答案解析" prop="comments">
+                <FormItem label="答案解析">
                     <!-- <Input  :rows="3" type="textarea" v-model="question_form.comments" placeholder="请输入答案解析"></Input> -->
                     <Editor v-if="show_window" :value="question_form.comments" placeholder="请输入答案解析" @on-change="change_value"></Editor>
                 </FormItem>
@@ -447,7 +447,7 @@ export default {
         /** 查看题目 */
         handleShowQuestion(row){
             this.isShowDetail = true
-            let _comments = row.comments.replace(/<img/g,"<img style='max-width:100%;height:auto;'")
+            let _comments = row.comments?row.comments.replace(/<img/g,"<img style='max-width:100%;height:auto;'"):''
             this.showComments = _comments
             this.question_form = {
                 title: row.title,
@@ -779,6 +779,7 @@ export default {
         bindSubjectTree(){
             var self = this
             var query = new this.ParseServer.Query("Subjects")
+            query.limit(10000)
             query.ascending('createdAt')
             query.find().then(res=>{
                 this.subjects = res
@@ -869,6 +870,9 @@ export default {
                                     let _parhdata = ships.find(p=>{
                                         return p._Id == Id
                                     })
+                                    if(parseInt(rowIndex)>6){
+                                        debugger
+                                    }
                                     let flename = _parhdata._Target.substring(_parhdata._Target.lastIndexOf('/')+1,_parhdata._Target.length)
                                     pics.push({col: parseInt(colIndex), row: parseInt(rowIndex), id: Id, path: _parhdata._Target, filename: flename})
                                 })
@@ -993,7 +997,7 @@ export default {
                         isImportant:item['是否重点(是、否)'],
                         type: 2,
                         comments:item["题目解析"],
-                        rightAnswer:item["正确答案（多选以英文,隔开）\n填空题除外"],
+                        rightAnswer:item["正确答案（多选以英文,隔开）"],
                         option1:item["选项1"],
                         option2:item["选项2"],
                         option3:item["选项3"],
@@ -1338,6 +1342,7 @@ export default {
                         // 删除当前题目
                         response.destroy().then((delete_result)=>{
                             _this.$Message.success('删除成功')
+                            _this.page = 1
                             _this.page_list(1)
                         })
                     })

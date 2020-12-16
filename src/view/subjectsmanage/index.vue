@@ -290,7 +290,6 @@ export default {
             var self = this
             var subjects = this.ParseServer.Object.extend("Subjects")
             var subject = new subjects()
-            debugger
             if(this.subjectid) {
                 subject.set('id', this.subjectid)
             }
@@ -332,6 +331,7 @@ export default {
             var self = this
             var query = new self.ParseServer.Query("Subjects")
             query.equalTo("parent_ID", parentId)
+            query.limit(10000)
             query.find().then(childrens => {
                 let hasChildren = false
                 let price = 0
@@ -443,6 +443,7 @@ export default {
         recursive_delete(parent_id){
             var query_deletes=new this.ParseServer.Query("Subjects")
             query_deletes.equalTo("parent_ID",parent_id)
+            query_deletes.limit(10000)
             query_deletes.find().then((response)=>{
                 if(response&&response.length>0){
                     response.forEach((data)=>{

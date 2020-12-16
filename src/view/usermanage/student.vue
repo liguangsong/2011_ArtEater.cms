@@ -268,6 +268,7 @@ export default {
               response.destroy().then(
                 delete_result => {
                   this.$Message.success("删除成功");
+                  this.page = 1
                   this.page_list(this.page);
                 },
                 error => {
