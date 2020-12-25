@@ -33,7 +33,7 @@ export default{
     // PARSE_SERVER_APPLICATION_ID: "myAppId",
     // PARSE_SERVER_MASTER_KEY:"123456",
     
-    PARSE_PUBLIC_SERVER_URL: "https://sys.aoekids.cn/api/1",
+    PARSE_PUBLIC_SERVER_URL: "https://www.arteater.cn/api/1",
     PARSE_SERVER_APPLICATION_ID:"8IXBcjIkgHNQ2v9k",
     PARSE_SERVER_MASTER_KEY:"1uGXsOnrM70ElEuwWaxm1lp1zsE6nxJj"
   }

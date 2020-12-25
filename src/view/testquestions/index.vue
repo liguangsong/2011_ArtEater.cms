@@ -823,8 +823,13 @@ export default {
                     let workSheet = workBook.Sheets[title]
                     let content = utils.sheet_to_json(workSheet)
                     let data = {};
-                    data.title = Object.keys(content[0]);
-                    data.body = content;
+                    if(content&&content.length>0){
+                        data.title = Object.keys(content[0]);
+                        data.body = content;
+                    } else {
+                        data.title = ""
+                        data.body = []
+                    }
                     resolve(data)
                 })
             })
@@ -870,9 +875,6 @@ export default {
                                     let _parhdata = ships.find(p=>{
                                         return p._Id == Id
                                     })
-                                    if(parseInt(rowIndex)>6){
-                                        debugger
-                                    }
                                     let flename = _parhdata._Target.substring(_parhdata._Target.lastIndexOf('/')+1,_parhdata._Target.length)
                                     pics.push({col: parseInt(colIndex), row: parseInt(rowIndex), id: Id, path: _parhdata._Target, filename: flename})
                                 })
@@ -927,19 +929,19 @@ export default {
                     }
                 }, 3000);
                 self.readExcelImg(excelFile, 1).then(imgs=>{
-                    self.uploadImgCount += imgs.length
+                    self.uploadImgCount += (imgs ? imgs.length:0)
                     self.handleUploadQuestionSignle(excelFile, '单选题', imgs, self.maxIndex, self.maxIndex)
                 })
                 self.readExcelImg(excelFile, 2).then(imgs=>{
-                    self.uploadImgCount += imgs.length
+                    self.uploadImgCount += (imgs ? imgs.length:0)
                     self.handleUploadQuestionMultis(excelFile, '多选题', imgs,  (self.maxIndex + count1), self.maxIndex)
                 })
                 self.readExcelImg(excelFile, 3).then(imgs=>{
-                    self.uploadImgCount += imgs.length
+                    self.uploadImgCount += (imgs ? imgs.length:0)
                     self.handleUploadQuestionFillBlank(excelFile, '填空题', imgs,  (self.maxIndex + count1 + count2), self.maxIndex)
                 })
                 self.readExcelImg(excelFile, 4).then(imgs=>{
-                    self.uploadImgCount += imgs.length
+                    self.uploadImgCount += (imgs ? imgs.length:0)
                     self.handleUploadQuestionMultiCheck(excelFile, '多项选择题', imgs,  (self.maxIndex + count1 + count2 + count3), self.maxIndex)
                 })
             })
@@ -959,20 +961,22 @@ export default {
                             }
                         })
                     }
-                    data.push({
-                        subjects:item["科目ID（多项以英文,隔开）"],
-                        title:item["题目"],
-                        isImportant:item['是否重点(是、否)'],
-                        type: 1,
-                        comments:item["题目解析"],
-                        rightAnswer:item["正确答案"],
-                        option1:item["选项1"],
-                        option2:item["选项2"],
-                        option3:item["选项3"],
-                        option4:item["选项4"],
-                        option5:item["选项..."],
-                        imgFileNames: imgNames
-                    })
+                    if(item["题目"]&&item["科目ID（多项以英文,隔开）"]){
+                        data.push({
+                            subjects:item["科目ID（多项以英文,隔开）"],
+                            title:item["题目"],
+                            isImportant:item['是否重点(是、否)'],
+                            type: 1,
+                            comments:item["题目解析"],
+                            rightAnswer:item["正确答案"],
+                            option1:item["选项1"],
+                            option2:item["选项2"],
+                            option3:item["选项3"],
+                            option4:item["选项4"],
+                            option5:item["选项..."],
+                            imgFileNames: imgNames
+                        })
+                    }
                 })
                 self.handleSaveQuestions(data, excelFile, testIndex, maxIndex)
             })
@@ -991,20 +995,22 @@ export default {
                             }
                         })
                     }
-                    data.push({
-                        subjects:item["科目ID（多项以英文,隔开）"],
-                        title:item["题目"],
-                        isImportant:item['是否重点(是、否)'],
-                        type: 2,
-                        comments:item["题目解析"],
-                        rightAnswer:item["正确答案（多选以英文,隔开）"],
-                        option1:item["选项1"],
-                        option2:item["选项2"],
-                        option3:item["选项3"],
-                        option4:item["选项4"],
-                        option5:item["选项..."],
-                        imgFileNames: imgNames
-                    })
+                    if(item["题目"]&&item["科目ID（多项以英文,隔开）"]){
+                        data.push({
+                            subjects:item["科目ID（多项以英文,隔开）"],
+                            title:item["题目"],
+                            isImportant:item['是否重点(是、否)'],
+                            type: 2,
+                            comments:item["题目解析"],
+                            rightAnswer:item["正确答案（多选以英文,隔开）"],
+                            option1:item["选项1"],
+                            option2:item["选项2"],
+                            option3:item["选项3"],
+                            option4:item["选项4"],
+                            option5:item["选项..."],
+                            imgFileNames: imgNames
+                        })
+                    }
                 })
                 self.handleSaveQuestions(data, excelFile, testIndex, maxIndex)
             })
@@ -1023,22 +1029,24 @@ export default {
                             }
                         })
                     }
-                    data.push({
-                        subjects:item["科目ID（多项以英文,隔开）"],
-                        title:item["题目,4个英文下划线(_)代表一个填空"],
-                        isImportant:item['是否重点(是、否)'],
-                        type: 3,
-                        comments:item["题目解析"],
-                        option1:item["选项1（请在此处输入填空1的正确答案，有备选答案请用英文,隔开）"],
-                        option2:item["选项2（请在此处输入填空2的正确答案，有备选答案请用英文,隔开）"],
-                        option3:item["选项3（请在此处输入填空3的正确答案，有备选答案请用英文,隔开）"],
-                        option4:item["选项4（请在此处输入填空4的正确答案，有备选答案请用英文,隔开）"],
-                        option5:item["选项5（请在此处输入填空5的正确答案，有备选答案请用英文,隔开）"],
-                        option6:item["选项6（请在此处输入填空6的正确答案，有备选答案请用英文,隔开）"],
-                        option7:item["选项7（请在此处输入填空7的正确答案，有备选答案请用英文,隔开）"],
-                        option8:item["选项8（请在此处输入填空8的正确答案，有备选答案请用英文,隔开）"],
-                        imgFileNames: imgNames
-                    })
+                    if(item["题目,4个英文下划线(_)代表一个填空"]&&item["科目ID（多项以英文,隔开）"]){
+                        data.push({
+                            subjects:item["科目ID（多项以英文,隔开）"],
+                            title:item["题目,4个英文下划线(_)代表一个填空"],
+                            isImportant:item['是否重点(是、否)'],
+                            type: 3,
+                            comments:item["题目解析"],
+                            option1:item["选项1（请在此处输入填空1的正确答案，有备选答案请用英文,隔开）"],
+                            option2:item["选项2（请在此处输入填空2的正确答案，有备选答案请用英文,隔开）"],
+                            option3:item["选项3（请在此处输入填空3的正确答案，有备选答案请用英文,隔开）"],
+                            option4:item["选项4（请在此处输入填空4的正确答案，有备选答案请用英文,隔开）"],
+                            option5:item["选项5（请在此处输入填空5的正确答案，有备选答案请用英文,隔开）"],
+                            option6:item["选项6（请在此处输入填空6的正确答案，有备选答案请用英文,隔开）"],
+                            option7:item["选项7（请在此处输入填空7的正确答案，有备选答案请用英文,隔开）"],
+                            option8:item["选项8（请在此处输入填空8的正确答案，有备选答案请用英文,隔开）"],
+                            imgFileNames: imgNames
+                        })
+                    }
                 })
                 self.handleSaveQuestions(data, excelFile, testIndex, maxIndex)
             })
@@ -1058,7 +1066,7 @@ export default {
                             }
                         })
                     }
-                    if(index>0) {
+                    if(index>0&&item["题目,1对英文括号()代表一个选择项"]&&item["科目ID（多项以英文,隔开）"]) {
                         data.push({
                             subjects:item["科目ID（多项以英文,隔开）"],
                             title:item["题目,1对英文括号()代表一个选择项"],
@@ -1083,37 +1091,41 @@ export default {
             var list = []
             let _subjectIndex = testIndex + 1
             var Questions = self.ParseServer.Object.extend("TestQuestions")
-            data.forEach((ques,index)=>{
-                var question = new Questions()
-                var _subjects = ques.subjects.split(',')
-                if(_subjects.length > 0) {
-                    question.set('subjects', _subjects)
-                }
-                question.set('title', ques.title)
-                question.set('comments', ques.comments)
-                question.set('isImportant', (ques.isImportant=='是'?1:0))
-                question.set('type', ques.type)
-                question.set('index', _subjectIndex)
-                question.set('options', self.getOptions(ques,ques.type))
-                question.set('images', ques.imgFileNames)
-                let realname = self.ParseServer.User.current().get('realname')
-                question.set('updatedBy', realname)
-                list.push(question)
-                _subjectIndex++
-            })
-            self.ParseServer.Object.saveAll(list).then(resList=>{
+            if(data&&data.length > 0) {
+                data.forEach((ques,index)=>{
+                    if(ques.subjects){
+                        var question = new Questions()
+                        var _subjects = ques.subjects.split(',')
+                        if(_subjects.length > 0) {
+                            question.set('subjects', _subjects)
+                        }
+                        question.set('title', ques.title)
+                        question.set('comments', ques.comments)
+                        question.set('isImportant', (ques.isImportant=='是'?1:0))
+                        question.set('type', ques.type)
+                        question.set('index', _subjectIndex)
+                        question.set('options', self.getOptions(ques,ques.type))
+                        question.set('images', ques.imgFileNames)
+                        let realname = self.ParseServer.User.current().get('realname')
+                        question.set('updatedBy', realname)
+                        list.push(question)
+                        _subjectIndex++
+                    }
+                })
+                self.ParseServer.Object.saveAll(list).then(resList=>{
                 self.uploadIndex = self.uploadIndex + resList.length
                 self.handleGetMaxIndex()
                 resList.forEach((_question)=>{
                     if(_question.get('images')) {
                         _question.get('images').forEach((_img,_idx)=>{
+                            console.log('正在导入图片：'+ _img)
                             self.uploadImg(excelFile, _img).then(url=>{
                                 let images = _question.get('images')
                                 images[_idx] = url
                                 _question.set('images', images)
                                 _question.save().then(_question=>{
                                     self.uploadImgIndex += 1
-                                    console.log(self.uploadImgIndex+'/'+self.uploadImgCount)
+                                    console.log(self.uploadImgIndex+'/'+self.uploadImgCount+';img:'+ _img)
                                 })
                             })
 
@@ -1121,6 +1133,7 @@ export default {
                     }
                 })
             })
+            }
         },
         /** 构造多项选择题的选项 */
         getOptionsMultiCheck(question){
