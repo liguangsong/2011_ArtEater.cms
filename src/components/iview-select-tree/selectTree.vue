@@ -282,16 +282,18 @@
                 }
             },
             initQueryMultiple () {
-                for (let i = 0; i < this.value.length; i++) {
-                    for (let j = 0; j < this.cloneData.length; j++) {
-                        if (this.cloneData[j].value === this.value[i]) {
-                            this.multipleShowVal.push(this.cloneData[j].title)
-                            this.multipleHideVal.push(this.cloneData[j].value)
-                            this.$emit('input', this.multipleHideVal)
-                            this.cloneData[j].selected = true
-                            break
-                        } else if (this.cloneData[j].children !== undefined) {
-                            this.recursionQueryTreeData(this.cloneData[j].children, this.value[i])
+                if(this.value){
+                    for (let i = 0; i < this.value.length; i++) {
+                        for (let j = 0; j < this.cloneData.length; j++) {
+                            if (this.cloneData[j].value === this.value[i]) {
+                                this.multipleShowVal.push(this.cloneData[j].title)
+                                this.multipleHideVal.push(this.cloneData[j].value)
+                                this.$emit('input', this.multipleHideVal)
+                                this.cloneData[j].selected = true
+                                break
+                            } else if (this.cloneData[j].children !== undefined) {
+                                this.recursionQueryTreeData(this.cloneData[j].children, this.value[i])
+                            }
                         }
                     }
                 }
@@ -346,9 +348,13 @@
                     return t.value == val
                 })
                 if(item) {
-                    item.selected = true
-                    this.multipleShowVal.push(item.title)
-                    this.multipleHideVal.push(item.value)
+                    if(this.multiple){
+                        item.selected = true
+                        this.multipleShowVal.push(item.title)
+                        this.multipleHideVal.push(item.value)
+                    } else {
+                        this.selectChange([item])
+                    }
                 } else {
                     _tree.forEach((_node, _idx)=>{
                         if(_node.children&&_node.children.length > 0) {
@@ -382,18 +388,24 @@
                 }
             },
             value(val){
-                if(val.length==0){
-                    this.multipleHideVal.forEach((_item,_index)=>{
-                        this.removeVal(_index)
-                    })
+                if(this.multiple){
+                    if(val.length==0){
+                        this.multipleHideVal.forEach((_item,_index)=>{
+                            this.removeVal(_index)
+                        })
+                    } else {
+                        let _tree = JSON.parse(JSON.stringify(this.queryData))
+                        this.multipleShowVal = []
+                        this.multipleHideVal = []
+                        val.forEach(v=>{
+                            this.initData(_tree, v)
+                        })
+                        this.queryData = _tree
+                    }
                 } else {
-                    let _tree = JSON.parse(JSON.stringify(this.queryData))
-                    this.multipleShowVal = []
-                    this.multipleHideVal = []
-                    val.forEach(v=>{
-                        this.initData(_tree, v)
-                    })
-                    this.queryData = _tree
+                    var _tree = JSON.parse(JSON.stringify(this.queryData))
+                    this.initData(_tree, val)
+                    // this.queryData = _tree
                 }
             }
         },

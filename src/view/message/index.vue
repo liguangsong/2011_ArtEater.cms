@@ -15,7 +15,11 @@
       </div>
     </div>
     <Row class="table-wrap">
-      <Table :loading="loading" :columns="columns" :data="message_datas"></Table>
+      <Table :loading="loading" :columns="columns" :data="message_datas">
+        <template slot-scope="{ row }" slot="content">
+          <div style="margin:10px 0">{{row.content}}</div>
+        </template>
+      </Table>
       <div class="page-wrap">
         <Page :total="total" @on-change="pagechange"  v-if="total!=0" />
       </div>
@@ -26,6 +30,7 @@
       :mask-closable="close"
       @on-ok="add_message"
       @on-cancel="cancel"
+      width="800"
     >
       <Form
         :model="message_form"
@@ -38,7 +43,7 @@
           <Input v-model="message_form.title" placeholder="请输入主题"></Input>
         </FormItem>
         <FormItem label="内容" prop="content">
-          <Input type="textarea" :rows="4" v-model="message_form.content" placeholder="请输入内容"></Input>
+          <Input type="textarea" :rows="15" v-model="message_form.content" placeholder="请输入内容"></Input>
         </FormItem>
       </Form>
     </Modal>
@@ -61,25 +66,16 @@ export default {
       show_window: false,
       search_keyword: "",
       columns: [
-        { title: "ID",key: "id" },
-        { title: "时间",key: "createdAt",
+        { title: "ID",key: "id", width: 130 },
+        { title: "时间",key: "createdAt", width: 180,
           render:(h, params)=>{
             var txt = tool.dateFormat(params.row.createdAt, 'yyyy-MM-dd HH:mm:ss')
             return h('div', txt)
           } 
         },
-        {
-          title: "主题",
-          key: "title"
-        },
-        {
-          title: "内容",
-          key: "content"
-        },
-        {
-          title: "操作",
-          key: "action",
-          align: "center",
+        { title: "主题", key: "title", width: 200 },
+        { title: "内容", key: "content", slot: 'content' },
+        { title: "操作", key: "action", align: "center", width: 150,
           render: (h, params) => {
             var button = [
               h(
@@ -153,6 +149,102 @@ export default {
     };
   },
   mounted () {
+    var self = this
+    // var _users = new self.ParseServer.Query(self.ParseServer.User)
+    // _users.equalTo('role', 'student')
+    // _users.find().then(users=> {
+    //   users.forEach(user=> {
+    //     if(user.get('phone')){
+    //       var rightCount = 0
+    //       var errorCount = 0
+    //       var _rquery = new self.ParseServer.Query('RightHistory')
+    //       _rquery.equalTo('openid',user.get('openid'))
+    //       _rquery.first().then(r=>{
+    //         if(r){
+    //           var rightCount = r.get("questions").length
+    //           var _equery = new self.ParseServer.Query('ErrorHistory')
+    //           _equery.equalTo('openid',user.get('openid'))
+    //           _equery.find().then(e=>{
+    //             let errorCount = 0
+    //             if(e&&e.length>0){
+    //               errorCount = e.length
+    //             }
+    //             let count = rightCount + errorCount
+    //             if(count > 0) {
+    //               let firstExamScore = 5
+    //               let _score = count * firstExamScore
+    //               var ScoreRecords = self.ParseServer.Object.extend("ScoreRecord")
+    //               var scoreRecord = new ScoreRecords()
+    //               scoreRecord.set('openid',user.get('openid'))
+    //               scoreRecord.set('channel', 'exam')
+    //               scoreRecord.set('score', _score)
+    //               scoreRecord.set('extend', 'first') // 首次答题
+    //               scoreRecord.save().then(()=>{
+    //                 if((!user.get('score_all') || user.get('score_all')==0)){
+    //                   user.set('score_all', user.get('score') + _score)
+    //                 } else {
+    //                   user.set('score_all', user.get('score_all')+ _score)
+    //                 }
+    //                 user.set('score', user.get('score')+ _score)
+    //                 user.save().then(r=>{
+    //                   debugger
+    //                 },error=>{
+    //                   debugger
+    //                 })
+    //               })
+    //             }
+    //           })
+    //         }
+    //       })
+    //     }
+    //   })
+    // })
+    // var _orders = new self.ParseServer.Query('Order')
+    // _orders.equalTo('state', 1)
+    // _orders.find().then(orders=> {
+    //   orders.forEach(order=> {
+    //     if(order){
+    //       var openId = order.get('openId')
+    //         let bili = 10
+    //         let cash = 0
+    //         if(order.get('cash')) {
+    //           cash = order.get('cash')
+    //         } else {
+    //           cash = order.get('price')
+    //           // order.get('cash')
+    //         }
+    //         let _score = bili * cash
+    //         if(_score>0) {
+              // var ScoreRecords = self.ParseServer.Object.extend("ScoreRecord")
+              // var scoreRecord = new ScoreRecords()
+              // scoreRecord.set('openid', openId)
+              // scoreRecord.set('channel', 'shop')
+              // scoreRecord.set('score', _score)
+              // scoreRecord.set('extend', '') // 首次答题
+              // scoreRecord.save().then(()=>{
+                
+                // var _users = new self.ParseServer.Query(self.ParseServer.User)
+                // _users.equalTo('openid', openId)
+                // _users.first().then(user=> {
+                //   if(user){
+                //       if((!user.get('score_all') || user.get('score_all')==0)){
+                //         user.set('score_all', user.get('score') + _score)
+                //       } else {
+                //         user.set('score_all', user.get('score_all') + _score)
+                //       }
+                //       user.set('score', user.get('score')+ _score)
+                //       user.save().then(r=>{
+                //         debugger
+                //       },error=>{
+                //         debugger
+                //       })
+                //     }
+                //   })
+              // })
+    //         }
+    //     }
+    //   })
+    // })
     this.init_data = JSON.stringify(this.message_form);
     this.page_list(this.page);
   },

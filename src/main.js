@@ -29,6 +29,7 @@ import parse from 'parse'
 // 注册parse-server服务
 parse.serverURL =config.parse_server.PARSE_PUBLIC_SERVER_URL
 parse.initialize(config.parse_server.PARSE_SERVER_APPLICATION_ID, config.parse_server. PARSE_SERVER_MASTER_KEY)
+parse.masterKey = config.parse_server.Master_Key
 Vue.prototype.ParseServer = parse
 
 

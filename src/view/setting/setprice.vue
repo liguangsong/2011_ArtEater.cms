@@ -19,6 +19,7 @@
                 </template>
                 <template slot-scope="{ row }" slot="action">
                     <Button type="warning" size="small" style="margin-right:5px" @click="EditFormShow(row)">编辑</Button>
+                    <Button type="warning" size="small" style="margin-right:5px" @click="CommentsFormShow(row)">介绍</Button>
                 </template>
             </Table>
             <!-- <div class="page-wrap">
@@ -27,16 +28,16 @@
         </Row>
          <Modal v-model="isShowAddForm"
             :title="window_title"
-            width="400"
+            width="500"
             mask scrollable
             :loading='modalLoading'
             @on-ok="update">
-            <Form ref="form" :model="form" label-position="right" :label-width="80" :rules="ruleValidate">
-                <FormItem label="页面">
+            <Form v-if="isShowAddForm" ref="form" :model="form" label-position="right" :label-width="100" :rules="ruleValidate">
+                <!-- <FormItem label="页面">
                     <label>{{form.page}}</label>
-                </FormItem>
+                </FormItem> -->
                 <FormItem label="功能名称">
-                    <label>{{form.action}}</label>
+                    <Input v-model="form.action" placeholder="请输入功能名称"></Input>
                 </FormItem>
                 <FormItem label="是否收费">
                     <Select v-model="form.isNeedPay">
@@ -47,26 +48,44 @@
                 <FormItem label="收费金额" prop="price">
                     <Input v-model="form.price" placeholder="请输入收费金额"></Input>
                 </FormItem>
+                <FormItem label="积分抵现（元）" prop='maxScoreMoney'>
+                    <InputNumber v-model="form.maxScoreMoney" :min="0" :max="1000000" :precision="0" style="width:200px" placeholder="请输入积分最多可抵现金额"></InputNumber>
+                    <label style="margin-left:5px;color:#808695">积分最多可抵现金额</label>
+                </FormItem>
+                <FormItem label="积分限制" prop='minScore'>
+                    <InputNumber v-model="form.minScore" :min="0" :max="1000000" :precision="0" style="width:200px" placeholder="请输入使用积分的最低限制"></InputNumber>
+                    <label style="margin-left:5px;color:#808695">使用积分的最低限制</label>
+                </FormItem>
             </Form>
+         </Modal>
+         <Modal v-model="isShowCommentsForm" title="编辑介绍" width="800" @on-ok="saveComments()">
+            <Editor :value="form.comments" @on-change="change_value"></Editor>
          </Modal>
     </div>
 </template> 
 
 <script>
+import Editor from "@/components/editor"
 import { tool } from '@/api/tool'
 import { verification } from '@/api/verification'
 export default {
     name: "subjectsmanageindex",
+    components:{
+        Editor
+    },
     data() {
         var self = this
         return {
+            isShowCommentsForm: false,
             columns: [
                 // { title: '页面',key: 'page'},
                 { title: '功能模块', key: 'action'},
                 { title: "是否收费", key: 'isNeedPay',slot: 'isNeedPay'},
                 { title: "收费金额（元）", key: 'price', slot: 'price', align: 'center'},
-                { title: "更新时间", key: 'updatedAt', slot: 'updatedAt'},
-                { title: "更新人", key: 'updatedBy'},
+                { title: "积分抵现（元）", key: 'maxScoreMoney' },
+                { title: "积分限制", key: 'minScore' },
+                { title: "最后更新时间", key: 'updatedAt', slot: 'updatedAt'},
+                { title: "最后更新人", key: 'updatedBy'},
                 { title: '操作', key: 'action',slot:'action' }
             ],
             form:{
@@ -75,6 +94,9 @@ export default {
                 action:'',
                 isNeedPay: 0,
                 price: 0,
+                maxScoreMoney: 0,
+                minScore: 0,
+                comments: ''
             },
             ruleValidate: {
                 price: [{ trigger: 'blur', 
@@ -105,6 +127,41 @@ export default {
     computed:{
     },
     mounted() {
+        // var self = this
+        // var query = new self.ParseServer.Query('_User')
+        // query.equalTo('role', 'student')
+        // query.limit(10000)
+        // query.find().then(res=>{
+        //     debugger
+        //     res.forEach(item=>{
+        //         if(item.get('amount')>=900){
+        //             debugger
+        //             var queryOrder = new self.ParseServer.Query('Order')
+        //             queryOrder.equalTo('openId',item.get('openid'))
+        //             queryOrder.equalTo('state', 1)
+        //             queryOrder.equalTo('subjectId', 'iVwkLLV6IN')
+        //             queryOrder.first().then(ores=>{
+        //                 if(ores){ //
+        //                     debugger
+        //                 } else{
+        //                     var dbOrder = self.ParseServer.Object.extend("Order")
+        //                     var order = new dbOrder()
+        //                     order.set('orderNo', '赠送答案解析')
+        //                     order.set("subjectId",  'iVwkLLV6IN')
+        //                     order.set("subjectName",  '试题解析')
+        //                     order.set("price",  0)
+        //                     order.set("openId", item.get('openid'))
+        //                     order.set("state", 1)
+        //                     order.set("wechatPayOrderId", '') // 支付流水号
+        //                     order.save().then(_order => {
+
+        //                     })
+        //                 }
+        //             },error=>{
+        //             })
+        //         }
+        //     })
+        // })
         this.page_list()
     },
     methods: {
@@ -117,6 +174,8 @@ export default {
         EditFormShow(row) {
             this.isShowAddForm = true
             this.form = row
+            this.form.maxScoreMoney = row.maxScoreMoney ? row.maxScoreMoney : 0
+            this.form.minScore = row.minScore ? row.minScore : 0
         },
         update(){
             var self = this
@@ -133,8 +192,11 @@ export default {
                     return false
                 } else {
                     config.set('isNeedPay', self.form.isNeedPay)
+                    config.set('action', self.form.action)
                     config.set('updatedBy', self.ParseServer.User.current().get('realname'))
                     config.set('price', self.form.isNeedPay == 1 ? parseFloat(self.form.price): 0)
+                    config.set('maxScoreMoney', self.form.maxScoreMoney)
+                    config.set('minScore', self.form.minScore)
                     config.save().then((con)=>{
                         this.isShowAddForm = false
                         self.$Message.success('保存成功')
@@ -145,6 +207,31 @@ export default {
                     })
                 }
             })
+        },
+        
+        saveComments(){
+            var self = this
+            var subjects = this.ParseServer.Object.extend("ActionConfig")
+            var subject = new subjects()
+            subject.set('id', this.form.id)
+            subject.set("comments", this.form.comments)
+            subject.save().then((res)=>{
+                self.page_list(self.page)
+                self.$Message.success('保存成功')
+            },(error)=>{
+                console.log(error)
+                self.$Message.error('保存失败')
+            })
+        },
+        /**
+         * 弹出编辑介绍窗体
+         */
+        CommentsFormShow(row){
+            this.form = row
+            this.isShowCommentsForm=true
+        },
+        change_value(html,text){
+            this.form.comments = html
         },
         /*
         *搜索数据
@@ -181,7 +268,10 @@ export default {
                                     isNeedPay: item.get('isNeedPay'),
                                     price: item.get('price'),
                                     updatedAt: item.get('updatedAt'),
-                                    updatedBy: item.get('updatedBy')
+                                    updatedBy: item.get('updatedBy'),
+                                    maxScoreMoney: item.get('maxScoreMoney'),
+                                    minScore: item.get('minScore'),
+                                    comments: item.get('comments')
                                 })
                             })
                         }
@@ -192,6 +282,7 @@ export default {
                     var data = [
                         {page: '首页',code:'zhongdiantiku',action:'重点题库',isNeedPay:0, price:0, updatedBy:'管理员'},
                         {page: '首页',code:'monishiti',action:'模拟试题',isNeedPay:1, price:50.10,updatedBy:'管理员'},
+                        {page: '答题',code:'daanjiexi',action:'试题解析',isNeedPay:1, price:50.10,updatedBy:'管理员'},
                     ]
                     for(var i = 0; i < data.length; i++) {
                         var item = data[i]

@@ -2,7 +2,7 @@
   <div class="newsEdit">
     <input id="iviewUp" @change="handleUploadComplate()" ref="uploader" type="file" class="ivu-upload-input" style="display:none" />
     <quillEditor
-        class="quillEditor"
+        class="ql-editor quillEditor"
       v-model="content"
       ref="myQuillEditor"
         :options="editorOption"

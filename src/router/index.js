@@ -119,6 +119,57 @@ const modules = [{
                 "children": null,
                 "href": "subjectsmanage/index.vue",
                 "level": 1
+            },{
+                "path": "videoindex",
+                "name": "videoindex",
+                "redirect": null,
+                "meta": {
+                    "icon": "ios-list-box-outline",
+                    "title": "视频推荐",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "subjectsmanage/videoindex.vue",
+                "permissionInfos": [
+
+                ],
+                "children": null,
+                "href": "subjectsmanage/videoindex.vue",
+                "level": 1
+            },{
+                "path": "coursesindex",
+                "name": "coursesindex",
+                "redirect": null,
+                "meta": {
+                    "icon": "ios-list-box-outline",
+                    "title": "套课管理",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "subjectsmanage/coursesindex.vue",
+                "permissionInfos": [
+
+                ],
+                "children": null,
+                "href": "subjectsmanage/coursesindex.vue",
+                "level": 1
+            },{
+                "path": "videolist",
+                "name": "videolist",
+                "redirect": null,
+                "meta": {
+                    "icon": "ios-list-box-outline",
+                    "title": "视频列表",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "subjectsmanage/videolist.vue",
+                "permissionInfos": [
+
+                ],
+                "children": null,
+                "href": "subjectsmanage/videolist.vue",
+                "level": 1
             }],
             "href": null,
             "level": 1
@@ -173,6 +224,24 @@ const modules = [{
                 ],
                 "children": null,
                 "href": "exampaper/index.vue",
+                "level": 1
+            },{
+                "Id": "erwerfs-24234-zdfsdf-23xdvsds",
+                "path": "oldexams",
+                "name": "oldexams",
+                "redirect": null,
+                "meta": {
+                    "icon": "ios-list-box-outline",
+                    "title": "历年真题",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "exampaper/oldexams.vue",
+                "permissionInfos": [
+
+                ],
+                "children": null,
+                "href": "exampaper/oldexams.vue",
                 "level": 1
             }],
             "href": null,
@@ -240,6 +309,107 @@ const modules = [{
                 "permissionInfos": [],
                 "children": null,
                 "href": "setting/setprice.vue",
+                "level": 1
+            },{
+                "Id": "zfdwsrf-23423-sdfs-234d4",
+                "path": "setbanner",
+                "name": "setbanner",
+                "redirect": null,
+                "meta": {
+                    "icon": "ios-browsers",
+                    "title": "轮播图设置",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "setting/setbanner.vue",
+                "permissionInfos": [],
+                "children": null,
+                "href": "setting/setbanner.vue",
+                "level": 1
+            },{
+                "Id": "zfdwsrf-23423-sdfs-23424",
+                "path": "setconfig",
+                "name": "setconfig",
+                "redirect": null,
+                "meta": {
+                    "icon": "md-settings",
+                    "title": "数据设置",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "setting/setconfig.vue",
+                "permissionInfos": [],
+                "children": null,
+                "href": "setting/setconfig.vue",
+                "level": 1
+            },{
+                "Id": "zfdwsrf-23423-sdfs-23425",
+                "path": "sharebg",
+                "name": "sharebg",
+                "redirect": null,
+                "meta": {
+                    "icon": "md-settings",
+                    "title": "分享图设置",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "setting/sharebg.vue",
+                "permissionInfos": [],
+                "children": null,
+                "href": "setting/sharebg.vue",
+                "level": 1
+            }],
+            "href": null,
+            "level": 1
+        },
+        {
+            "Id": "2312asda-231321-adada-w2e12easda",
+            "path": "/activity",
+            "name": "activity",
+            "redirect": "activity/activityindex",
+            "meta": {
+                "icon": "md-aperture",
+                "title": "活动",
+                "hideInMenu": false,
+                "showAlways": true
+            },
+            "component": "Main",
+            "permissionInfos": [
+
+            ],
+            "children": [
+            {
+                "Id": "erwerfs-24234-zdfsdf-23xdvsds",
+                "path": "activityindex",
+                "name": "activityindex",
+                "redirect": null,
+                "meta": {
+                    "icon": "ios-aperture",
+                    "title": "活动打包",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "activity/activity.vue",
+                "permissionInfos": [],
+                "children": null,
+                "href": "activity/activity.vue",
+                "level": 1
+            },
+            {
+                "Id": "zfdwsrf-23423-sdfs-23423",
+                "path": "couponindex",
+                "name": "couponindex",
+                "redirect": null,
+                "meta": {
+                    "icon": "md-pricetag",
+                    "title": "优惠券",
+                    "hideInMenu": false,
+                    "showAlways": true
+                },
+                "component": "activity/coupon.vue",
+                "permissionInfos": [],
+                "children": null,
+                "href": "activity/coupon.vue",
                 "level": 1
             }],
             "href": null,

@@ -66,6 +66,7 @@ export default {
                 let filename = 'a'+extendName
                 var parseFile = new this.ParseServer.File(filename, file);
                 parseFile.save().then(res=>{
+                    debugger
                     if(res._url){
                         this.imageArray.push(res._url)
                         this.$emit('complate', this.imageArray); 

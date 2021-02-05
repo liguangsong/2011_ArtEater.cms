@@ -1,7 +1,7 @@
 <template>
     <div style="display:flex;margin-top:5px">
         <div @click="before_upload" class="ivu-upload ivu-upload-drag">
-            <input @change="processFiles()" ref="uploader" type="file" class="ivu-upload-input" />
+            <input @change="processFiles()" ref="uploader" type="file" class="ivu-upload-input" :accept="accept" />
             <slot>
                 <div style="width: 38px; height: 38px; line-height: 38px;">
                     <i class="ivu-icon ivu-icon-ios-camera" style="font-size: 20px;"></i>
@@ -30,6 +30,10 @@ export default {
         type:{
             type:String,
             default:'img'
+        },
+        accept:{
+            type:String,
+            default: 'image/*'
         }
     },
     data() {
@@ -46,7 +50,7 @@ export default {
                 var file = files[0]
                 var name = file.name;
                 var extendName = name.substring(name.lastIndexOf('.'),name.length)
-                let filename = 'a'+extendName
+                let filename = 'b'+extendName
                 var parseFile = new this.ParseServer.File(filename, file);
                 parseFile.save().then(res=>{
                     if(res._url){
@@ -54,6 +58,8 @@ export default {
                     } else {
                         this.$Message.error("上传失败");
                     }
+                },error=>{
+                    debugger
                 })
             } else {
                 this.$emit('complate', files)

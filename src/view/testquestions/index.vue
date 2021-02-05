@@ -1,16 +1,16 @@
 <template>
     <div class="container-wrap">
-        <div class="header-wrap clear-fix" style="display:flex">
-            <div class="search-wrap clear-fix" style="flex:1">
-                <div class="search-keyword" style="width:150px">
+        <div class="header-wrap clear-fix">
+            <div class="search-wrap clear-fix" style="width:calc(100% - 180px);text-align:left;line-height:50px">
+                <div class="search-keyword" style="width:200px;float:left;">
                     <span style="width:50px">ID：</span>
-                    <Input v-model="search_ID" size="large" style="width:100px" placeholder="请输入ID" />
+                    <Input v-model="search_ID" size="large" style="width:150px" placeholder="请输入ID/题干" />
                 </div>
-                <div class="search-keyword" style="width:225px">
+                <div class="search-keyword" style="width:275px;float:left">
                     <span style="width:85px">科目名称：</span>
-                    <Input v-model="search_subject_name" size="large" style="width:150px" placeholder="请输入科目名称" />
+                    <selectTree  style="width:200px" id="mySelectTree1" v-model="search_subjects" :treeData="subjectTreeData" ></selectTree>
                 </div>
-                <div class="select-choice clear-fix" style="width:140px">
+                <div class="select-choice clear-fix" style="width:140px;float:left">
                     <span style="width:50px;padding:0">题型：</span>
                     <Select size="large" v-model="search_type" class="choice" placeholder="题型" :clearable="true" style="width:70px">
                         <Option :value="1" :key="1">单选</Option>
@@ -19,18 +19,36 @@
                         <Option :value="4" :key="4">多项选择</Option>
                     </Select>
                 </div>
-                <div class="search-keyword" style="width:160px">
+                <div class="search-keyword" style="width:160px;float:left">
                     <span style="width:85px">更新人：</span>
                     <Input v-model="search_updateBy" size="large" style="width:100px" placeholder="更新人姓名" />
                 </div>
-                <div class="select-choice clear-fix" style="width:200px">
+                <div class="search-keyword" style="width:232px;float:left">
+                    <div style="width:60px;float:left;">正确率：</div>
+                    <div style="width:100rpx;display:inline-block">
+                        <InputNumber
+                            :max="100"
+                            :min="0"
+                            v-model="search_right_percent_start"
+                            :formatter="value => `${value}%`"
+                            :parser="value => value.replace('%', '')"></InputNumber>
+                        <label>~</label>
+                        <InputNumber
+                            :max="100"
+                            :min="0"
+                            v-model="search_right_percent_end"
+                            :formatter="value => `${value}%`"
+                            :parser="value => value.replace('%', '')"></InputNumber>
+                    </div>
+                </div>
+                <div class="select-choice clear-fix" style="width:200px;float:left">
                     <span style="width:85px;padding:0">是否重点：</span>
                     <Select size="large" v-model="search_important" class="choice" :clearable="true" style="width:100px">
                         <Option :value="1" :key="1">是</Option>
                         <Option :value="0" :key="0">否</Option>
                     </Select>
                 </div>
-                <div class="search-btn" style="width:100px;margin:0">
+                <div class="search-btn" style="width:100px;margin:0;float:left">
                     <Button type="primary" @click="search" size="large">查询</Button>
                 </div>
             </div>
@@ -51,6 +69,10 @@
                 <template slot-scope="{ row }" slot="isImportant">
                     <span v-if="row.isImportant==1">是</span>
                     <span v-else>否</span>
+                </template>
+                <template slot-scope="{ row }" slot="accuracy">
+                    <span v-if="row.accuracy||row.accuracy==0">{{parseFloat((row.accuracy * 100).toFixed(2))}}%</span>
+                    <span v-else>-</span>
                 </template>
                 <template slot-scope="{ row }" slot="type">
                     <strong v-if="row.type==1">单选</strong>
@@ -87,7 +109,7 @@
                     </RadioGroup>
                 </FormItem>
                 <FormItem label="试题图片">
-                    <myUploadMuti :images="question_form.images" @complate="handleUploadComplate"></myUploadMuti>
+                    <myUploadMuti :images="question_form.images" @complate="handleUploadComplate" accept=".*"></myUploadMuti>
                 </FormItem>
                 <FormItem label="题干" prop="title">
                     <Tooltip :disabled="question_form.type!=3&&question_form.type!=4" placement="top" style="width:100%">
@@ -124,10 +146,10 @@
                             </div>
                             <div class="del">
                                 <div>
-                                    <Button v-if="index > 2 && index < 7 && index == question_form.options.length-1" type="primary" size="small" shape="circle" icon="md-add" @click="addCOptions"></Button>
+                                    <Button v-if="index > 0 && index < 7 && index == question_form.options.length-1" type="primary" size="small" shape="circle" icon="md-add" @click="addCOptions"></Button>
                                 </div>
                                 <div>
-                                    <Button v-if="index > 3" type="primary" size="small" shape="circle" icon="md-remove" @click="removeCOption(option)"></Button>
+                                    <Button v-if="index > 1" type="primary" size="small" shape="circle" icon="md-remove" @click="removeCOption(option)"></Button>
                                 </div>
                             </div>
                         </div>
@@ -254,7 +276,7 @@
          <Modal v-model="isUploadData" title="导入试题" width="300" :footer-hide="true">
             <div style="height:100px;text-align:center">
                 <div v-if="uploadCount==0" style="display:inline-block;margin-top:30px">
-                    <myUpload v-if="isUploadData" @complate="handleUpload" type='excel'>
+                    <myUpload v-if="isUploadData" @complate="handleUpload" type='excel' accept=".*">
                         <Button icon="ios-cloud-upload-outline">选择要导入的文件</Button>
                     </myUpload>
                 </div>
@@ -336,7 +358,10 @@ export default {
             loading: true,
             modalLoading: true,
             search_ID:'',
-            search_subject_name:'',
+            search_subject_name: '',
+            search_subjects: '',
+            search_right_percent_start: 0,
+            search_right_percent_end: 100,
             search_type:-1,
             search_updateBy:'',
             search_important:-1,
@@ -345,13 +370,14 @@ export default {
             showComments:'',
             columns: [
                 { title: 'ID', key: 'id',width:150 },
-                { title: '科目', key: 'subjects', slot: 'subjects',width:200 },
+                { title: '科目', key: 'subjects', slot: 'subjects',width:150 },
                 { title: '类型', key: 'type', slot: 'type',width:100 },
-                { title: '重点题库', key: 'isImportant', slot: 'isImportant',width:100 },
+                { title: '重点题库', key: 'isImportant', slot: 'isImportant',width:60 },
                 { title: '题干', key: 'title' },
-                { title: "答案", key: 'answer', slot: 'answer',width:150 },
-                { title: "更新人", key: 'updatedBy',width:170},
-                { title: "更新时间", key: 'updatedAt',width:170,sortable:true},
+                { title: "答案", key: 'answer', slot: 'answer',width:100 },
+                { title: "正确率", key: 'accuracy', slot: 'accuracy',width:80},
+                { title: "更新人", key: 'updatedBy',width:80},
+                { title: "更新时间", key: 'updatedAt',width:160},
                 { title: '操作', key: 'action', slot: 'action', align: 'center',width:180}
                 ],
             question_datas: [],
@@ -738,41 +764,51 @@ export default {
         */
         add_questions(){
             var self = this
-            var questions=this.ParseServer.Object.extend("TestQuestions")
-            var question=new questions()
-            if(this.question_form.id){
-                question.set('id', this.question_form.id)
-            } else {
-                question.set('index', self.maxIndex + 1)
-            }
-            this.$refs['form'].validate(valid => {
-                if (!valid) {
-                    self.$Message.error('请检查表单项')
-                    self.modalLoading = false
-                    setTimeout(() => {
-                        self.modalLoading = true
-                    }, 100)
-                    return false
+            var query = new this.ParseServer.Query("TestQuestions")
+            query.descending('createdAt')
+            query.first().then(res=>{
+                if(res){
+                    self.maxIndex = res.get('index')
                 } else {
-                    let realName = this.ParseServer.User.current().get('realname')
-                    question.set('updatedBy', realName)
-                    question.set('title',self.question_form.title)
-                    question.set("subjects",self.question_form.subjects)
-                    question.set("isImportant",self.question_form.isImportant)
-                    question.set("type",self.question_form.type)
-                    question.set("options",self.question_form.options)
-                    question.set("comments",self.question_form.comments)
-                    question.set("images",self.question_form.images)
-                    question.save().then((qres)=>{
-                        self.maxIndex++
-                        self.$Message.success('保存成功')
-                        self.page_list(1)
-                        self.cancel()
-                    },(error)=>{
-                        debugger
-                        self.$Message.error('保存失败')
-                    })
+                    self.maxIndex = 0
                 }
+                var questions=this.ParseServer.Object.extend("TestQuestions")
+                var question=new questions()
+                if(this.question_form.id){
+                    question.set('id', this.question_form.id)
+                } else {
+                    question.set('index', self.maxIndex + 1)
+                }
+                this.$refs['form'].validate(valid => {
+                    if (!valid) {
+                        self.$Message.error('请检查表单项')
+                        self.modalLoading = false
+                        setTimeout(() => {
+                            self.modalLoading = true
+                        }, 100)
+                        return false
+                    } else {
+                        let realName = this.ParseServer.User.current().get('realname')
+                        question.set('updatedBy', realName)
+                        question.set('title',self.question_form.title)
+                        question.set("subjects",self.question_form.subjects)
+                        question.set("isImportant",self.question_form.isImportant)
+                        question.set("type",self.question_form.type)
+                        question.set("options",self.question_form.options)
+                        question.set("comments",self.question_form.comments)
+                        question.set("images",self.question_form.images)
+                        // question.set('accuracy', 0)
+                        question.save().then((qres)=>{
+                            self.maxIndex++
+                            self.$Message.success('保存成功')
+                            self.page_list(1)
+                            self.cancel()
+                        },(error)=>{
+                            debugger
+                            self.$Message.error('保存失败')
+                        })
+                    }
+                })
             })
         },
         /** 加载树形科目 */
@@ -1253,18 +1289,17 @@ export default {
             var self = this
             let _this=this
             
-            let query1 = new this.ParseServer.Query("TestQuestions");
-            query1.contains("objectId", this.search_ID);
+            let querya = new this.ParseServer.Query("TestQuestions");
+            querya.contains("objectId", this.search_ID);
+
+            let queryb = new this.ParseServer.Query("TestQuestions");
+            queryb.contains("title", this.search_ID);
+
+            var query1 = this.ParseServer.Query.or(querya, queryb);
 
             let query2 = new this.ParseServer.Query("TestQuestions");
-            if(this.search_subject_name){
-                let subjectIds = []
-                this.subjects.forEach((sub,idx)=>{
-                    if(sub.get('subject_name').indexOf(self.search_subject_name)!=-1){
-                        subjectIds.push(sub.id)
-                    }
-                })
-                query2.containedIn("subjects", subjectIds); // 科目名称
+            if(this.search_subjects){
+                query2.containedIn("subjects", [this.search_subjects]); // 科目名称
             }
 
             let query3 = new this.ParseServer.Query("TestQuestions");
@@ -1278,14 +1313,39 @@ export default {
             }
 
             let query5 = new this.ParseServer.Query("TestQuestions");
-            if(this.search_important && this.search_important!=-1){
+            if(this.search_important == 1 || this.search_important==0){
                 query5.equalTo("isImportant", this.search_important);
             }
+            let queryc = new this.ParseServer.Query("TestQuestions"); // 正确率大于
+            if(this.search_right_percent_start >= 0){
+                queryc.greaterThanOrEqualTo("accuracy", parseFloat(this.search_right_percent_start/100));
+                // queryc.exists('accuracy')
+            }
+            
+            let queryd = new this.ParseServer.Query("TestQuestions"); // 正确率大于
+            if(this.search_right_percent_start == 0){
+                queryd.doesNotExist("accuracy");
+            } else {
+                queryd.greaterThanOrEqualTo("accuracy", parseFloat(this.search_right_percent_start/100));
+            }
+            var query6 = this.ParseServer.Query.or(queryc, queryd);
 
-            let query = this.ParseServer.Query.and(query1,query2, query3,query4, query5);
+            let querye = new this.ParseServer.Query("TestQuestions"); // 正确率小于
+            if(this.search_right_percent_end >= 0 &&  this.search_right_percent_end <= 100){
+                querye.lessThanOrEqualTo("accuracy", parseFloat(this.search_right_percent_end/100));
+            }
+            let queryf = new this.ParseServer.Query("TestQuestions"); // 正确率小于
+            if(this.search_right_percent_start == 0 &&  this.search_right_percent_end == 100){
+                queryf.doesNotExist("accuracy");
+            } else {
+                queryf.lessThanOrEqualTo("accuracy", parseFloat(this.search_right_percent_end/100));
+            }
+            var query7 = this.ParseServer.Query.or(querye, queryf);
+
+            let query = this.ParseServer.Query.and(query1, query2, query3,query4, query5, query6, query7);
 
             // let query = new this.ParseServer.Query('TestQuestions')
-            query.descending("updatedAt")
+            query.descending("createdAt",'objectId')
             query.count().then(count=>{
                 _this.total=count
             })
@@ -1305,11 +1365,15 @@ export default {
                             comments: item.get('comments'),
                             isImportant: item.get('isImportant'),
                             updatedBy: item.get('updatedBy'),
+                            index: item.get('index'),
+                            accuracy: item.get('accuracy'),
                             updatedAt:  tool.dateFormat(item.updatedAt, 'yyyy-MM-dd HH:mm:ss')
                         })
                     })
                 }
                 this.loading=false
+            },error=>{
+                debugger
             })
         },
         /** 获取科目名称 */

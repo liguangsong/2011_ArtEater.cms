@@ -136,7 +136,7 @@ export default {
       ranges: [
         {
           value: "-1",
-          label: "请选择范围"
+          label: "全部试题"
         },
         {
           value: "0",

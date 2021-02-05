@@ -202,6 +202,20 @@ const validateChar = (rule, value, callback) => {
     callback()
   }
 }
+const validateInt = (rule, value, callback) => {
+  if (!/^[0-9]*[1-9][0-9]*$/.test(value)) {
+    return callback(new Error('请输入整数'))
+  } else {
+    callback()
+  }
+}
+const validateFloat2 = (rule, value, callback) => {
+  if (!/^(([1-9]{1}\d*)|(0{1}))(\.\d{0,2})?$/.test(value)) {
+    return callback(new Error('最多只能包含两位小数'))
+  } else {
+    callback()
+  }
+}
 
 export const verification = {
   validatePassCheck,
@@ -220,5 +234,7 @@ export const verification = {
   validateIsNull,
   validateArrayIsNull,
   validateTempAttr,
-  validateDist
+  validateDist,
+  validateInt,
+  validateFloat2
 }
