@@ -1,1463 +1,2311 @@
 <template>
-    <div class="container-wrap">
-        <div class="header-wrap clear-fix">
-            <div class="search-wrap clear-fix" style="width:calc(100% - 180px);text-align:left;line-height:50px">
-                <div class="search-keyword" style="width:200px;float:left;">
-                    <span style="width:50px">ID：</span>
-                    <Input v-model="search_ID" size="large" style="width:150px" placeholder="请输入ID/题干" />
-                </div>
-                <div class="search-keyword" style="width:275px;float:left">
-                    <span style="width:85px">科目名称：</span>
-                    <selectTree  style="width:200px" id="mySelectTree1" v-model="search_subjects" :treeData="subjectTreeData" ></selectTree>
-                </div>
-                <div class="select-choice clear-fix" style="width:140px;float:left">
-                    <span style="width:50px;padding:0">题型：</span>
-                    <Select size="large" v-model="search_type" class="choice" placeholder="题型" :clearable="true" style="width:70px">
-                        <Option :value="1" :key="1">单选</Option>
-                        <Option :value="2" :key="2">多选</Option>
-                        <Option :value="3" :key="3">填空</Option>
-                        <Option :value="4" :key="4">多项选择</Option>
-                    </Select>
-                </div>
-                <div class="search-keyword" style="width:160px;float:left">
-                    <span style="width:85px">更新人：</span>
-                    <Input v-model="search_updateBy" size="large" style="width:100px" placeholder="更新人姓名" />
-                </div>
-                <div class="search-keyword" style="width:232px;float:left">
-                    <div style="width:60px;float:left;">正确率：</div>
-                    <div style="width:100rpx;display:inline-block">
-                        <InputNumber
-                            :max="100"
-                            :min="0"
-                            v-model="search_right_percent_start"
-                            :formatter="value => `${value}%`"
-                            :parser="value => value.replace('%', '')"></InputNumber>
-                        <label>~</label>
-                        <InputNumber
-                            :max="100"
-                            :min="0"
-                            v-model="search_right_percent_end"
-                            :formatter="value => `${value}%`"
-                            :parser="value => value.replace('%', '')"></InputNumber>
-                    </div>
-                </div>
-                <div class="select-choice clear-fix" style="width:200px;float:left">
-                    <span style="width:85px;padding:0">是否重点：</span>
-                    <Select size="large" v-model="search_important" class="choice" :clearable="true" style="width:100px">
-                        <Option :value="1" :key="1">是</Option>
-                        <Option :value="0" :key="0">否</Option>
-                    </Select>
-                </div>
-                <div class="search-btn" style="width:100px;margin:0;float:left">
-                    <Button type="primary" @click="search" size="large">查询</Button>
-                </div>
-            </div>
-            <div class="operation-wrap" style="width:175px">
-                <Button style="margin-right:10px" type="primary" @click="handleAddQuestion">新增试题</Button>
-                <Button type="info" @click="isUploadData=true">批量导入</Button>
-            </div>
+  <div class="container-wrap">
+    <div class="header-wrap clear-fix">
+      <div
+        class="search-wrap clear-fix"
+        style="width: calc(100% - 260px); text-align: left; line-height: 50px"
+      >
+        <div class="search-keyword" style="width: 200px; float: left">
+          <span style="width: 50px">ID：</span>
+          <Input
+            v-model="search_ID"
+            size="large"
+            style="width: 150px"
+            placeholder="请输入ID/题干"
+          />
         </div>
-        <Row class="table-wrap">
-            <Table  :loading="loading" :columns="columns" :data="question_datas">
-                <template slot-scope="{ row }" slot="subjects">
-                    <strong v-for="(_sub,_idx) in row.subjects">{{getSubjectName(_sub)+(_idx==row.subjects.length-1?'':'；')}}</strong>
-                </template>
-                <template slot-scope="{ row }" slot="answer">
-                    <strong v-if="row.type==3">{{row.options.length>1?(row.options[0].value[0].txt+'...'):(row.options[0].value.length>1?(row.options[0].value[0].txt + '|' + row.options[0].value[1].txt +'...'):(row.options[0].value[0].txt))}}</strong>
-                    <strong v-else>{{getRightAnswer(row.options,row.type)}}</strong>
-                </template>
-                <template slot-scope="{ row }" slot="isImportant">
-                    <span v-if="row.isImportant==1">是</span>
-                    <span v-else>否</span>
-                </template>
-                <template slot-scope="{ row }" slot="accuracy">
-                    <span v-if="row.accuracy||row.accuracy==0">{{parseFloat((row.accuracy * 100).toFixed(2))}}%</span>
-                    <span v-else>-</span>
-                </template>
-                <template slot-scope="{ row }" slot="type">
-                    <strong v-if="row.type==1">单选</strong>
-                    <strong v-if="row.type==2">多选</strong>
-                    <strong v-if="row.type==3">填空</strong>
-                    <strong v-if="row.type==4">多项选择</strong>
-                </template>
-                <template slot-scope="{ row }" slot="action">
-                    <Button type="info" size="small" style="margin-right:5px" @click="handleShowQuestion(row)">查看</Button>
-                    <Button type="warning" size="small" style="margin-right:5px" @click="handleEditQuestion(row)">编辑</Button>
-                    <Button type="error" size="small" @click="handleRemove(row)">删除</Button>
-                </template>
-            </Table>
-            <div class="page-wrap">
-                <Page :total="total" @on-change="pagechange"  v-if="total!=0" />
-            </div>
-        </Row>
-         <Modal v-model="show_window"
-            :title="window_title"
-            width="600"
-            :loading='modalLoading'
-            @on-ok="add_questions"
-            @on-cancel="cancel">
-            <Form v-if="show_window" ref="form" :model="question_form" label-position="right" :label-width="80" :rules="ruleValidate">
-                <FormItem label="科目章节" prop="subjects">
-                    <selectTree v-if="show_window" id="mySelectTree" v-model="question_form.subjects" multiple :treeData="subjectTreeData"></selectTree>
-                </FormItem>
-                <FormItem label="试题类型" prop="type">
-                    <RadioGroup v-model="question_form.type" @on-change="handleQuesTypeChange">
-                        <Radio :disabled="question_form.id&&question_form.id!=''" :label="1">单选</Radio>
-                        <Radio :disabled="question_form.id&&question_form.id!=''" :label="2">多选</Radio>
-                        <Radio :disabled="question_form.id&&question_form.id!=''" :label="3">填空</Radio>
-                        <Radio :disabled="question_form.id&&question_form.id!=''" :label="4">多项选择</Radio>
-                    </RadioGroup>
-                </FormItem>
-                <FormItem label="试题图片">
-                    <myUploadMuti :images="question_form.images" @complate="handleUploadComplate" accept=".*"></myUploadMuti>
-                </FormItem>
-                <FormItem label="题干" prop="title">
-                    <Tooltip :disabled="question_form.type!=3&&question_form.type!=4" placement="top" style="width:100%">
-                        <div style="display:flex;">
-                            <div style="flex:1">
-                                <Input id='title' :rows="3" type="textarea" @input="initAnswers" v-model="question_form.title" placeholder="请输入题干"></Input>
-                            </div>
-                            <div v-if="question_form.type==3" style="width:120px;text-align:center">
-                                <Button type="primary" @click="insertInputTxt(3)">插入填空</Button>
-                            </div>
-                            <div v-if="question_form.type==4" style="width:120px;text-align:center">
-                                <Button type="primary" @click="insertInputTxt(4)">插入选择项</Button>
-                            </div>
-                        </div>
-                        <div v-if="question_form.type==3" slot="content">
-                            <p>提示：4个英文下划线(_)代表一个填空</p>
-                            <p>导入时一样，在框内输入____试试</p>
-                        </div>
-                        <div v-if="question_form.type==4" slot="content">
-                            <p>提示：1对英文括号()代表一个选择项</p>
-                            <p>导入时一样，在框内输入()试试</p>
-                        </div>
-                    </Tooltip>
-                </FormItem>
-                <FormItem label="选项" prop="options">
-                    <RadioGroup v-if="question_form.type==1" v-model="rightAnswer" @on-change="changeAnswer" style="width:100%">
-                        <div class="optionItem" v-for="(option, index) in question_form.options">
-                            <div class="code">{{option.code}}</div>
-                            <div class="content">
-                                <Input v-model="option.content" placeholder="请输入答案"></Input>
-                            </div>
-                            <div class="right">
-                                <Radio v-if="question_form.type==1" :label="option.code">正确答案</Radio>
-                            </div>
-                            <div class="del">
-                                <div>
-                                    <Button v-if="index > 0 && index < 7 && index == question_form.options.length-1" type="primary" size="small" shape="circle" icon="md-add" @click="addCOptions"></Button>
-                                </div>
-                                <div>
-                                    <Button v-if="index > 1" type="primary" size="small" shape="circle" icon="md-remove" @click="removeCOption(option)"></Button>
-                                </div>
-                            </div>
-                        </div>
-                    </RadioGroup>
-                    <template v-if="question_form.type==4" v-for="(_option, _index) in question_form.options">
-                        <label>选择项{{_index+1}}</label>
-                        <RadioGroup v-model="_option.rightAnswer" @on-change="changeAnswer" style="width:100%">
-                            <div class="optionItem" v-for="(option, index) in _option.options">
-                                <div class="code">{{option.code}}</div>
-                                <div class="content">
-                                    <Input v-model="option.content" placeholder="请输入答案"></Input>
-                                </div>
-                                <div class="right">
-                                    <Radio v-if="question_form.type==4" :label="option.code">正确答案</Radio>
-                                </div>
-                                <div class="del">
-                                    <div>
-                                        <Button v-if="index > 2 && index < 7 && index == _option.options.length-1" type="primary" size="small" shape="circle" icon="md-add" @click="addCOptions(_index)"></Button>
-                                    </div>
-                                    <div>
-                                        <Button v-if="index > 3" type="primary" size="small" shape="circle" icon="md-remove" @click="removeCOption(option,_index)"></Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </RadioGroup>
-                    </template>
-                    <CheckboxGroup v-if="question_form.type==2" v-model="rightMultiAnswer" @on-change="changeAnswer" style="width:100%">
-                        <div class="optionItem" v-for="(option, index) in question_form.options">
-                            <div class="code">{{option.code}}</div>
-                            <div class="content">
-                                <Input v-model="option.content" placeholder="请输入答案"></Input>
-                            </div>
-                            <div class="right">
-                                <Checkbox :label="option.code">正确答案</Checkbox>
-                            </div>
-                            <div class="del">
-                                <div>
-                                    <Button v-if="index > 2 && index < 7 && index == question_form.options.length-1" type="primary" size="small" shape="circle" icon="md-add" @click="addCOptions"></Button>
-                                </div>
-                                <div>
-                                    <Button v-if="index > 3" type="primary" size="small" shape="circle" icon="md-remove" @click="removeCOption(option)"></Button>
-                                </div>
-                            </div>
-                        </div>
-                    </CheckboxGroup>
-                    <div v-if="question_form.type==3" v-for="(option, index) in question_form.options">
-                        <div class="optionItem" v-for="(item, _idx) in option.value">
-                            <div class="code" style="width:80px">
-                                <template v-if="_idx==0"><strong style="font-weight:bold">答案{{index+1}}</strong></template>
-                                <template v-else>(备选){{_idx}}</template>
-                            </div>
-                            <div class="content">
-                                <Input v-model="item.txt" placeholder="请输入答案"></Input>
-                            </div>
-                            <div class="del">
-                                <div>
-                                    <Button v-if="_idx == option.value.length-1" type="primary" size="small" shape="circle" icon="md-add" @click="addCOptions(option)"></Button>
-                                </div>
-                                <div>
-                                    <Button v-if="_idx > 0" type="primary" size="small" shape="circle" icon="md-remove" @click="removeCOption(option,_idx)"></Button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </FormItem>
-                <FormItem label="答案解析">
-                    <!-- <Input  :rows="3" type="textarea" v-model="question_form.comments" placeholder="请输入答案解析"></Input> -->
-                    <Editor v-if="show_window" :value="question_form.comments" placeholder="请输入答案解析" @on-change="change_value"></Editor>
-                </FormItem>
-                <FormItem label="是否重点">
-                    <RadioGroup v-model="question_form.isImportant">
-                        <Radio :label="1">是</Radio>
-                        <Radio :label="0">否</Radio>
-                    </RadioGroup>
-                </FormItem>
-            </Form>
-         </Modal>
-         <Modal v-model="isShowDetail" title="查看试题" width="600">
-            <Form label-position="right" :label-width="100">
-                <FormItem label="科目章节">
-                    <label><strong v-for="(_sub,_idx) in question_form.subjects">{{getSubjectName(_sub)+(_idx==question_form.subjects.length-1?'':'；')}}</strong></label>
-                </FormItem>
-                <FormItem label="类型">
-                    <strong v-if="question_form.type==1">单选</strong>
-                    <strong v-if="question_form.type==2">多选</strong>
-                    <strong v-if="question_form.type==3">填空</strong>
-                    <strong v-if="question_form.type==4">多项选择</strong>
-                </FormItem>
-                <FormItem v-if="question_form.images" label="试题图片">
-                    <img :src="img" v-for="img in question_form.images" width="400px" style="margin-bottom:5px" />
-                </FormItem>
-                <FormItem label="题干">
-                    <div>{{question_form.title}}</div>
-                </FormItem>
-                <FormItem label="选项" v-if="question_form.type==1||question_form.type==2">
-                    <div v-for="option in question_form.options">选项{{option.code}}：{{option.content}}</div>
-                </FormItem>
-                <FormItem label="选项" v-if="question_form.type==4">
-                    <div v-for="(_option, _index) in question_form.options">
-                        <label style="width:100%">选择项{{_index+1}}</label>
-                        <div style="display:inline-block;padding-right:30px" v-for="option in _option.options">选项{{option.code}}：{{option.content}}</div>
-                    </div>
-                </FormItem>
-                <FormItem label="答案">
-                    <template v-if="question_form.type==3">
-                        <div v-for="(option, index) in question_form.options">答案{{index + 1}}：{{option.value[0].txt}}
-                            <span v-if="option.value.length>1">(
-                                <span v-for="(val,idx) in option.value">{{idx > 0 ? ('备选' + idx + '：' + val.txt + (idx == (option.value.length - 1) ? '' : '；')):''}}</span>
-                                )</span>
-                        </div>
-                    </template>
-                    <template v-else>
-                        <div>{{getRightAnswer(question_form.options,question_form.type)}}</div>
-                    </template>
-                </FormItem>
-                <FormItem label="答案解析">
-                    <div v-html="showComments" class="comments"></div>
-                </FormItem>
-                <FormItem label="是否作为重点">
-                    <div>{{question_form.isImportant==1?'是':'否'}}</div>
-                </FormItem>     
-            </Form>
-         </Modal>
-         <Modal v-model="isUploadData" title="导入试题" width="300" :footer-hide="true">
-            <div style="height:100px;text-align:center">
-                <div v-if="uploadCount==0" style="display:inline-block;margin-top:30px">
-                    <myUpload v-if="isUploadData" @complate="handleUpload" type='excel' accept=".*">
-                        <Button icon="ios-cloud-upload-outline">选择要导入的文件</Button>
-                    </myUpload>
-                </div>
-                <div v-if="uploadCount > 0">
-                    <label v-if="uploadIndex < uploadCount">共读取到{{uploadCount}}条数据，当前正在导入第{{uploadIndex}}条</label>
-                    <label v-else>正在导入图片({{uploadImgIndex}}/{{uploadImgCount}})<Icon type="ios-loading" size=18 class="demo-spin-icon-load"></Icon></label>
-                </div>
-            </div>
-         </Modal>
+        <div class="search-keyword" style="width: 275px; float: left">
+          <span style="width: 85px">科目名称：</span>
+          <selectTree
+            style="width: 200px"
+            id="mySelectTree1"
+            v-model="search_subjects"
+            :treeData="subjectTreeData"
+          ></selectTree>
+        </div>
+        <div class="select-choice clear-fix" style="width: 140px; float: left">
+          <span style="width: 50px; padding: 0">题型：</span>
+          <Select
+            size="large"
+            v-model="search_type"
+            class="choice"
+            placeholder="题型"
+            :clearable="true"
+            style="width: 70px"
+          >
+            <Option :value="1" :key="1">单选</Option>
+            <Option :value="2" :key="2">多选</Option>
+            <Option :value="3" :key="3">填空</Option>
+            <Option :value="4" :key="4">多项选择</Option>
+          </Select>
+        </div>
+        <div class="search-keyword" style="width: 160px; float: left">
+          <span style="width: 85px">更新人：</span>
+          <Input
+            v-model="search_updateBy"
+            size="large"
+            style="width: 100px"
+            placeholder="更新人姓名"
+          />
+        </div>
+        <div class="search-keyword" style="width: 232px; float: left">
+          <div style="width: 60px; float: left">正确率：</div>
+          <div style="width: 100rpx; display: inline-block">
+            <InputNumber
+              :max="100"
+              :min="0"
+              v-model="search_right_percent_start"
+              :formatter="(value) => `${value}%`"
+              :parser="(value) => value.replace('%', '')"
+            ></InputNumber>
+            <label>~</label>
+            <InputNumber
+              :max="100"
+              :min="0"
+              v-model="search_right_percent_end"
+              :formatter="(value) => `${value}%`"
+              :parser="(value) => value.replace('%', '')"
+            ></InputNumber>
+          </div>
+        </div>
+        <div class="select-choice clear-fix" style="width: 200px; float: left">
+          <span style="width: 85px; padding: 0">是否重点：</span>
+          <Select
+            size="large"
+            v-model="search_important"
+            class="choice"
+            :clearable="true"
+            style="width: 100px"
+          >
+            <Option :value="1" :key="1">是</Option>
+            <Option :value="0" :key="0">否</Option>
+          </Select>
+        </div>
+        <div class="search-btn" style="width: 100px; margin: 0; float: left">
+          <Button type="primary" @click="search" size="large">查询</Button>
+        </div>
+      </div>
+      <div
+        class="operation-wrap"
+        style="width: 165px; display: flex; margin-top: 10px"
+      >
+        <Button
+          style="margin-right: 10px"
+          type="primary"
+          @click="handleAddQuestion"
+          >新增试题</Button
+        >
+        <Button
+          type="info"
+          style="margin-right: 10px"
+          @click="isUploadData = true"
+          >批量导入</Button
+        >
+        <Button type="info" @click="exports">全部导出</Button>
+      </div>
     </div>
-</template> 
+    <Row class="table-wrap">
+      <Table :loading="loading" :columns="columns" :data="question_datas">
+        <template slot-scope="{ row }" slot="subjects">
+          <strong v-for="(_sub, _idx) in row.subjects">{{
+            getSubjectName(_sub) + (_idx == row.subjects.length - 1 ? "" : "；")
+          }}</strong>
+        </template>
+        <template slot-scope="{ row }" slot="answer">
+          <strong v-if="row.type == 3">{{
+            row.options.length > 1
+              ? row.options[0].value[0].txt + "..."
+              : row.options[0].value.length > 1
+              ? row.options[0].value[0].txt +
+                "|" +
+                row.options[0].value[1].txt +
+                "..."
+              : row.options[0].value[0].txt
+          }}</strong>
+          <strong v-else>{{ getRightAnswer(row.options, row.type) }}</strong>
+        </template>
+        <template slot-scope="{ row }" slot="isImportant">
+          <span v-if="row.isImportant == 1">是</span>
+          <span v-else>否</span>
+        </template>
+        <template slot-scope="{ row }" slot="accuracy">
+          <span v-if="row.accuracy || row.accuracy == 0"
+            >{{ parseFloat((row.accuracy * 100).toFixed(2)) }}%</span
+          >
+          <span v-else>-</span>
+        </template>
+        <template slot-scope="{ row }" slot="type">
+          <strong v-if="row.type == 1">单选</strong>
+          <strong v-if="row.type == 2">多选</strong>
+          <strong v-if="row.type == 3">填空</strong>
+          <strong v-if="row.type == 4">多项选择</strong>
+        </template>
+        <template slot-scope="{ row }" slot="action">
+          <Button
+            type="info"
+            size="small"
+            style="margin-right: 5px"
+            @click="handleShowQuestion(row)"
+            >查看</Button
+          >
+          <Button
+            type="warning"
+            size="small"
+            style="margin-right: 5px"
+            @click="handleEditQuestion(row)"
+            >编辑</Button
+          >
+          <Button type="error" size="small" @click="handleRemove(row)"
+            >删除</Button
+          >
+        </template>
+      </Table>
+      <div class="page-wrap">
+        <Page :total="total" @on-change="pagechange" v-if="total != 0" />
+      </div>
+    </Row>
+    <Modal
+      v-model="show_window"
+      :title="window_title"
+      width="600"
+      :loading="modalLoading"
+      @on-ok="add_questions"
+      @on-cancel="cancel"
+    >
+      <Form
+        v-if="show_window"
+        ref="form"
+        :model="question_form"
+        label-position="right"
+        :label-width="80"
+        :rules="ruleValidate"
+      >
+        <FormItem label="标签" prop="tagId">
+          <Select
+            size="large"
+            v-model="question_form.tagId"
+            class="choice"
+            placeholder="请选择标签"
+            :clearable="true"
+            style="width: 200px"
+          >
+            <Option v-for="item in tags" :key="item.id" :value="item.id">{{
+              item.tagName
+            }}</Option>
+          </Select>
+        </FormItem>
+
+        <FormItem label="科目章节" prop="subjects">
+          <selectTree
+            v-if="show_window"
+            id="mySelectTree"
+            v-model="question_form.subjects"
+            multiple
+            :treeData="subjectTreeData"
+          ></selectTree>
+        </FormItem>
+        <FormItem label="试题类型" prop="type">
+          <RadioGroup
+            v-model="question_form.type"
+            @on-change="handleQuesTypeChange"
+          >
+            <Radio
+              :disabled="question_form.id && question_form.id != ''"
+              :label="1"
+              >单选</Radio
+            >
+            <Radio
+              :disabled="question_form.id && question_form.id != ''"
+              :label="2"
+              >多选</Radio
+            >
+            <Radio
+              :disabled="question_form.id && question_form.id != ''"
+              :label="3"
+              >填空</Radio
+            >
+            <Radio
+              :disabled="question_form.id && question_form.id != ''"
+              :label="4"
+              >多项选择</Radio
+            >
+          </RadioGroup>
+        </FormItem>
+        <FormItem label="试题图片">
+          <myUploadMuti
+            :images="question_form.images"
+            @complate="handleUploadComplate"
+            accept=".*"
+          ></myUploadMuti>
+        </FormItem>
+        <FormItem label="题干" prop="title">
+          <Tooltip
+            :disabled="question_form.type != 3 && question_form.type != 4"
+            placement="top"
+            style="width: 100%"
+          >
+            <div style="display: flex">
+              <div style="flex: 1">
+                <Input
+                  id="title"
+                  :rows="3"
+                  type="textarea"
+                  @input="initAnswers"
+                  v-model="question_form.title"
+                  placeholder="请输入题干"
+                ></Input>
+              </div>
+              <div
+                v-if="question_form.type == 3"
+                style="width: 120px; text-align: center"
+              >
+                <Button type="primary" @click="insertInputTxt(3)"
+                  >插入填空</Button
+                >
+              </div>
+              <div
+                v-if="question_form.type == 4"
+                style="width: 120px; text-align: center"
+              >
+                <Button type="primary" @click="insertInputTxt(4)"
+                  >插入选择项</Button
+                >
+              </div>
+            </div>
+            <div v-if="question_form.type == 3" slot="content">
+              <p>提示：4个英文下划线(_)代表一个填空</p>
+              <p>导入时一样，在框内输入____试试</p>
+            </div>
+            <div v-if="question_form.type == 4" slot="content">
+              <p>提示：1对英文括号()代表一个选择项</p>
+              <p>导入时一样，在框内输入()试试</p>
+            </div>
+          </Tooltip>
+        </FormItem>
+        <FormItem label="选项" prop="options">
+          <RadioGroup
+            v-if="question_form.type == 1"
+            v-model="rightAnswer"
+            @on-change="changeAnswer"
+            style="width: 100%"
+          >
+            <div
+              class="optionItem"
+              v-for="(option, index) in question_form.options"
+            >
+              <div class="code">{{ option.code }}</div>
+              <div class="content">
+                <Input
+                  v-model="option.content"
+                  placeholder="请输入答案"
+                ></Input>
+              </div>
+              <div class="right">
+                <Radio v-if="question_form.type == 1" :label="option.code"
+                  >正确答案</Radio
+                >
+              </div>
+              <div class="del">
+                <div>
+                  <Button
+                    v-if="
+                      index > 0 &&
+                      index < 7 &&
+                      index == question_form.options.length - 1
+                    "
+                    type="primary"
+                    size="small"
+                    shape="circle"
+                    icon="md-add"
+                    @click="addCOptions"
+                  ></Button>
+                </div>
+                <div>
+                  <Button
+                    v-if="index > 1"
+                    type="primary"
+                    size="small"
+                    shape="circle"
+                    icon="md-remove"
+                    @click="removeCOption(option)"
+                  ></Button>
+                </div>
+              </div>
+            </div>
+          </RadioGroup>
+          <template
+            v-if="question_form.type == 4"
+            v-for="(_option, _index) in question_form.options"
+          >
+            <label>选择项{{ _index + 1 }}</label>
+            <RadioGroup
+              v-model="_option.rightAnswer"
+              @on-change="changeAnswer"
+              style="width: 100%"
+            >
+              <div
+                class="optionItem"
+                v-for="(option, index) in _option.options"
+              >
+                <div class="code">{{ option.code }}</div>
+                <div class="content">
+                  <Input
+                    v-model="option.content"
+                    placeholder="请输入答案"
+                  ></Input>
+                </div>
+                <div class="right">
+                  <Radio v-if="question_form.type == 4" :label="option.code"
+                    >正确答案</Radio
+                  >
+                </div>
+                <div class="del">
+                  <div>
+                    <Button
+                      v-if="
+                        index > 2 &&
+                        index < 7 &&
+                        index == _option.options.length - 1
+                      "
+                      type="primary"
+                      size="small"
+                      shape="circle"
+                      icon="md-add"
+                      @click="addCOptions(_index)"
+                    ></Button>
+                  </div>
+                  <div>
+                    <Button
+                      v-if="index > 3"
+                      type="primary"
+                      size="small"
+                      shape="circle"
+                      icon="md-remove"
+                      @click="removeCOption(option, _index)"
+                    ></Button>
+                  </div>
+                </div>
+              </div>
+            </RadioGroup>
+          </template>
+          <CheckboxGroup
+            v-if="question_form.type == 2"
+            v-model="rightMultiAnswer"
+            @on-change="changeAnswer"
+            style="width: 100%"
+          >
+            <div
+              class="optionItem"
+              v-for="(option, index) in question_form.options"
+            >
+              <div class="code">{{ option.code }}</div>
+              <div class="content">
+                <Input
+                  v-model="option.content"
+                  placeholder="请输入答案"
+                ></Input>
+              </div>
+              <div class="right">
+                <Checkbox :label="option.code">正确答案</Checkbox>
+              </div>
+              <div class="del">
+                <div>
+                  <Button
+                    v-if="
+                      index > 2 &&
+                      index < 7 &&
+                      index == question_form.options.length - 1
+                    "
+                    type="primary"
+                    size="small"
+                    shape="circle"
+                    icon="md-add"
+                    @click="addCOptions"
+                  ></Button>
+                </div>
+                <div>
+                  <!-- <Button v-if="index > 3" type="primary" size="small" shape="circle" icon="md-remove" @click="removeCOption(option)"></Button> -->
+                </div>
+              </div>
+            </div>
+          </CheckboxGroup>
+          <div
+            v-if="question_form.type == 3"
+            v-for="(option, index) in question_form.options"
+          >
+            <div class="optionItem" v-for="(item, _idx) in option.value">
+              <div class="code" style="width: 80px">
+                <template v-if="_idx == 0"
+                  ><strong style="font-weight: bold"
+                    >答案{{ index + 1 }}</strong
+                  ></template
+                >
+                <template v-else>(备选){{ _idx }}</template>
+              </div>
+              <div class="content">
+                <Input v-model="item.txt" placeholder="请输入答案"></Input>
+              </div>
+              <div class="del">
+                <div>
+                  <Button
+                    v-if="_idx == option.value.length - 1"
+                    type="primary"
+                    size="small"
+                    shape="circle"
+                    icon="md-add"
+                    @click="addCOptions(option)"
+                  ></Button>
+                </div>
+                <div>
+                  <Button
+                    v-if="_idx > 0"
+                    type="primary"
+                    size="small"
+                    shape="circle"
+                    icon="md-remove"
+                    @click="removeCOption(option, _idx)"
+                  ></Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </FormItem>
+        <FormItem label="答案解析">
+          <!-- <Input  :rows="3" type="textarea" v-model="question_form.comments" placeholder="请输入答案解析"></Input> -->
+          <Editor
+            v-if="show_window"
+            :value="question_form.comments"
+            placeholder="请输入答案解析"
+            @on-change="change_value"
+          ></Editor>
+        </FormItem>
+        <FormItem label="是否重点">
+          <RadioGroup v-model="question_form.isImportant">
+            <Radio :label="1">是</Radio>
+            <Radio :label="0">否</Radio>
+          </RadioGroup>
+        </FormItem>
+      </Form>
+    </Modal>
+    <Modal v-model="isShowDetail" title="查看试题" width="600">
+      <Form label-position="right" :label-width="100">
+        <FormItem label="科目章节">
+          <label
+            ><strong v-for="(_sub, _idx) in question_form.subjects">{{
+              getSubjectName(_sub) +
+              (_idx == question_form.subjects.length - 1 ? "" : "；")
+            }}</strong></label
+          >
+        </FormItem>
+        <FormItem label="类型">
+          <strong v-if="question_form.type == 1">单选</strong>
+          <strong v-if="question_form.type == 2">多选</strong>
+          <strong v-if="question_form.type == 3">填空</strong>
+          <strong v-if="question_form.type == 4">多项选择</strong>
+        </FormItem>
+        <FormItem v-if="question_form.images" label="试题图片">
+          <img
+            :src="img"
+            v-for="img in question_form.images"
+            width="400px"
+            style="margin-bottom: 5px"
+          />
+        </FormItem>
+        <FormItem label="题干">
+          <div>{{ question_form.title }}</div>
+        </FormItem>
+        <FormItem
+          label="选项"
+          v-if="question_form.type == 1 || question_form.type == 2"
+        >
+          <div v-for="option in question_form.options">
+            选项{{ option.code }}：{{ option.content }}
+          </div>
+        </FormItem>
+        <FormItem label="选项" v-if="question_form.type == 4">
+          <div v-for="(_option, _index) in question_form.options">
+            <label style="width: 100%">选择项{{ _index + 1 }}</label>
+            <div
+              style="display: inline-block; padding-right: 30px"
+              v-for="option in _option.options"
+            >
+              选项{{ option.code }}：{{ option.content }}
+            </div>
+          </div>
+        </FormItem>
+        <FormItem label="答案">
+          <template v-if="question_form.type == 3">
+            <div v-for="(option, index) in question_form.options">
+              答案{{ index + 1 }}：{{ option.value[0].txt }}
+              <span v-if="option.value.length > 1"
+                >(
+                <span v-for="(val, idx) in option.value">{{
+                  idx > 0
+                    ? "备选" +
+                      idx +
+                      "：" +
+                      val.txt +
+                      (idx == option.value.length - 1 ? "" : "；")
+                    : ""
+                }}</span>
+                )</span
+              >
+            </div>
+          </template>
+          <template v-else>
+            <div>
+              {{ getRightAnswer(question_form.options, question_form.type) }}
+            </div>
+          </template>
+        </FormItem>
+        <FormItem label="答案解析">
+          <div v-html="showComments" class="comments"></div>
+        </FormItem>
+        <FormItem label="是否作为重点">
+          <div>{{ question_form.isImportant == 1 ? "是" : "否" }}</div>
+        </FormItem>
+      </Form>
+    </Modal>
+    <Modal
+      v-model="isUploadData"
+      title="导入试题"
+      width="300"
+      :footer-hide="true"
+    >
+      <div style="height: 100px; text-align: center">
+        <div
+          v-if="uploadCount == 0"
+          style="display: inline-block; margin-top: 30px"
+        >
+          <myUpload
+            v-if="isUploadData"
+            @complate="handleUpload"
+            type="excel"
+            accept=".*"
+          >
+            <Button icon="ios-cloud-upload-outline">选择要导入的文件</Button>
+          </myUpload>
+        </div>
+        <div v-if="uploadCount > 0">
+          <label v-if="uploadIndex < uploadCount"
+            >共读取到{{ uploadCount }}条数据，当前正在导入第{{
+              uploadIndex
+            }}条</label
+          >
+          <label v-else
+            >正在导入图片({{ uploadImgIndex }}/{{ uploadImgCount }})<Icon
+              type="ios-loading"
+              size="18"
+              class="demo-spin-icon-load"
+            ></Icon
+          ></label>
+        </div>
+      </div>
+    </Modal>
+  </div>
+</template>
 
 <script>
-import Editor from "@/components/editor"
-import myUpload from "@/components/myUpload"
-import myUploadMuti from "@/components/myUploadMuti"
+import Editor from "@/components/editor";
+import myUpload from "@/components/myUpload";
+import myUploadMuti from "@/components/myUploadMuti";
 // import Single from "./components/single/index"
 // import Multi from "./components/multiselect/index"
-import { urlConfig } from '@/api/urlconfig'
-import selectTree from '@/components/iview-select-tree'
-import { verification } from '@/api/verification'
-import { tool } from '@/api/tool'
-import XLSX,{utils} from 'xlsx'
-import JsZip from 'jszip'
-import x2js from 'x2js'
+import { urlConfig } from "@/api/urlconfig";
+import selectTree from "@/components/iview-select-tree";
+import { verification } from "@/api/verification";
+import { tool } from "@/api/tool";
+import XLSX, { utils } from "xlsx";
+import JsZip from "jszip";
+import x2js from "x2js";
+import excelUtil from "../../utils/dealwithExcelUtil";
 // import editorVue from '../../components/editor/editor.vue'
 export default {
-    name: "testquestions",
-    components:{
-        Editor,
-        selectTree,
-        myUpload,
-        myUploadMuti,
-        // Single,
-        // Multi
+  name: "testquestions",
+  components: {
+    Editor,
+    selectTree,
+    myUpload,
+    myUploadMuti,
+    // Single,
+    // Multi
+  },
+  watch: {
+    uploadIndex(val) {
+      var self = this;
+      // if(val>=this.uploadCount&&val!=0){
+      //     setTimeout(() => {
+      //         this.$Message.success('导入成功')
+      //         self.page_list()
+      //         this.uploadIndex = 0
+      //         this.uploadCount = 0
+      //         this.isUploadData = false
+      //     }, 1000);
+      // }
     },
-    watch:{
-        uploadIndex(val){
-            var self = this
-            // if(val>=this.uploadCount&&val!=0){
-            //     setTimeout(() => {
-            //         this.$Message.success('导入成功')
-            //         self.page_list()
-            //         this.uploadIndex = 0
-            //         this.uploadCount = 0
-            //         this.isUploadData = false
-            //     }, 1000);
-            // }
-        },
-        uploadImgIndex(val){
-            var self = this
-            console.log('var:' + val)
-            if(val == this.uploadImgCount && val != 0) {
-                if(self.uploadIndex == self.uploadCount && self.uploadIndex > 0){
-                    setTimeout(() => {
-                        self.$Message.success('导入成功')
-                        self.page_list()
-                        self.uploadIndex = 0
-                        self.uploadCount = 0
-                        self.uploadImgIndex = 0
-                        self.uploadImgCount = 0
-                        self.isUploadData = false
-                    }, 1000);
-                }
-            }
+    uploadImgIndex(val) {
+      var self = this;
+      console.log("var:" + val);
+      if (val == this.uploadImgCount && val != 0) {
+        if (self.uploadIndex == self.uploadCount && self.uploadIndex > 0) {
+          setTimeout(() => {
+            self.$Message.success("导入成功");
+            self.page_list();
+            self.uploadIndex = 0;
+            self.uploadCount = 0;
+            self.uploadImgIndex = 0;
+            self.uploadImgCount = 0;
+            self.isUploadData = false;
+          }, 1000);
         }
+      }
     },
-    data() {
-        var self = this
-        return {
-            code:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-            uploadCount:0,
-            uploadIndex:0,
-            uploadImgCount:0,
-            uploadImgIndex:0,
-            page:1,
-            pSize: 10,
-            total: 0,
-            loading: true,
-            modalLoading: true,
-            search_ID:'',
-            search_subject_name: '',
-            search_subjects: '',
-            search_right_percent_start: 0,
-            search_right_percent_end: 100,
-            search_type:-1,
-            search_updateBy:'',
-            search_important:-1,
-            subjectTreeData:[],
-            subjects:[], // 所有科目和章节信息
-            showComments:'',
-            columns: [
-                { title: 'ID', key: 'id',width:150 },
-                { title: '科目', key: 'subjects', slot: 'subjects',width:150 },
-                { title: '类型', key: 'type', slot: 'type',width:100 },
-                { title: '重点题库', key: 'isImportant', slot: 'isImportant',width:60 },
-                { title: '题干', key: 'title' },
-                { title: "答案", key: 'answer', slot: 'answer',width:100 },
-                { title: "正确率", key: 'accuracy', slot: 'accuracy',width:80},
-                { title: "更新人", key: 'updatedBy',width:80},
-                { title: "更新时间", key: 'updatedAt',width:160},
-                { title: '操作', key: 'action', slot: 'action', align: 'center',width:180}
-                ],
-            question_datas: [],
-            question_form:{
-                title: '',
-                isImportant: 0,
-                images: [],
-                options:[
-                    { code:'A',content:'',value:'' },
-                    { code:'B',content:'',value:'' },
-                    { code:'C',content:'',value:'' },
-                    { code:'D',content:'',value:'' }
-                ],
-                oldType:1,
-                type: 1,
-                subjects:[],
-                comments:''
+  },
+  data() {
+    var self = this;
+    return {
+      code: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      uploadCount: 0,
+      uploadIndex: 0,
+      uploadImgCount: 0,
+      uploadImgIndex: 0,
+      page: 1,
+      pSize: 10,
+      total: 0,
+      loading: true,
+      modalLoading: true,
+      search_ID: "",
+      search_subject_name: "",
+      search_subjects: "",
+      search_right_percent_start: 0,
+      search_right_percent_end: 100,
+      search_type: -1,
+      search_updateBy: "",
+      search_important: -1,
+      subjectTreeData: [],
+      subjects: [], // 所有科目和章节信息
+      showComments: "",
+      columns: [
+        { title: "ID", key: "id", width: 150 },
+        { title: "科目", key: "subjects", slot: "subjects", width: 150 },
+        { title: "类型", key: "type", slot: "type", width: 100 },
+        {
+          title: "重点题库",
+          key: "isImportant",
+          slot: "isImportant",
+          width: 120,
+        },
+        { title: "题干", key: "title" },
+        { title: "答案", key: "answer", slot: "answer", width: 100 },
+        { title: "正确率", key: "accuracy", slot: "accuracy", width: 80 },
+        { title: "标签", key: "tagName", width: 80 },
+        { title: "更新人", key: "updatedBy", width: 80 },
+        { title: "更新时间", key: "updatedAt", width: 160 },
+        {
+          title: "操作",
+          key: "action",
+          slot: "action",
+          align: "center",
+          width: 180,
+        },
+      ],
+      question_datas: [],
+      question_form: {
+        title: "",
+        isImportant: 0,
+        images: [],
+        options: [
+          { code: "A", content: "", value: "" },
+          { code: "B", content: "", value: "" },
+          { code: "C", content: "", value: "" },
+          { code: "D", content: "", value: "" },
+        ],
+        oldType: 1,
+        type: 1,
+        subjects: [],
+        comments: "",
+      },
+      rightMultiAnswer: [],
+      rightAnswer: "",
+      ruleValidate: {
+        subjects: [
+          {
+            required: true,
+            message: "请选择科目/章节",
+            trigger: "change",
+            validator: (rule, value, callback) => {
+              if (value.length == 0) {
+                callback(new Error("请选择科目/章节"));
+              } else {
+                callback();
+              }
             },
-            rightMultiAnswer: [],
-            rightAnswer:'',
-            ruleValidate: {
-                subjects:  [{ required: true, message: '请选择科目/章节', trigger: 'change', 
-                            validator: (rule, value, callback) => {
-                                if(value.length==0){
-                                    callback(new Error('请选择科目/章节'))
-                                } else {
-                                    callback()
-                                }
-                            }
-                }],
-                type:  [{ required: true, message: '请选择题型', trigger: 'change',validator: verification.validateIsNull }],
-                title:  [{ required: true, message: '请输入题干', trigger: 'blur' },{ required: true, message: '请输入题干', trigger: 'change' }],
-                options:  [{ required:true, trigger: 'change',validator: (rule, value, callback) => { self.validateOptions(rule, value, callback, self)}},
-                            { required:true, trigger: 'blur', validator:  (rule, value, callback) => { self.validateOptions(rule, value, callback, self)}}],
-                comments:  [{ required: true, message: '请输入答案解析', trigger: 'blur' },{ required: true, message: '请输入答案解析', trigger: 'change' }],
+          },
+        ],
+        type: [
+          {
+            required: true,
+            message: "请选择题型",
+            trigger: "change",
+            validator: verification.validateIsNull,
+          },
+        ],
+        title: [
+          { required: true, message: "请输入题干", trigger: "blur" },
+          { required: true, message: "请输入题干", trigger: "change" },
+        ],
+        options: [
+          {
+            required: true,
+            trigger: "change",
+            validator: (rule, value, callback) => {
+              self.validateOptions(rule, value, callback, self);
             },
-            // options:[],
-            init_data:"",
-            maxIndex: 0,// 最大索引值
-            question_id:"0",
-            isUploadData: false, // 是否上传
-            isShowDetail: false, // 是否查看
-            show_window:false,
-            window_title:"新增试题"
-        }
-    },
-    computed:{
-        
-    },
-    mounted() {
-        this.init_data=JSON.stringify(this.question_form)
-        this.page_list(this.page)
-        this.bindSubjectTree()
-        this.handleGetMaxIndex()
-    },
-    methods: {
-        handleDownLoad(){
-        },
-        /** 获取最大索引 */
-        handleGetMaxIndex() {
-            var self = this
-            var query = new this.ParseServer.Query("TestQuestions")
-            query.descending('createdAt')
-            query.first().then(res=>{
-                if(res){
-                    self.maxIndex = res.get('index')
-                } else {
-                    self.maxIndex = 0
-                }
-            })
-        },
-        /** 添加试题 */
-        handleAddQuestion(){
-            this.show_window = true
-            this.question_form = {
-                title: '',
-                isImportant: 0,
-                images: [],
-                options:[
-                    { code:'A',content:'',value:'' },
-                    { code:'B',content:'',value:'' },
-                    { code:'C',content:'',value:'' },
-                    { code:'D',content:'',value:'' }
-                ],
-                oldType:1,
-                type: 1,
-                subjects:[],
-                comments:''
-            }
-            this.rightMultiAnswer = []
-            this.rightAnswer = ''
-        },
-        /** 查看题目 */
-        handleShowQuestion(row){
-            this.isShowDetail = true
-            let _comments = row.comments?row.comments.replace(/<img/g,"<img style='max-width:100%;height:auto;'"):''
-            this.showComments = _comments
-            this.question_form = {
-                title: row.title,
-                isImportant: row.isImportant,
-                images: row.images,
-                options: row.options,
-                oldType: row.type,
-                type: row.type,
-                subjects: row.subjects,
-                comments: row.comments
-            }
-        },
-        /** 编辑试题 */
-        handleEditQuestion(row) {
-            this.show_window = true
-            this.question_form = {
-                id: row.id,
-                title: row.title,
-                isImportant: row.isImportant,
-                images: row.images,
-                options: row.options,
-                oldType: row.type,
-                type: row.type,
-                subjects: row.subjects,
-                comments: row.comments
-            }
-            row.options.forEach((item)=>{
-                if(item.value=='1'){
-                    this.rightMultiAnswer.push(item.code)
-                    this.rightAnswer = item.code
-                }
-            })
-        },
-        /**
-         * 切换题型
-         */
-        handleQuesTypeChange(){
-            var type = this.question_form.type
-            if(type == 1||type==2) {
-                if(this.question_form.oldType==3) {
-                    this.question_form.options=[
-                        { code:'A',content:'',value:'1' },
-                        { code:'B',content:'',value:'' },
-                        { code:'C',content:'',value:'' },
-                        { code:'D',content:'',value:'' }
-                    ]
-                } else {
-                    this.question_form.options.forEach((_item,_index)=>{
-                        _item.value = ''
-                    })
-                    this.rightAnswer = ''
-                    this.rightMultiAnswer = []
-                }
-            } else {
-                this.initAnswers()
-            }
-            this.question_form.oldType = type
-        },
-        /** 构造填空题的答案 */
-        initAnswers(){
-            var self = this
-            if(self.question_form.type == 3){
-                let txt = eval("/____/ig")
-                var count = self.question_form.title.indexOf('____')==-1?0: self.question_form.title.match(txt).length;
-                let _options = []
-                if(count != self.question_form.options.length){
-                    for(var i = 0; i < count; i++) {
-                        _options.push({code:'A',content:'',value:[{txt:''}]})
-                    }
-                    self.question_form.options = _options
-                }
-            } else if(self.question_form.type == 4){
-                let txt = eval("/[(][)]/ig")
-                console.log(txt)
-                var count = self.question_form.title.indexOf('()')==-1?0: self.question_form.title.match(txt).length;
-                var _options = []
-                if(count != self.question_form.options.length){
-                    for(var i = 0; i < count; i++) {
-                        _options.push({ 
-                            rightAnswer: '',
-                            options: [
-                            {code:'A',content:'',value:''},
-                            {code:'B',content:'',value:''},
-                            {code:'C',content:'',value:''},
-                            {code:'D',content:'',value:''}]
-                        })
-                    }
-                    self.question_form.options = _options
-                }
-                console.log(self.question_form.options)
-            }
-        },
-        /** 添加答案 */
-        addCOptions(option){
-            var type = this.question_form.type
-            if(type == 1||type==2) {
-                this.question_form.options.push(
-                    { code: this.code[this.question_form.options.length] ,content:'',value:'' },
-                )
-            } else if(type == 4){
-                this.question_form.options[option].options.push(
-                    { code: this.code[this.question_form.options[option].options.length] ,content:'',value:'' },
-                )
-            }
-            else {
-                option.value.push({txt:''})
-                console.log(option)
-            }
-        },
-        /** 选择正确答案 */
-        changeAnswer() {
-            var self = this
-            self.question_form.options.forEach((_item,_index)=>{
-                if(self.question_form.type==1) {
-                    if(_item.code == self.rightAnswer){
-                        _item.value='1'
-                    } else {
-                        _item.value=''
-                    }
-                } else if(self.question_form.type == 2) {
-                    if(self.rightMultiAnswer.indexOf(_item.code) != -1){
-                        _item.value='1'
-                    } else {
-                        _item.value=''
-                    }
-                } else if(self.question_form.type == 4){
-                    _item.options.forEach((c_item,c_index)=>{
-                        if(c_item.code == _item.rightAnswer){
-                            c_item.value='1'
-                            _item.rightAnswer = c_item.code
-                        } else {
-                            c_item.value=''
-                        }
-                    })
-                }
-            })
-            console.log(self.question_form.options)
-        },
-        /** 答案输入验证 */
-        validateOptions: (rule, value, callback, self) => {
-            let _question_form = self.question_form
-            let hasNullContent = false
-            let answerCount = 0
-            value.forEach((_option, _index)=>{
-                if(_question_form.type==3){
-                    _option.value.forEach((_val)=>{
-                        if(!_val.txt){
-                            hasNullContent = true
-                        }
-                    })
-                } else if(_question_form.type == 4){
-                    _option.options.forEach((c_opn,c_idx)=>{
-                        if(!c_opn.content){
-                            hasNullContent = true    
-                        }
-                        if(c_opn.value=='1'){
-                            answerCount++
-                        }
-                    })
-                } else {
-                    if((_question_form.type == 1 || _question_form.type == 2)&&!_option.content){
-                        hasNullContent = true
-                    }
-                    if(_option.value=='1'){
-                        answerCount++
-                    }
-                }
-            })
-            if(value.length==0&&_question_form.type==3){
-                callback(new Error('还没有需要填空的'))
-            }
-            if(hasNullContent){
-                callback(new Error('请输入答案'))
-            }
-            console.log('answerCount:'+answerCount)
-            if(answerCount==0&&_question_form.type==1) {
-                callback(new Error('请选择正确答案'))
-            } else if(_question_form.type==4&&answerCount<value.length){
-                callback(new Error('请选择正确答案'))
-            } else if(answerCount < 2 && _question_form.type==2) {
-                callback(new Error('请选择至少两个正确答案'))
-            } else {
-                callback()
-            }
-        },
-        /** 删除答案 */
-        removeCOption(option, _idx){
-            var type = this.question_form.type
-            if(type == 1||type==2) {
-                let _options = []
-                this.question_form.options.forEach((item,index)=>{
-                    if(item.code != option.code){
-                        item.code = this.code[_options.length]
-                        _options.push(item)
-                    }
-                })
-                this.question_form.options = _options
-            } else if(type == 4){
-                let _options = []
-                this.question_form.options[_idx].options.forEach((item,index)=>{
-                    if(item.code != option.code){
-                        item.code = this.code[_options.length]
-                        _options.push(item)
-                    }
-                })
-                this.question_form.options[_idx].options = _options
-            }
-             else {
-                let txts = []
-                option.value.forEach((item,index)=>{
-                    if(_idx != index) {
-                        txts.push(item)
-                    }
-                })
-                option.value = txts
-            }
-        },
-        /** 插入填空 */
-        async insertInputTxt(type) {
-            var txt = '____'
-            if(type == 4) {
-                txt = '()'
-            }
-             const myField = document.querySelector('#title textarea');
-            if(myField.selectionStart || myField.selectionStart === 0) {
-                let startPos = myField.selectionStart;
-                let endPos = myField.selectionEnd;
-                this.question_form.title = myField.value.substring(0, startPos) + txt
-                            + myField.value.substring(endPos, myField.value.length);
-                await this.$nextTick() // 这句是重点, 圈起来
-                myField.focus();
-                myField.setSelectionRange(endPos + txt.length, endPos + txt.length);
-            } else {
-                this.question_form.title = txt;
-            }
-            if(type==3){
-                this.question_form.options.push({
-                    code:'A',content:'',value:[{txt:''}]
-                })
-            }
-            if(type == 4){
-                this.question_form.options.push({ 
-                    rightAnswer: '',
-                    options: [
-                    {code:'A',content:'',value:''},
-                    {code:'B',content:'',value:''},
-                    {code:'C',content:'',value:''},
-                    {code:'D',content:'',value:''}]
-                })
-            }
-        },
-        /**
-         * 图片上传完成
-         */
-        handleUploadComplate(urls){
-            this.question_form.images = urls
-        },
-        /*
-        * 取消操作
-        *作者：gzt
-        *时间：2020-11-22 18:49:58
-        */
-        cancel(){
-            this.question_id=""
-            this.question_form=JSON.parse(this.init_data)
-            this.show_window=false,
-            this.window_title="新增科目"
-        },
-
-         /*
-        *获取科目实体
-        *作者：gzt
-        *时间：2020-11-22 09:21:48
-        */
-        get_entity(){
-            var query = new this.ParseServer.Query("TestQuestions")
-            query.get(this.subjectid).then((response)=>{
-                Object.keys(this.question_form).forEach(key => {
-                    this.question_form[key]=response.get(key)
-                })
-            })
-        },
-
-          /*
-        * 保存题目
-        * 作者：gzt
-        * 时间：2020-11-21 23:41:37
-        */
-        add_questions(){
-            var self = this
-            var query = new this.ParseServer.Query("TestQuestions")
-            query.descending('createdAt')
-            query.first().then(res=>{
-                if(res){
-                    self.maxIndex = res.get('index')
-                } else {
-                    self.maxIndex = 0
-                }
-                var questions=this.ParseServer.Object.extend("TestQuestions")
-                var question=new questions()
-                if(this.question_form.id){
-                    question.set('id', this.question_form.id)
-                } else {
-                    question.set('index', self.maxIndex + 1)
-                }
-                this.$refs['form'].validate(valid => {
-                    if (!valid) {
-                        self.$Message.error('请检查表单项')
-                        self.modalLoading = false
-                        setTimeout(() => {
-                            self.modalLoading = true
-                        }, 100)
-                        return false
-                    } else {
-                        let realName = this.ParseServer.User.current().get('realname')
-                        question.set('updatedBy', realName)
-                        question.set('title',self.question_form.title)
-                        question.set("subjects",self.question_form.subjects)
-                        question.set("isImportant",self.question_form.isImportant)
-                        question.set("type",self.question_form.type)
-                        question.set("options",self.question_form.options)
-                        question.set("comments",self.question_form.comments)
-                        question.set("images",self.question_form.images)
-                        // question.set('accuracy', 0)
-                        question.save().then((qres)=>{
-                            self.maxIndex++
-                            self.$Message.success('保存成功')
-                            self.page_list(1)
-                            self.cancel()
-                        },(error)=>{
-                            debugger
-                            self.$Message.error('保存失败')
-                        })
-                    }
-                })
-            })
-        },
-        /** 加载树形科目 */
-        bindSubjectTree(){
-            var self = this
-            var query = new this.ParseServer.Query("Subjects")
-            query.limit(10000)
-            query.ascending('createdAt')
-            query.find().then(res=>{
-                this.subjects = res
-                var tree = self.initSubjectTree(res,'0')
-                self.subjectTreeData = tree
-            })
-        },
-        /** 构造树形科目 */
-        initSubjectTree(subjects, parentId){
-            var self = this
-            var treeValue = []
-            let _subjects = subjects.filter((_item)=>{
-                return _item.get('parent_ID') == parentId
-            })
-            _subjects.forEach((_subject, _index)=> {
-                let subject = {
-                    title: _subject.get('subject_name'),
-                    value: _subject.id,
-                }
-                let childrens = subjects.filter(_item=>{
-                    return _item.get('parent_ID') == _subject.id
-                })
-                if(childrens.length>0){
-                    subject.children = self.initSubjectTree(subjects, _subject.id)
-                }
-                treeValue.push(subject)
-            })
-            return treeValue
-        },
-        /**
-         * @description  解析表格文件数据，返回表格中内容，目前暂不支持导入有单元格合并的表格
-         * @param    {Object} file    导入的文件，二进制数据流
-         * @returns  {Object} data    返回的表格数据
-         * @returns  {Array}  data.title   表头
-         * @returns  {Array}  data.body    表格数据
-         */
-        importFromLocal(file,title) {
-            var self = this
-            return new Promise(function (resolve, reject) {
-                self.readerWorkBookFromLocal(file).then(workBook=>{
-                    let workSheet = workBook.Sheets[title]
-                    let content = utils.sheet_to_json(workSheet)
-                    let data = {};
-                    if(content&&content.length>0){
-                        data.title = Object.keys(content[0]);
-                        data.body = content;
-                    } else {
-                        data.title = ""
-                        data.body = []
-                    }
-                    resolve(data)
-                })
-            })
-        },
-        /**
-         * @description              本地读取文件的方法
-         * @param {Object} file      文件流
-         */
-        readerWorkBookFromLocal(file) {
-            const reader = new FileReader();
-            reader.readAsBinaryString(file);
-            return new Promise(function (resolve, reject) {
-                reader.onload = function (e) {
-                    const fileData = e.target.result;
-                    if (reader.readyState === 2) {
-                        const workBook = XLSX.read(fileData, { type: 'binary' });
-                        resolve(workBook);
-                    } else {
-                        reject('读取文件失败');
-                    }
-                }
-            })
-        },
-        /** 读取excel中的图片 */
-        readExcelImg(file,sheetIndex){
-            return new Promise(function (resolve, reject) {
-                var new_zip = new JsZip();
-                new_zip.loadAsync(file).then(function() {
-                    var rels = new_zip.file("xl/drawings/_rels/drawing"+sheetIndex+".xml.rels")
-                    if(rels){
-                        rels.async("string").then(con=> {
-                            var _x2js = new x2js()
-                            var pathData = _x2js.xml2js(con)
-                            new_zip.file("xl/drawings/drawing"+sheetIndex+".xml").async("string").then(function (areaContent) {
-                                var areaData = _x2js.xml2js(areaContent)
-                                var rowcell = Array.isArray(areaData.wsDr.twoCellAnchor)?areaData.wsDr.twoCellAnchor:[areaData.wsDr.twoCellAnchor]
-                                var pics = []
-                                rowcell.forEach((_item,_index)=>{
-                                    let colIndex = _item.from.col.__text
-                                    let rowIndex = _item.from.row.__text
-                                    let Id = _item.pic.blipFill.blip["_r:embed"]
-                                    let ships = Array.isArray(pathData.Relationships.Relationship)?pathData.Relationships.Relationship:[pathData.Relationships.Relationship]
-                                    let _parhdata = ships.find(p=>{
-                                        return p._Id == Id
-                                    })
-                                    let flename = _parhdata._Target.substring(_parhdata._Target.lastIndexOf('/')+1,_parhdata._Target.length)
-                                    pics.push({col: parseInt(colIndex), row: parseInt(rowIndex), id: Id, path: _parhdata._Target, filename: flename})
-                                })
-                                resolve(pics)
-                            })
-                        });
-                    } else {
-                        resolve(null)
-                    }
-                })
+          },
+          {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              self.validateOptions(rule, value, callback, self);
+            },
+          },
+        ],
+        comments: [
+          { required: true, message: "请输入答案解析", trigger: "blur" },
+          { required: true, message: "请输入答案解析", trigger: "change" },
+        ],
+      },
+      // options:[],
+      init_data: "",
+      maxIndex: 0, // 最大索引值
+      question_id: "0",
+      isUploadData: false, // 是否上传
+      isShowDetail: false, // 是否查看
+      show_window: false,
+      window_title: "新增试题",
+      tags: [],
+      tagId: "",
+    };
+  },
+  computed: {},
+  mounted() {
+    this.init_data = JSON.stringify(this.question_form);
+    this.page_list(this.page);
+    this.bindSubjectTree();
+    this.handleGetMaxIndex();
+    this.tag(); //标签
+  },
+  methods: {
+    tag() {
+      var self = this;
+      var query = new this.ParseServer.Query("LabelManagement");
+      query.find().then((res) => {
+        if (res) {
+          console.log(res);
+          res.forEach((item) => {
+            console.log(item);
+            self.tags.push({
+              id: item.id,
+              tagName: item.get("tagName"),
+              annotation: item.get("annotation"),
             });
-        },
-        /** 上传图片 */
-        uploadImg(excelfile, fileName){
-            var self = this
-            var new_zip = new JsZip();
-            return new Promise(function (resolve, reject) {
-                new_zip.loadAsync(excelfile).then(function() {
-                    new_zip.file('xl/media/'+fileName).async("base64").then(img=>{
-                        var parseFile = new self.ParseServer.File('excelimg.jpg',{base64:img});
-                        parseFile.save().then(res=>{
-                            if(res._url) {
-                                resolve(res._url)
-                            } else {
-                                self.$Message.error("图片上传失败");
-                            }
-                        })
-                    })
-                })
-            })
-        },
-        /**
-         * 导入模板
-         */
-        handleUpload(e){
-            var self = this
-            var excelFile = e[0]
-            self.readerWorkBookFromLocal(excelFile).then(workBook=>{
-                let workSheet1 = workBook.Sheets['单选题']
-                let count1 = utils.sheet_to_json(workSheet1).length
-                let workSheet2 = workBook.Sheets['多选题']
-                let count2 = utils.sheet_to_json(workSheet2).length
-                let workSheet3 = workBook.Sheets['填空题']
-                let count3 = utils.sheet_to_json(workSheet3).length
-                let workSheet4 = workBook.Sheets['多项选择题']
-                let count4 = utils.sheet_to_json(workSheet4).length - 1
-                self.uploadCount = count1 + count2 + count3 + count4
-                self.uploadImgCount = 0
-                setTimeout(() => {
-                    if(self.uploadIndex==0){
-                        self.uploadIndex= self.uploadCount
-                    }
-                }, 3000);
-                self.readExcelImg(excelFile, 1).then(imgs=>{
-                    self.uploadImgCount += (imgs ? imgs.length:0)
-                    self.handleUploadQuestionSignle(excelFile, '单选题', imgs, self.maxIndex, self.maxIndex)
-                })
-                self.readExcelImg(excelFile, 2).then(imgs=>{
-                    self.uploadImgCount += (imgs ? imgs.length:0)
-                    self.handleUploadQuestionMultis(excelFile, '多选题', imgs,  (self.maxIndex + count1), self.maxIndex)
-                })
-                self.readExcelImg(excelFile, 3).then(imgs=>{
-                    self.uploadImgCount += (imgs ? imgs.length:0)
-                    self.handleUploadQuestionFillBlank(excelFile, '填空题', imgs,  (self.maxIndex + count1 + count2), self.maxIndex)
-                })
-                self.readExcelImg(excelFile, 4).then(imgs=>{
-                    self.uploadImgCount += (imgs ? imgs.length:0)
-                    self.handleUploadQuestionMultiCheck(excelFile, '多项选择题', imgs,  (self.maxIndex + count1 + count2 + count3), self.maxIndex)
-                })
-            })
-            return ''
-        },
-        /** 导入单选题 */
-        handleUploadQuestionSignle(excelFile, title, imgs, testIndex, maxIndex){
-            var self = this
-            self.importFromLocal(excelFile,title).then(res=>{
-                let data = []
-                res.body.forEach((item, index)=>{
-                    let imgNames = []
-                    if(imgs){
-                        imgs.forEach((_img)=>{
-                            if(_img.row-1 == index){
-                                imgNames.push(_img.filename)
-                            }
-                        })
-                    }
-                    if(item["题目"]&&item["科目ID（多项以英文,隔开）"]){
-                        data.push({
-                            subjects:item["科目ID（多项以英文,隔开）"],
-                            title:item["题目"],
-                            isImportant:item['是否重点(是、否)'],
-                            type: 1,
-                            comments:item["题目解析"],
-                            rightAnswer:item["正确答案"],
-                            option1:item["选项1"],
-                            option2:item["选项2"],
-                            option3:item["选项3"],
-                            option4:item["选项4"],
-                            option5:item["选项..."],
-                            imgFileNames: imgNames
-                        })
-                    }
-                })
-                self.handleSaveQuestions(data, excelFile, testIndex, maxIndex)
-            })
-        },
-        /** 导入多选题 */
-        handleUploadQuestionMultis(excelFile, title, imgs, testIndex, maxIndex){
-            var self = this
-            self.importFromLocal(excelFile,title).then(res=>{
-                let data = []
-                res.body.forEach((item, index)=>{
-                    let imgNames = []
-                    if(imgs){
-                        imgs.forEach((_img)=>{
-                            if(_img.row-1 == index){
-                                imgNames.push(_img.filename)
-                            }
-                        })
-                    }
-                    if(item["题目"]&&item["科目ID（多项以英文,隔开）"]){
-                        data.push({
-                            subjects:item["科目ID（多项以英文,隔开）"],
-                            title:item["题目"],
-                            isImportant:item['是否重点(是、否)'],
-                            type: 2,
-                            comments:item["题目解析"],
-                            rightAnswer:item["正确答案（多选以英文,隔开）"],
-                            option1:item["选项1"],
-                            option2:item["选项2"],
-                            option3:item["选项3"],
-                            option4:item["选项4"],
-                            option5:item["选项..."],
-                            imgFileNames: imgNames
-                        })
-                    }
-                })
-                self.handleSaveQuestions(data, excelFile, testIndex, maxIndex)
-            })
-        },
-        /** 导入填空题 */
-        handleUploadQuestionFillBlank(excelFile, title, imgs, testIndex, maxIndex){
-            var self = this
-            self.importFromLocal(excelFile,title).then(res=>{
-                let data = []
-                res.body.forEach((item, index)=>{
-                    let imgNames = []
-                    if(imgs){
-                        imgs.forEach((_img)=>{
-                            if(_img.row-1 == index){
-                                imgNames.push(_img.filename)
-                            }
-                        })
-                    }
-                    if(item["题目,4个英文下划线(_)代表一个填空"]&&item["科目ID（多项以英文,隔开）"]){
-                        data.push({
-                            subjects:item["科目ID（多项以英文,隔开）"],
-                            title:item["题目,4个英文下划线(_)代表一个填空"],
-                            isImportant:item['是否重点(是、否)'],
-                            type: 3,
-                            comments:item["题目解析"],
-                            option1:item["选项1（请在此处输入填空1的正确答案，有备选答案请用英文,隔开）"],
-                            option2:item["选项2（请在此处输入填空2的正确答案，有备选答案请用英文,隔开）"],
-                            option3:item["选项3（请在此处输入填空3的正确答案，有备选答案请用英文,隔开）"],
-                            option4:item["选项4（请在此处输入填空4的正确答案，有备选答案请用英文,隔开）"],
-                            option5:item["选项5（请在此处输入填空5的正确答案，有备选答案请用英文,隔开）"],
-                            option6:item["选项6（请在此处输入填空6的正确答案，有备选答案请用英文,隔开）"],
-                            option7:item["选项7（请在此处输入填空7的正确答案，有备选答案请用英文,隔开）"],
-                            option8:item["选项8（请在此处输入填空8的正确答案，有备选答案请用英文,隔开）"],
-                            imgFileNames: imgNames
-                        })
-                    }
-                })
-                self.handleSaveQuestions(data, excelFile, testIndex, maxIndex)
-            })
-        },
-        
-        /** 导入多项选择题 */
-        handleUploadQuestionMultiCheck(excelFile, title, imgs, testIndex, maxIndex){
-            var self = this
-            self.importFromLocal(excelFile,title).then(res=>{
-                let data = []
-                res.body.forEach((item, index)=>{
-                    let imgNames = []
-                    if(imgs){
-                        imgs.forEach((_img)=>{
-                            if(_img.row-1 == index){
-                                imgNames.push(_img.filename)
-                            }
-                        })
-                    }
-                    if(index>0&&item["题目,1对英文括号()代表一个选择项"]&&item["科目ID（多项以英文,隔开）"]) {
-                        data.push({
-                            subjects:item["科目ID（多项以英文,隔开）"],
-                            title:item["题目,1对英文括号()代表一个选择项"],
-                            isImportant:item['是否重点(是、否)'],
-                            type: 4,
-                            comments:item["题目解析"],
-                            options:[
-                                {rightAnswer:item["选择项1"], option1: item["__EMPTY"], option2: item["__EMPTY_1"], option3: item["__EMPTY_2"], option4: item["__EMPTY_3"], option5: item["__EMPTY_4"], option6: item["__EMPTY_5"], option7: item["__EMPTY_6"], option8: item["__EMPTY_7"]},
-                                {rightAnswer:item["选择项2"], option1: item["__EMPTY_8"], option2: item["__EMPTY_9"], option3: item["__EMPTY_10"], option4: item["__EMPTY_11"], option5: item["__EMPTY_12"], option6: item["__EMPTY_13"], option7: item["__EMPTY_14"], option8: item["__EMPTY_15"]},
-                                {rightAnswer:item["选择项3"], option1: item["__EMPTY_16"], option2: item["__EMPTY_17"], option3: item["__EMPTY_18"], option4: item["__EMPTY_19"], option5: item["__EMPTY_20"], option6: item["__EMPTY_21"], option7: item["__EMPTY_22"], option8: item["__EMPTY_23"]}
-                            ],
-                            imgFileNames: imgNames
-                        })
-                    }
-                })
-                self.handleSaveQuestions(data, excelFile, testIndex, maxIndex)
-            })
-        },
-        /** 保存题目 */
-        handleSaveQuestions(data, excelFile, testIndex, maxIndex){
-            var self = this
-            var list = []
-            let _subjectIndex = testIndex + 1
-            var Questions = self.ParseServer.Object.extend("TestQuestions")
-            if(data&&data.length > 0) {
-                data.forEach((ques,index)=>{
-                    if(ques.subjects){
-                        var question = new Questions()
-                        var _subjects = ques.subjects.split(',')
-                        if(_subjects.length > 0) {
-                            question.set('subjects', _subjects)
-                        }
-                        question.set('title', ques.title)
-                        question.set('comments', ques.comments)
-                        question.set('isImportant', (ques.isImportant=='是'?1:0))
-                        question.set('type', ques.type)
-                        question.set('index', _subjectIndex)
-                        question.set('options', self.getOptions(ques,ques.type))
-                        question.set('images', ques.imgFileNames)
-                        let realname = self.ParseServer.User.current().get('realname')
-                        question.set('updatedBy', realname)
-                        list.push(question)
-                        _subjectIndex++
-                    }
-                })
-                self.ParseServer.Object.saveAll(list).then(resList=>{
-                self.uploadIndex = self.uploadIndex + resList.length
-                self.handleGetMaxIndex()
-                resList.forEach((_question)=>{
-                    if(_question.get('images')) {
-                        _question.get('images').forEach((_img,_idx)=>{
-                            console.log('正在导入图片：'+ _img)
-                            self.uploadImg(excelFile, _img).then(url=>{
-                                let images = _question.get('images')
-                                images[_idx] = url
-                                _question.set('images', images)
-                                _question.save().then(_question=>{
-                                    self.uploadImgIndex += 1
-                                    console.log(self.uploadImgIndex+'/'+self.uploadImgCount+';img:'+ _img)
-                                })
-                            })
+          });
+          console.log(self.tags);
+        }
+      });
+    },
 
-                        })
-                    }
-                })
-            })
+    handleDownLoad() {},
+    /** 获取最大索引 */
+    handleGetMaxIndex() {
+      var self = this;
+      var query = new this.ParseServer.Query("TestQuestions");
+      query.descending("createdAt");
+      query.first().then((res) => {
+        if (res) {
+          self.maxIndex = res.get("index");
+        } else {
+          self.maxIndex = 0;
+        }
+      });
+    },
+    /** 添加试题 */
+    handleAddQuestion() {
+      this.show_window = true;
+      this.question_form = {
+        title: "",
+        isImportant: 0,
+        images: [],
+        options: [
+          { code: "A", content: "", value: "" },
+          { code: "B", content: "", value: "" },
+          { code: "C", content: "", value: "" },
+          { code: "D", content: "", value: "" },
+        ],
+        oldType: 1,
+        type: 1,
+        subjects: [],
+        comments: "",
+      };
+      this.rightMultiAnswer = [];
+      this.rightAnswer = "";
+    },
+    /** 查看题目 */
+    handleShowQuestion(row) {
+      this.isShowDetail = true;
+      let _comments = row.comments
+        ? row.comments.replace(
+            /<img/g,
+            "<img style='max-width:100%;height:auto;'"
+          )
+        : "";
+      this.showComments = _comments;
+      this.question_form = {
+        title: row.title,
+        isImportant: row.isImportant,
+        images: row.images,
+        options: row.options,
+        oldType: row.type,
+        type: row.type,
+        subjects: row.subjects,
+        comments: row.comments,
+      };
+    },
+    /** 编辑试题 */
+    handleEditQuestion(row) {
+      console.log(row);
+      this.show_window = true;
+      this.question_form = {
+        id: row.id,
+        tagId: row.tagId,
+        title: row.title,
+        isImportant: row.isImportant,
+        images: row.images,
+        options: row.options,
+        oldType: row.type,
+        type: row.type,
+        subjects: row.subjects,
+        comments: row.comments,
+      };
+      row.options.forEach((item) => {
+        if (item.value == "1") {
+          this.rightMultiAnswer.push(item.code);
+          this.rightAnswer = item.code;
+        }
+      });
+    },
+    /**
+     * 切换题型
+     */
+    handleQuesTypeChange() {
+      var type = this.question_form.type;
+      if (type == 1 || type == 2) {
+        if (this.question_form.oldType == 3) {
+          this.question_form.options = [
+            { code: "A", content: "", value: "1" },
+            { code: "B", content: "", value: "" },
+            { code: "C", content: "", value: "" },
+            { code: "D", content: "", value: "" },
+          ];
+        } else {
+          this.question_form.options.forEach((_item, _index) => {
+            _item.value = "";
+          });
+          this.rightAnswer = "";
+          this.rightMultiAnswer = [];
+        }
+      } else {
+        this.initAnswers();
+      }
+      this.question_form.oldType = type;
+    },
+    /** 构造填空题的答案 */
+    initAnswers() {
+      var self = this;
+      if (self.question_form.type == 3) {
+        let txt = eval("/____/ig");
+        var count =
+          self.question_form.title.indexOf("____") == -1
+            ? 0
+            : self.question_form.title.match(txt).length;
+        let _options = [];
+        if (count != self.question_form.options.length) {
+          for (var i = 0; i < count; i++) {
+            _options.push({ code: "A", content: "", value: [{ txt: "" }] });
+          }
+          self.question_form.options = _options;
+        }
+      } else if (self.question_form.type == 4) {
+        let txt = eval("/[(][)]/ig");
+        console.log(txt);
+        var count =
+          self.question_form.title.indexOf("()") == -1
+            ? 0
+            : self.question_form.title.match(txt).length;
+        var _options = [];
+        if (count != self.question_form.options.length) {
+          for (var i = 0; i < count; i++) {
+            _options.push({
+              rightAnswer: "",
+              options: [
+                { code: "A", content: "", value: "" },
+                { code: "B", content: "", value: "" },
+                { code: "C", content: "", value: "" },
+                { code: "D", content: "", value: "" },
+              ],
+            });
+          }
+          self.question_form.options = _options;
+        }
+        console.log(self.question_form.options);
+      }
+    },
+    /** 添加答案 */
+    addCOptions(option) {
+      var type = this.question_form.type;
+      if (type == 1 || type == 2) {
+        this.question_form.options.push({
+          code: this.code[this.question_form.options.length],
+          content: "",
+          value: "",
+        });
+      } else if (type == 4) {
+        this.question_form.options[option].options.push({
+          code: this.code[this.question_form.options[option].options.length],
+          content: "",
+          value: "",
+        });
+      } else {
+        option.value.push({ txt: "" });
+        console.log(option);
+      }
+    },
+    /** 选择正确答案 */
+    changeAnswer() {
+      var self = this;
+      self.question_form.options.forEach((_item, _index) => {
+        if (self.question_form.type == 1) {
+          if (_item.code == self.rightAnswer) {
+            _item.value = "1";
+          } else {
+            _item.value = "";
+          }
+        } else if (self.question_form.type == 2) {
+          if (self.rightMultiAnswer.indexOf(_item.code) != -1) {
+            _item.value = "1";
+          } else {
+            _item.value = "";
+          }
+        } else if (self.question_form.type == 4) {
+          _item.options.forEach((c_item, c_index) => {
+            if (c_item.code == _item.rightAnswer) {
+              c_item.value = "1";
+              _item.rightAnswer = c_item.code;
+            } else {
+              c_item.value = "";
             }
-        },
-        /** 构造多项选择题的选项 */
-        getOptionsMultiCheck(question){
-            var self = this
-            var options = []
-            question.options.forEach((item, index)=>{
-                let _options = []
-                if(item.rightAnswer){
-                    if(item.option1){
-                        _options.push(self.buildOption(1,'A',item.rightAnswer?(item.rightAnswer.indexOf('A')==-1?'':'1'):'',item.option1))
-                    }
-                    if(item.option2){
-                        _options.push(self.buildOption(1,'B',item.rightAnswer?(item.rightAnswer.indexOf('B')==-1?'':'1'):'',item.option2))
-                    }
-                    if(item.option3){
-                        _options.push(self.buildOption(1,'C',item.rightAnswer?(item.rightAnswer.indexOf('C')==-1?'':'1'):'',item.option3))
-                    }
-                    if(item.option4){
-                        _options.push(self.buildOption(1,'D',item.rightAnswer?(item.rightAnswer.indexOf('D')==-1?'':'1'):'',item.option4))
-                    }
-                    if(item.option5){
-                        _options.push(self.buildOption(1,'E',item.rightAnswer?(item.rightAnswer.indexOf('E')==-1?'':'1'):'',item.option5))
-                    }
-                    if(item.option6){
-                        _options.push(self.buildOption(1,'F',item.rightAnswer?(item.rightAnswer.indexOf('F')==-1?'':'1'):'',item.option6))
-                    }
-                    if(item.option7){
-                        _options.push(self.buildOption(1,'G',item.rightAnswer?(item.rightAnswer.indexOf('G')==-1?'':'1'):'',item.option7))
-                    }
-                    if(item.option8){
-                        _options.push(self.buildOption(1,'H',item.rightAnswer?(item.rightAnswer.indexOf('H')==-1?'':'1'):'',item.option8))
-                    }
-                    options.push({rightAnswer:item.rightAnswer,options:_options})
+          });
+        }
+      });
+      console.log(self.question_form.options);
+    },
+    /** 答案输入验证 */
+    validateOptions: (rule, value, callback, self) => {
+      let _question_form = self.question_form;
+      let hasNullContent = false;
+      let answerCount = 0;
+      value.forEach((_option, _index) => {
+        if (_question_form.type == 3) {
+          _option.value.forEach((_val) => {
+            if (!_val.txt) {
+              hasNullContent = true;
+            }
+          });
+        } else if (_question_form.type == 4) {
+          _option.options.forEach((c_opn, c_idx) => {
+            if (!c_opn.content) {
+              hasNullContent = true;
+            }
+            if (c_opn.value == "1") {
+              answerCount++;
+            }
+          });
+        } else {
+          if (
+            (_question_form.type == 1 || _question_form.type == 2) &&
+            !_option.content
+          ) {
+            hasNullContent = true;
+          }
+          if (_option.value == "1") {
+            answerCount++;
+          }
+        }
+      });
+      if (value.length == 0 && _question_form.type == 3) {
+        callback(new Error("还没有需要填空的"));
+      }
+      if (hasNullContent) {
+        callback(new Error("请输入答案"));
+      }
+      console.log("answerCount:" + answerCount);
+      if (answerCount == 0 && _question_form.type == 1) {
+        callback(new Error("请选择正确答案"));
+      } else if (_question_form.type == 4 && answerCount < value.length) {
+        callback(new Error("请选择正确答案"));
+      } else if (answerCount < 2 && _question_form.type == 2) {
+        callback(new Error("请选择至少两个正确答案"));
+      } else {
+        callback();
+      }
+    },
+    /** 删除答案 */
+    removeCOption(option, _idx) {
+      var type = this.question_form.type;
+      if (type == 1 || type == 2) {
+        let _options = [];
+        this.question_form.options.forEach((item, index) => {
+          if (item.code != option.code) {
+            item.code = this.code[_options.length];
+            _options.push(item);
+          }
+        });
+        this.question_form.options = _options;
+      } else if (type == 4) {
+        let _options = [];
+        this.question_form.options[_idx].options.forEach((item, index) => {
+          if (item.code != option.code) {
+            item.code = this.code[_options.length];
+            _options.push(item);
+          }
+        });
+        this.question_form.options[_idx].options = _options;
+      } else {
+        let txts = [];
+        option.value.forEach((item, index) => {
+          if (_idx != index) {
+            txts.push(item);
+          }
+        });
+        option.value = txts;
+      }
+    },
+    /** 插入填空 */
+    async insertInputTxt(type) {
+      var txt = "____";
+      if (type == 4) {
+        txt = "()";
+      }
+      const myField = document.querySelector("#title textarea");
+      if (myField.selectionStart || myField.selectionStart === 0) {
+        let startPos = myField.selectionStart;
+        let endPos = myField.selectionEnd;
+        this.question_form.title =
+          myField.value.substring(0, startPos) +
+          txt +
+          myField.value.substring(endPos, myField.value.length);
+        await this.$nextTick(); // 这句是重点, 圈起来
+        myField.focus();
+        myField.setSelectionRange(endPos + txt.length, endPos + txt.length);
+      } else {
+        this.question_form.title = txt;
+      }
+      if (type == 3) {
+        this.question_form.options.push({
+          code: "A",
+          content: "",
+          value: [{ txt: "" }],
+        });
+      }
+      if (type == 4) {
+        this.question_form.options.push({
+          rightAnswer: "",
+          options: [
+            { code: "A", content: "", value: "" },
+            { code: "B", content: "", value: "" },
+            { code: "C", content: "", value: "" },
+            { code: "D", content: "", value: "" },
+          ],
+        });
+      }
+    },
+    /**
+     * 图片上传完成
+     */
+    handleUploadComplate(urls) {
+      this.question_form.images = urls;
+    },
+    /*
+     * 取消操作
+     *作者：gzt
+     *时间：2020-11-22 18:49:58
+     */
+    cancel() {
+      this.question_id = "";
+      this.question_form = JSON.parse(this.init_data);
+      (this.show_window = false), (this.window_title = "新增科目");
+    },
+
+    /*
+     *获取科目实体
+     *作者：gzt
+     *时间：2020-11-22 09:21:48
+     */
+    get_entity() {
+      var query = new this.ParseServer.Query("TestQuestions");
+      query.get(this.subjectid).then((response) => {
+        Object.keys(this.question_form).forEach((key) => {
+          this.question_form[key] = response.get(key);
+        });
+      });
+    },
+
+    /*
+     * 保存题目
+     * 作者：gzt
+     * 时间：2020-11-21 23:41:37
+     */
+    add_questions() {
+      var self = this;
+      console.log(this.question_form.tagId);
+      var query = new this.ParseServer.Query("TestQuestions");
+      query.descending("createdAt");
+      query.first().then((res) => {
+        if (res) {
+          self.maxIndex = res.get("index");
+        } else {
+          self.maxIndex = 0;
+        }
+        var questions = this.ParseServer.Object.extend("TestQuestions");
+        var question = new questions();
+        if (this.question_form.id) {
+          question.set("id", this.question_form.id);
+        } else {
+          question.set("index", self.maxIndex + 1);
+        }
+        this.$refs["form"].validate((valid) => {
+          if (!valid) {
+            self.$Message.error("请检查表单项");
+            self.modalLoading = false;
+            setTimeout(() => {
+              self.modalLoading = true;
+            }, 100);
+            return false;
+          } else {
+            console.log(this.tagId);
+            var ClassOfMyObject =
+              this.ParseServer.Object.extend("LabelManagement");
+            var myObject = ClassOfMyObject.createWithoutData(
+              self.question_form.tagId
+            );
+            let realName = this.ParseServer.User.current().get("realname");
+            question.set("updatedBy", realName);
+            question.set("tagId", myObject);
+            question.set("title", self.question_form.title);
+            question.set("subjects", self.question_form.subjects);
+            question.set("isImportant", self.question_form.isImportant);
+            question.set("type", self.question_form.type);
+            question.set("options", self.question_form.options);
+            question.set("comments", self.question_form.comments);
+            question.set("images", self.question_form.images);
+            // question.set('accuracy', 0)
+            question.save().then(
+              (qres) => {
+                self.maxIndex++;
+                self.$Message.success("保存成功");
+                self.page_list(1);
+                self.cancel();
+              },
+              (error) => {
+                // debugger;
+                self.$Message.error("保存失败");
+              }
+            );
+            self.modalLoading = false;
+            setTimeout(() => {
+              self.modalLoading = true;
+            }, 100);
+            return false;
+          }
+        });
+      });
+    },
+    /** 加载树形科目 */
+    bindSubjectTree() {
+      var self = this;
+      var query = new this.ParseServer.Query("Subjects");
+      console.log(query);
+      query.limit(10000);
+      query.ascending("createdAt");
+      query.find().then((res) => {
+        this.subjects = res;
+        console.log(this.subjects);
+        var tree = self.initSubjectTree(res, "0");
+        self.subjectTreeData = tree;
+      });
+    },
+    /** 构造树形科目 */
+    initSubjectTree(subjects, parentId) {
+      var self = this;
+      var treeValue = [];
+      let _subjects = subjects.filter((_item) => {
+        return _item.get("parent_ID") == parentId;
+      });
+      _subjects.forEach((_subject, _index) => {
+        let subject = {
+          title: _subject.get("subject_name"),
+          value: _subject.id,
+        };
+        let childrens = subjects.filter((_item) => {
+          return _item.get("parent_ID") == _subject.id;
+        });
+        if (childrens.length > 0) {
+          subject.children = self.initSubjectTree(subjects, _subject.id);
+        }
+        treeValue.push(subject);
+      });
+      console.log(treeValue);
+      return treeValue;
+    },
+    /**
+     * @description  解析表格文件数据，返回表格中内容，目前暂不支持导入有单元格合并的表格
+     * @param    {Object} file    导入的文件，二进制数据流
+     * @returns  {Object} data    返回的表格数据
+     * @returns  {Array}  data.title   表头
+     * @returns  {Array}  data.body    表格数据
+     */
+    importFromLocal(file, title) {
+      var self = this;
+      return new Promise(function (resolve, reject) {
+        self.readerWorkBookFromLocal(file).then((workBook) => {
+          let workSheet = workBook.Sheets[title];
+          let content = utils.sheet_to_json(workSheet);
+          let data = {};
+          if (content && content.length > 0) {
+            data.title = Object.keys(content[0]);
+            data.body = content;
+          } else {
+            data.title = "";
+            data.body = [];
+          }
+          resolve(data);
+        });
+      });
+    },
+    /**
+     * @description              本地读取文件的方法
+     * @param {Object} file      文件流
+     */
+    readerWorkBookFromLocal(file) {
+      const reader = new FileReader();
+      reader.readAsBinaryString(file);
+      return new Promise(function (resolve, reject) {
+        reader.onload = function (e) {
+          const fileData = e.target.result;
+          if (reader.readyState === 2) {
+            const workBook = XLSX.read(fileData, { type: "binary" });
+            resolve(workBook);
+          } else {
+            reject("读取文件失败");
+          }
+        };
+      });
+    },
+    /** 读取excel中的图片 */
+    readExcelImg(file, sheetIndex) {
+      return new Promise(function (resolve, reject) {
+        var new_zip = new JsZip();
+        new_zip.loadAsync(file).then(function () {
+          var rels = new_zip.file(
+            "xl/drawings/_rels/drawing" + sheetIndex + ".xml.rels"
+          );
+          if (rels) {
+            rels.async("string").then((con) => {
+              var _x2js = new x2js();
+              var pathData = _x2js.xml2js(con);
+              new_zip
+                .file("xl/drawings/drawing" + sheetIndex + ".xml")
+                .async("string")
+                .then(function (areaContent) {
+                  var areaData = _x2js.xml2js(areaContent);
+                  var rowcell = Array.isArray(areaData.wsDr.twoCellAnchor)
+                    ? areaData.wsDr.twoCellAnchor
+                    : [areaData.wsDr.twoCellAnchor];
+                  var pics = [];
+                  rowcell.forEach((_item, _index) => {
+                    let colIndex = _item.from.col.__text;
+                    let rowIndex = _item.from.row.__text;
+                    let Id = _item.pic.blipFill.blip["_r:embed"];
+                    let ships = Array.isArray(
+                      pathData.Relationships.Relationship
+                    )
+                      ? pathData.Relationships.Relationship
+                      : [pathData.Relationships.Relationship];
+                    let _parhdata = ships.find((p) => {
+                      return p._Id == Id;
+                    });
+                    let flename = _parhdata._Target.substring(
+                      _parhdata._Target.lastIndexOf("/") + 1,
+                      _parhdata._Target.length
+                    );
+                    pics.push({
+                      col: parseInt(colIndex),
+                      row: parseInt(rowIndex),
+                      id: Id,
+                      path: _parhdata._Target,
+                      filename: flename,
+                    });
+                  });
+                  resolve(pics);
+                });
+            });
+          } else {
+            resolve(null);
+          }
+        });
+      });
+    },
+    /** 上传图片 */
+    uploadImg(excelfile, fileName) {
+      var self = this;
+      var new_zip = new JsZip();
+      return new Promise(function (resolve, reject) {
+        new_zip.loadAsync(excelfile).then(function () {
+          new_zip
+            .file("xl/media/" + fileName)
+            .async("base64")
+            .then((img) => {
+              var parseFile = new self.ParseServer.File("excelimg.jpg", {
+                base64: img,
+              });
+              parseFile.save().then((res) => {
+                if (res._url) {
+                  resolve(res._url);
+                } else {
+                  self.$Message.error("图片上传失败");
                 }
-            })
-            return options
-        },
-        /**
-         * 构造options
-         */
-        getOptions(question,type) {
-            var self = this
-            if(type == 4) {
-                return self.getOptionsMultiCheck(question);
-            }
-            let options = []
-            let rightanswer = question.rightAnswer
-            if(question.option1){
-                options.push(self.buildOption(type,'A',rightanswer?(rightanswer.indexOf('A')==-1?'':'1'):'',question.option1))
-            }
-            if(question.option2){
-                options.push(self.buildOption(type,'B',rightanswer?(rightanswer.indexOf('B')==-1?'':'1'):'',question.option2))
-            }
-            if(question.option3){
-                options.push(self.buildOption(type,'C',rightanswer?(rightanswer.indexOf('C')==-1?'':'1'):'',question.option3))
-            }
-            if(question.option4){
-                options.push(self.buildOption(type,'D',rightanswer?(rightanswer.indexOf('D')==-1?'':'1'):'',question.option4))
-            }
-            if(question.option5){
-                options.push(self.buildOption(type,'E',rightanswer?(rightanswer.indexOf('E')==-1?'':'1'):'',question.option5))
-            }
-            if(question.option6){
-                options.push(self.buildOption(type,'F',rightanswer?(rightanswer.indexOf('F')==-1?'':'1'):'',question.option6))
-            }
-            if(question.option7){
-                options.push(self.buildOption(type,'G',rightanswer?(rightanswer.indexOf('G')==-1?'':'1'):'',question.option7))
-            }
-            if(question.option8){
-                options.push(self.buildOption(type,'H',rightanswer?(rightanswer.indexOf('H')==-1?'':'1'):'',question.option8))
-            }
-            return options
-        },
-        buildOption(type,code, value, option){
-            if(type==3){
-                let values=[]
-                let txts = option.split(',')
-                txts.forEach(txt=>{
-                    if(txt){
-                        values.push({txt:txt})
-                    }
-                })
-                return { code: code, value: values, content: ''}
-            } else {
-                return { code: code, value: value, content: option}
-            }
-        },
-        /*
-        *富文本编辑框的内容发生变化
-        *作者：gzt
-        *时间：2020-11-22 00:37:46
-        */
-        change_value(html){
-            this.question_form.comments = html=='<p><br></p>'?'':html
-            this.$refs['form'].validate()
-        },
+              });
+            });
+        });
+      });
+    },
+    /**
+     * 导入模板
+     */
+    handleUpload(e) {
+      var self = this;
+      var excelFile = e[0];
+      self.readerWorkBookFromLocal(excelFile).then((workBook) => {
+        let workSheet1 = workBook.Sheets["单选题"];
+        let count1 = utils.sheet_to_json(workSheet1).length;
+        let workSheet2 = workBook.Sheets["多选题"];
+        let count2 = utils.sheet_to_json(workSheet2).length;
+        let workSheet3 = workBook.Sheets["填空题"];
+        let count3 = utils.sheet_to_json(workSheet3).length;
+        let workSheet4 = workBook.Sheets["多项选择题"];
+        let count4 = utils.sheet_to_json(workSheet4).length - 1;
+        self.uploadCount = count1 + count2 + count3 + count4;
+        self.uploadImgCount = 0;
+        setTimeout(() => {
+          if (self.uploadIndex == 0) {
+            self.uploadIndex = self.uploadCount;
+          }
+        }, 3000);
+        self.readExcelImg(excelFile, 1).then((imgs) => {
+          self.uploadImgCount += imgs ? imgs.length : 0;
+          self.handleUploadQuestionSignle(
+            excelFile,
+            "单选题",
+            imgs,
+            self.maxIndex,
+            self.maxIndex
+          );
+        });
+        self.readExcelImg(excelFile, 2).then((imgs) => {
+          self.uploadImgCount += imgs ? imgs.length : 0;
+          self.handleUploadQuestionMultis(
+            excelFile,
+            "多选题",
+            imgs,
+            self.maxIndex + count1,
+            self.maxIndex
+          );
+        });
+        self.readExcelImg(excelFile, 3).then((imgs) => {
+          self.uploadImgCount += imgs ? imgs.length : 0;
+          self.handleUploadQuestionFillBlank(
+            excelFile,
+            "填空题",
+            imgs,
+            self.maxIndex + count1 + count2,
+            self.maxIndex
+          );
+        });
+        self.readExcelImg(excelFile, 4).then((imgs) => {
+          self.uploadImgCount += imgs ? imgs.length : 0;
+          self.handleUploadQuestionMultiCheck(
+            excelFile,
+            "多项选择题",
+            imgs,
+            self.maxIndex + count1 + count2 + count3,
+            self.maxIndex
+          );
+        });
+      });
+      return "";
+    },
+    /** 导入单选题 */
+    handleUploadQuestionSignle(excelFile, title, imgs, testIndex, maxIndex) {
+      var self = this;
+      self.importFromLocal(excelFile, title).then((res) => {
+        let data = [];
+        res.body.forEach((item, index) => {
+          let imgNames = [];
+          if (imgs) {
+            imgs.forEach((_img) => {
+              if (_img.row - 1 == index) {
+                imgNames.push(_img.filename);
+              }
+            });
+          }
+          if (item["题目"] && item["科目ID（多项以英文,隔开）"]) {
+            data.push({
+              subjects: item["科目ID（多项以英文,隔开）"],
+              title: item["题目"],
+              isImportant: item["是否重点(是、否)"],
+              type: 1,
+              comments: item["题目解析"],
+              rightAnswer: item["正确答案"],
+              option1: item["选项1"],
+              option2: item["选项2"],
+              option3: item["选项3"],
+              option4: item["选项4"],
+              option5: item["选项..."],
+              imgFileNames: imgNames,
+            });
+          }
+        });
+        self.handleSaveQuestions(data, excelFile, testIndex, maxIndex);
+      });
+    },
+    /** 导入多选题 */
+    handleUploadQuestionMultis(excelFile, title, imgs, testIndex, maxIndex) {
+      var self = this;
+      self.importFromLocal(excelFile, title).then((res) => {
+        let data = [];
+        res.body.forEach((item, index) => {
+          let imgNames = [];
+          if (imgs) {
+            imgs.forEach((_img) => {
+              if (_img.row - 1 == index) {
+                imgNames.push(_img.filename);
+              }
+            });
+          }
+          if (item["题目"] && item["科目ID（多项以英文,隔开）"]) {
+            data.push({
+              subjects: item["科目ID（多项以英文,隔开）"],
+              title: item["题目"],
+              isImportant: item["是否重点(是、否)"],
+              type: 2,
+              comments: item["题目解析"],
+              rightAnswer: item["正确答案（多选以英文,隔开）"],
+              option1: item["选项1"],
+              option2: item["选项2"],
+              option3: item["选项3"],
+              option4: item["选项4"],
+              option5: item["选项..."],
+              imgFileNames: imgNames,
+            });
+          }
+        });
+        self.handleSaveQuestions(data, excelFile, testIndex, maxIndex);
+      });
+    },
+    /** 导入填空题 */
+    handleUploadQuestionFillBlank(excelFile, title, imgs, testIndex, maxIndex) {
+      var self = this;
+      self.importFromLocal(excelFile, title).then((res) => {
+        let data = [];
+        res.body.forEach((item, index) => {
+          let imgNames = [];
+          if (imgs) {
+            imgs.forEach((_img) => {
+              if (_img.row - 1 == index) {
+                imgNames.push(_img.filename);
+              }
+            });
+          }
+          if (
+            item["题目,4个英文下划线(_)代表一个填空"] &&
+            item["科目ID（多项以英文,隔开）"]
+          ) {
+            data.push({
+              subjects: item["科目ID（多项以英文,隔开）"],
+              title: item["题目,4个英文下划线(_)代表一个填空"],
+              isImportant: item["是否重点(是、否)"],
+              type: 3,
+              comments: item["题目解析"],
+              option1:
+                item[
+                  "选项1（请在此处输入填空1的正确答案，有备选答案请用英文,隔开）"
+                ],
+              option2:
+                item[
+                  "选项2（请在此处输入填空2的正确答案，有备选答案请用英文,隔开）"
+                ],
+              option3:
+                item[
+                  "选项3（请在此处输入填空3的正确答案，有备选答案请用英文,隔开）"
+                ],
+              option4:
+                item[
+                  "选项4（请在此处输入填空4的正确答案，有备选答案请用英文,隔开）"
+                ],
+              option5:
+                item[
+                  "选项5（请在此处输入填空5的正确答案，有备选答案请用英文,隔开）"
+                ],
+              option6:
+                item[
+                  "选项6（请在此处输入填空6的正确答案，有备选答案请用英文,隔开）"
+                ],
+              option7:
+                item[
+                  "选项7（请在此处输入填空7的正确答案，有备选答案请用英文,隔开）"
+                ],
+              option8:
+                item[
+                  "选项8（请在此处输入填空8的正确答案，有备选答案请用英文,隔开）"
+                ],
+              imgFileNames: imgNames,
+            });
+          }
+        });
+        self.handleSaveQuestions(data, excelFile, testIndex, maxIndex);
+      });
+    },
 
-        /*
-        *搜索数据
-        *作者：gzt
-        *时间：2020-11-21 23:30:19
-        */
-        search(){
-            this.page=1
-            this.page_list(this.page)
-        },
-        pagechange(e){
-            this.page = e
-            this.page_list(this.page) 
-        },
-        /*
-        *分页加载数据
-        *作者：gzt
-        *时间：2020-11-21 23:30:27
-        */
-        page_list(){
-            var self = this
-            let _this=this
-            
-            let querya = new this.ParseServer.Query("TestQuestions");
-            querya.contains("objectId", this.search_ID);
-
-            let queryb = new this.ParseServer.Query("TestQuestions");
-            queryb.contains("title", this.search_ID);
-
-            var query1 = this.ParseServer.Query.or(querya, queryb);
-
-            let query2 = new this.ParseServer.Query("TestQuestions");
-            if(this.search_subjects){
-                query2.containedIn("subjects", [this.search_subjects]); // 科目名称
-            }
-
-            let query3 = new this.ParseServer.Query("TestQuestions");
-            if(this.search_type && this.search_type!=-1){
-                query3.equalTo("type", this.search_type);
-            }
-
-            let query4 = new this.ParseServer.Query("TestQuestions");
-            if(this.search_updateBy){
-                query4.contains("updatedBy", this.search_updateBy); // 更新人
-            }
-
-            let query5 = new this.ParseServer.Query("TestQuestions");
-            if(this.search_important == 1 || this.search_important==0){
-                query5.equalTo("isImportant", this.search_important);
-            }
-            let queryc = new this.ParseServer.Query("TestQuestions"); // 正确率大于
-            if(this.search_right_percent_start >= 0){
-                queryc.greaterThanOrEqualTo("accuracy", parseFloat(this.search_right_percent_start/100));
-                // queryc.exists('accuracy')
-            }
-            
-            let queryd = new this.ParseServer.Query("TestQuestions"); // 正确率大于
-            if(this.search_right_percent_start == 0){
-                queryd.doesNotExist("accuracy");
-            } else {
-                queryd.greaterThanOrEqualTo("accuracy", parseFloat(this.search_right_percent_start/100));
-            }
-            var query6 = this.ParseServer.Query.or(queryc, queryd);
-
-            let querye = new this.ParseServer.Query("TestQuestions"); // 正确率小于
-            if(this.search_right_percent_end >= 0 &&  this.search_right_percent_end <= 100){
-                querye.lessThanOrEqualTo("accuracy", parseFloat(this.search_right_percent_end/100));
-            }
-            let queryf = new this.ParseServer.Query("TestQuestions"); // 正确率小于
-            if(this.search_right_percent_start == 0 &&  this.search_right_percent_end == 100){
-                queryf.doesNotExist("accuracy");
-            } else {
-                queryf.lessThanOrEqualTo("accuracy", parseFloat(this.search_right_percent_end/100));
-            }
-            var query7 = this.ParseServer.Query.or(querye, queryf);
-
-            let query = this.ParseServer.Query.and(query1, query2, query3,query4, query5, query6, query7);
-
-            // let query = new this.ParseServer.Query('TestQuestions')
-            query.descending("createdAt",'objectId')
-            query.count().then(count=>{
-                _this.total=count
-            })
-            query.skip((this.page-1)*10)
-            query.limit(10)
-            query.find().then(list => {
-                _this.question_datas=[]
-                if (list && list.length>0){
-                    list.forEach((item)=>{
-                        _this.question_datas.push({
-                            id: item.id,
-                            subjects: item.get('subjects'),
-                            images: item.get('images'),
-                            type: item.get('type'),
-                            title: item.get("title"),
-                            options: item.get('options'),
-                            comments: item.get('comments'),
-                            isImportant: item.get('isImportant'),
-                            updatedBy: item.get('updatedBy'),
-                            index: item.get('index'),
-                            accuracy: item.get('accuracy'),
-                            updatedAt:  tool.dateFormat(item.updatedAt, 'yyyy-MM-dd HH:mm:ss')
-                        })
-                    })
-                }
-                this.loading=false
-            },error=>{
-                debugger
-            })
-        },
-        /** 获取科目名称 */
-        getSubjectName(id){
-            var subject = this.subjects.find(item=>{
-                return item.id == id
-            })
-            return subject?subject.get('subject_name'):'';
-        },
-        /** 获取答案 */
-        getRightAnswer(options, type){
-            var _rightAnswer = ''
-            if(type==4){
-                options.forEach((_item, _idx)=> {
-                    _item.options.forEach(item=>{
-                        if(item.value=='1'){
-                            _rightAnswer += item.code
-                        }
-                    })
-                })    
-            } else {
-                options.forEach(item=>{
-                    if(item.value=='1'){
-                        _rightAnswer += item.code
-                    }
-                })
-            }
-            return _rightAnswer
-        },
-        /*
-        * 删除题目
-        *作者：gzt
-        *时间：2020-11-22 08:41:53
-        */
-        handleRemove(row){
-            let _this=this
-            this.$Modal.confirm({
-                title: '删除提示',
-                content: '<p>确定删除当前试题吗？</p>',
-                onOk: () => {
-                    var query = new this.ParseServer.Query("TestQuestions")
-                    query.get(row.id).then((response)=>{
-                        // 删除当前题目
-                        response.destroy().then((delete_result)=>{
-                            _this.$Message.success('删除成功')
-                            _this.page = 1
-                            _this.page_list(1)
-                        })
-                    })
+    /** 导入多项选择题 */
+    handleUploadQuestionMultiCheck(
+      excelFile,
+      title,
+      imgs,
+      testIndex,
+      maxIndex
+    ) {
+      var self = this;
+      self.importFromLocal(excelFile, title).then((res) => {
+        let data = [];
+        res.body.forEach((item, index) => {
+          let imgNames = [];
+          if (imgs) {
+            imgs.forEach((_img) => {
+              if (_img.row - 1 == index) {
+                imgNames.push(_img.filename);
+              }
+            });
+          }
+          if (
+            index > 0 &&
+            item["题目,1对英文括号()代表一个选择项"] &&
+            item["科目ID（多项以英文,隔开）"]
+          ) {
+            data.push({
+              subjects: item["科目ID（多项以英文,隔开）"],
+              title: item["题目,1对英文括号()代表一个选择项"],
+              isImportant: item["是否重点(是、否)"],
+              type: 4,
+              comments: item["题目解析"],
+              options: [
+                {
+                  rightAnswer: item["选择项1"],
+                  option1: item["__EMPTY"],
+                  option2: item["__EMPTY_1"],
+                  option3: item["__EMPTY_2"],
+                  option4: item["__EMPTY_3"],
+                  option5: item["__EMPTY_4"],
+                  option6: item["__EMPTY_5"],
+                  option7: item["__EMPTY_6"],
+                  option8: item["__EMPTY_7"],
                 },
-                onCancel: () => {
-                    // this.$Message.info('取消了操作');
-                }
+                {
+                  rightAnswer: item["选择项2"],
+                  option1: item["__EMPTY_8"],
+                  option2: item["__EMPTY_9"],
+                  option3: item["__EMPTY_10"],
+                  option4: item["__EMPTY_11"],
+                  option5: item["__EMPTY_12"],
+                  option6: item["__EMPTY_13"],
+                  option7: item["__EMPTY_14"],
+                  option8: item["__EMPTY_15"],
+                },
+                {
+                  rightAnswer: item["选择项3"],
+                  option1: item["__EMPTY_16"],
+                  option2: item["__EMPTY_17"],
+                  option3: item["__EMPTY_18"],
+                  option4: item["__EMPTY_19"],
+                  option5: item["__EMPTY_20"],
+                  option6: item["__EMPTY_21"],
+                  option7: item["__EMPTY_22"],
+                  option8: item["__EMPTY_23"],
+                },
+              ],
+              imgFileNames: imgNames,
             });
+          }
+        });
+        self.handleSaveQuestions(data, excelFile, testIndex, maxIndex);
+      });
+    },
+    /** 保存题目 */
+    handleSaveQuestions(data, excelFile, testIndex, maxIndex) {
+      var self = this;
+      var list = [];
+      let _subjectIndex = testIndex + 1;
+      var Questions = self.ParseServer.Object.extend("TestQuestions");
+      if (data && data.length > 0) {
+        data.forEach((ques, index) => {
+          if (ques.subjects) {
+            var question = new Questions();
+            var _subjects = ques.subjects.split(",");
+            if (_subjects.length > 0) {
+              question.set("subjects", _subjects);
+            }
+            question.set("title", ques.title);
+            question.set("comments", ques.comments);
+            question.set("isImportant", ques.isImportant == "是" ? 1 : 0);
+            question.set("type", ques.type);
+            question.set("index", _subjectIndex);
+            question.set("options", self.getOptions(ques, ques.type));
+            question.set("images", ques.imgFileNames);
+            let realname = self.ParseServer.User.current().get("realname");
+            question.set("updatedBy", realname);
+            list.push(question);
+            _subjectIndex++;
+          }
+        });
+        self.ParseServer.Object.saveAll(list).then((resList) => {
+          self.uploadIndex = self.uploadIndex + resList.length;
+          self.handleGetMaxIndex();
+          resList.forEach((_question) => {
+            if (_question.get("images")) {
+              _question.get("images").forEach((_img, _idx) => {
+                console.log("正在导入图片：" + _img);
+                self.uploadImg(excelFile, _img).then((url) => {
+                  let images = _question.get("images");
+                  images[_idx] = url;
+                  _question.set("images", images);
+                  _question.save().then((_question) => {
+                    self.uploadImgIndex += 1;
+                    console.log(
+                      self.uploadImgIndex +
+                        "/" +
+                        self.uploadImgCount +
+                        ";img:" +
+                        _img
+                    );
+                  });
+                });
+              });
+            }
+          });
+        });
+      }
+    },
+    /** 构造多项选择题的选项 */
+    getOptionsMultiCheck(question) {
+      var self = this;
+      var options = [];
+      question.options.forEach((item, index) => {
+        let _options = [];
+        if (item.rightAnswer) {
+          if (item.option1) {
+            _options.push(
+              self.buildOption(
+                1,
+                "A",
+                item.rightAnswer
+                  ? item.rightAnswer.indexOf("A") == -1
+                    ? ""
+                    : "1"
+                  : "",
+                item.option1
+              )
+            );
+          }
+          if (item.option2) {
+            _options.push(
+              self.buildOption(
+                1,
+                "B",
+                item.rightAnswer
+                  ? item.rightAnswer.indexOf("B") == -1
+                    ? ""
+                    : "1"
+                  : "",
+                item.option2
+              )
+            );
+          }
+          if (item.option3) {
+            _options.push(
+              self.buildOption(
+                1,
+                "C",
+                item.rightAnswer
+                  ? item.rightAnswer.indexOf("C") == -1
+                    ? ""
+                    : "1"
+                  : "",
+                item.option3
+              )
+            );
+          }
+          if (item.option4) {
+            _options.push(
+              self.buildOption(
+                1,
+                "D",
+                item.rightAnswer
+                  ? item.rightAnswer.indexOf("D") == -1
+                    ? ""
+                    : "1"
+                  : "",
+                item.option4
+              )
+            );
+          }
+          if (item.option5) {
+            _options.push(
+              self.buildOption(
+                1,
+                "E",
+                item.rightAnswer
+                  ? item.rightAnswer.indexOf("E") == -1
+                    ? ""
+                    : "1"
+                  : "",
+                item.option5
+              )
+            );
+          }
+          if (item.option6) {
+            _options.push(
+              self.buildOption(
+                1,
+                "F",
+                item.rightAnswer
+                  ? item.rightAnswer.indexOf("F") == -1
+                    ? ""
+                    : "1"
+                  : "",
+                item.option6
+              )
+            );
+          }
+          if (item.option7) {
+            _options.push(
+              self.buildOption(
+                1,
+                "G",
+                item.rightAnswer
+                  ? item.rightAnswer.indexOf("G") == -1
+                    ? ""
+                    : "1"
+                  : "",
+                item.option7
+              )
+            );
+          }
+          if (item.option8) {
+            _options.push(
+              self.buildOption(
+                1,
+                "H",
+                item.rightAnswer
+                  ? item.rightAnswer.indexOf("H") == -1
+                    ? ""
+                    : "1"
+                  : "",
+                item.option8
+              )
+            );
+          }
+          options.push({ rightAnswer: item.rightAnswer, options: _options });
+        }
+      });
+      return options;
+    },
+    /**
+     * 构造options
+     */
+    getOptions(question, type) {
+      var self = this;
+      if (type == 4) {
+        return self.getOptionsMultiCheck(question);
+      }
+      let options = [];
+      let rightanswer = question.rightAnswer;
+      if (question.option1) {
+        options.push(
+          self.buildOption(
+            type,
+            "A",
+            rightanswer ? (rightanswer.indexOf("A") == -1 ? "" : "1") : "",
+            question.option1
+          )
+        );
+      }
+      if (question.option2) {
+        options.push(
+          self.buildOption(
+            type,
+            "B",
+            rightanswer ? (rightanswer.indexOf("B") == -1 ? "" : "1") : "",
+            question.option2
+          )
+        );
+      }
+      if (question.option3) {
+        options.push(
+          self.buildOption(
+            type,
+            "C",
+            rightanswer ? (rightanswer.indexOf("C") == -1 ? "" : "1") : "",
+            question.option3
+          )
+        );
+      }
+      if (question.option4) {
+        options.push(
+          self.buildOption(
+            type,
+            "D",
+            rightanswer ? (rightanswer.indexOf("D") == -1 ? "" : "1") : "",
+            question.option4
+          )
+        );
+      }
+      if (question.option5) {
+        options.push(
+          self.buildOption(
+            type,
+            "E",
+            rightanswer ? (rightanswer.indexOf("E") == -1 ? "" : "1") : "",
+            question.option5
+          )
+        );
+      }
+      if (question.option6) {
+        options.push(
+          self.buildOption(
+            type,
+            "F",
+            rightanswer ? (rightanswer.indexOf("F") == -1 ? "" : "1") : "",
+            question.option6
+          )
+        );
+      }
+      if (question.option7) {
+        options.push(
+          self.buildOption(
+            type,
+            "G",
+            rightanswer ? (rightanswer.indexOf("G") == -1 ? "" : "1") : "",
+            question.option7
+          )
+        );
+      }
+      if (question.option8) {
+        options.push(
+          self.buildOption(
+            type,
+            "H",
+            rightanswer ? (rightanswer.indexOf("H") == -1 ? "" : "1") : "",
+            question.option8
+          )
+        );
+      }
+      return options;
+    },
+    buildOption(type, code, value, option) {
+      if (type == 3) {
+        let values = [];
+        let txts = option.split(",");
+        txts.forEach((txt) => {
+          if (txt) {
+            values.push({ txt: txt });
+          }
+        });
+        return { code: code, value: values, content: "" };
+      } else {
+        return { code: code, value: value, content: option };
+      }
+    },
+    /*
+     *富文本编辑框的内容发生变化
+     *作者：gzt
+     *时间：2020-11-22 00:37:46
+     */
+    change_value(html) {
+      this.question_form.comments = html == "<p><br></p>" ? "" : html;
+      this.$refs["form"].validate();
+    },
+
+    /*
+     *搜索数据
+     *作者：gzt
+     *时间：2020-11-21 23:30:19
+     */
+    search() {
+      this.page = 1;
+      this.page_list(this.page);
+    },
+    pagechange(e) {
+      this.page = e;
+      this.page_list(this.page);
+    },
+    /*
+     *分页加载数据
+     *作者：gzt
+     *时间：2020-11-21 23:30:27
+     */
+    page_list() {
+      var self = this;
+      let _this = this;
+
+      let querya = new this.ParseServer.Query("TestQuestions");
+      querya.contains("objectId", this.search_ID);
+
+      let queryb = new this.ParseServer.Query("TestQuestions");
+      queryb.contains("title", this.search_ID);
+
+      var query1 = this.ParseServer.Query.or(querya, queryb);
+
+      let query2 = new this.ParseServer.Query("TestQuestions");
+      if (this.search_subjects) {
+        query2.containedIn("subjects", [this.search_subjects]); // 科目名称
+      }
+
+      let query3 = new this.ParseServer.Query("TestQuestions");
+      if (this.search_type && this.search_type != -1) {
+        query3.equalTo("type", this.search_type);
+      }
+
+      let query4 = new this.ParseServer.Query("TestQuestions");
+      if (this.search_updateBy) {
+        query4.contains("updatedBy", this.search_updateBy); // 更新人
+      }
+
+      let query5 = new this.ParseServer.Query("TestQuestions");
+      if (this.search_important == 1 || this.search_important == 0) {
+        query5.equalTo("isImportant", this.search_important);
+      }
+      let queryc = new this.ParseServer.Query("TestQuestions"); // 正确率大于
+      if (this.search_right_percent_start >= 0) {
+        queryc.greaterThanOrEqualTo(
+          "accuracy",
+          parseFloat(this.search_right_percent_start / 100)
+        );
+        // queryc.exists('accuracy')
+      }
+
+      let queryd = new this.ParseServer.Query("TestQuestions"); // 正确率大于
+      if (this.search_right_percent_start == 0) {
+        queryd.doesNotExist("accuracy");
+      } else {
+        queryd.greaterThanOrEqualTo(
+          "accuracy",
+          parseFloat(this.search_right_percent_start / 100)
+        );
+      }
+      var query6 = this.ParseServer.Query.or(queryc, queryd);
+
+      let querye = new this.ParseServer.Query("TestQuestions"); // 正确率小于
+      if (
+        this.search_right_percent_end >= 0 &&
+        this.search_right_percent_end <= 100
+      ) {
+        querye.lessThanOrEqualTo(
+          "accuracy",
+          parseFloat(this.search_right_percent_end / 100)
+        );
+      }
+      let queryf = new this.ParseServer.Query("TestQuestions"); // 正确率小于
+      if (
+        this.search_right_percent_start == 0 &&
+        this.search_right_percent_end == 100
+      ) {
+        queryf.doesNotExist("accuracy");
+      } else {
+        queryf.lessThanOrEqualTo(
+          "accuracy",
+          parseFloat(this.search_right_percent_end / 100)
+        );
+      }
+      var query7 = this.ParseServer.Query.or(querye, queryf);
+
+      let query = this.ParseServer.Query.and(
+        query1,
+        query2,
+        query3,
+        query4,
+        query5,
+        query6,
+        query7
+      );
+
+      // let query = new this.ParseServer.Query('TestQuestions')
+      query.descending("createdAt", "objectId");
+      query.include("tagId"),
+        query.count().then((count) => {
+          _this.total = count;
+        });
+      query.skip((this.page - 1) * 10);
+      query.limit(10);
+      query.find().then(
+        (list) => {
+          _this.question_datas = [];
+          if (list && list.length > 0) {
+            list.forEach((item) => {
+              // console.log(item);
+              _this.question_datas.push({
+                id: item.id,
+                // tagName: item.get("tagId").attributes.tagName,
+                tagName: item.get("tagId")
+                  ? item.get("tagId").attributes.tagName
+                  : "",
+                subjects: item.get("subjects"),
+                images: item.get("images"),
+                type: item.get("type"),
+                title: item.get("title"),
+                options: item.get("options"),
+                comments: item.get("comments"),
+                isImportant: item.get("isImportant"),
+                updatedBy: item.get("updatedBy"),
+                index: item.get("index"),
+                accuracy: item.get("accuracy"),
+                updatedAt: tool.dateFormat(
+                  item.updatedAt,
+                  "yyyy-MM-dd HH:mm:ss"
+                ),
+              });
+            });
+            console.log(_this.question_datas);
+          }
+          this.loading = false;
         },
-    }
-}
+        (error) => {
+          debugger;
+        }
+      );
+    },
+    /** 获取科目名称 */
+    getSubjectName(id) {
+      console.log(id);
+      console.log(this.subjects);
+      var subject = this.subjects.find((item) => {
+        return item.id == id;
+      });
+      return subject ? subject.get("subject_name") : "";
+    },
+    /** 获取答案 */
+    getRightAnswer(options, type) {
+      console.log(options);
+      console.log(type);
+      var _rightAnswer = "";
+      if (type == 4) {
+        options.forEach((_item, _idx) => {
+          _item.options.forEach((item) => {
+            if (item.value == "1") {
+              _rightAnswer += item.code;
+            }
+          });
+        });
+      } else {
+        options.forEach((item) => {
+          if (item.value == "1") {
+            _rightAnswer += item.code;
+          }
+        });
+      }
+      return _rightAnswer;
+    },
+    /*
+     * 删除题目
+     *作者：gzt
+     *时间：2020-11-22 08:41:53
+     */
+    handleRemove(row) {
+      let _this = this;
+      this.$Modal.confirm({
+        title: "删除提示",
+        content: "<p>确定删除当前试题吗？</p>",
+        onOk: () => {
+          var query = new this.ParseServer.Query("TestQuestions");
+          query.get(row.id).then((response) => {
+            // 删除当前题目
+            response.destroy().then((delete_result) => {
+              _this.$Message.success("删除成功");
+              _this.page = 1;
+              _this.page_list(1);
+            });
+          });
+        },
+        onCancel: () => {
+          // this.$Message.info('取消了操作');
+        },
+      });
+    },
+    exports() {
+      console.log(this.question_datas);
+      console.log("全部导出");
+      let question_datas = this.question_datas;
+      let rightAnswer = "";
+      for (const key in question_datas) {
+        console.log(question_datas[key]);
+        if (question_datas[key].type == 1) {
+          question_datas[key].types = "单选";
+          question_datas[key].rightAnswer = this.getRightAnswer(
+            question_datas[key].options,
+            question_datas[key].type
+          );
+        }
+        if (question_datas[key].type == 2) {
+          question_datas[key].types = "多选";
+          question_datas[key].rightAnswer = this.getRightAnswer(
+            question_datas[key].options,
+            question_datas[key].type
+          );
+        }
+        if (question_datas[key].type == 3) {
+          question_datas[key].types = "填空";
+          question_datas[key].rightAnswer =
+            question_datas[key].options.length > 1
+              ? question_datas[key].options[0].value[0].txt + "..."
+              : question_datas[key].options[0].value.length > 1
+              ? question_datas[key].options[0].value[0].txt +
+                "|" +
+                question_datas[key].options[0].value[1].txt +
+                "..."
+              : question_datas[key].options[0].value[0].txt;
+        }
+        if (question_datas[key].type == 4) {
+          question_datas[key].types = "多项选择";
+          question_datas[key].rightAnswer = this.getRightAnswer(
+            question_datas[key].options,
+            question_datas[key].type
+          );
+        }
+        question_datas[key].isImportant == 1
+          ? (question_datas[key].isImportants = "是")
+          : (question_datas[key].isImportants = "否");
+
+        if (question_datas[key].accuracy || question_datas[key].accuracy == 0) {
+          parseFloat((question_datas[key].accuracys * 100).toFixed(2)) + "%";
+        } else {
+          question_datas[key].accuracys = "-";
+        }
+        question_datas[key].subjectName = "";
+        question_datas[key].subjects.forEach((item, _idx) => {
+          question_datas[key].subjectName +=
+            this.getSubjectName(item) +
+            (_idx == question_datas[key].subjects.length - 1 ? "" : "；");
+        });
+      }
+      console.log(question_datas);
+      // if (this.question_datas.length > 0) {
+      const initColumn = [
+        {
+          title: "ID",
+          dataIndex: "id",
+          key: "id",
+        },
+        {
+          title: "科目",
+          dataIndex: "subjectName",
+          key: "subjectName",
+        },
+        {
+          title: "类型",
+          dataIndex: "types",
+          key: "types",
+        },
+        {
+          title: "重点题库",
+          dataIndex: "isImportants",
+          key: "isImportants",
+        },
+        {
+          title: "题干",
+          dataIndex: "title",
+          key: "title",
+        },
+        {
+          title: "答案",
+          dataIndex: "rightAnswer",
+          key: "rightAnswer",
+        },
+
+        {
+          title: "正确率",
+          dataIndex: "accuracys",
+          key: "accuracys",
+        },
+
+        {
+          title: "标签",
+          dataIndex: "tagName",
+          key: "tagName",
+        },
+        {
+          title: "更新人",
+          dataIndex: "updatedBy",
+          key: "updatedBy",
+        },
+        {
+          title: "日期",
+          dataIndex: "updatedAt",
+          key: "updatedAt",
+        },
+      ];
+      excelUtil.exportExcel(
+        initColumn,
+        question_datas,
+        "试题管理数据记录.xlsx"
+      );
+      // }
+    },
+  },
+};
 </script>
 
 <style lang="less" scoped>
-    .optionItem{
-        display: flex;
-    }
-    .optionItem .code{
-        width: 20px;
-        text-align: center;
-    }
-    .optionItem .content{
-        flex: 1;
-    }
-    .optionItem .right{
-        width: 100px;
-        text-align: center;
-    }
-    .optionItem .del{
-        width: 60px;
-        display: flex;
-    }
-    .optionItem .del div{
-        flex: 1;
-        text-align: center;
-    }
+.optionItem {
+  display: flex;
+}
+.optionItem .code {
+  width: 20px;
+  text-align: center;
+}
+.optionItem .content {
+  flex: 1;
+}
+.optionItem .right {
+  width: 100px;
+  text-align: center;
+}
+.optionItem .del {
+  width: 60px;
+  display: flex;
+}
+.optionItem .del div {
+  flex: 1;
+  text-align: center;
+}
 
-    
 .search-wrap {
   float: left;
   width: 60%;
@@ -1478,7 +2326,7 @@ export default {
     }
     .choice {
       width: 80%;
-    //   float: right;
+      //   float: right;
     }
   }
   .search-btn {
@@ -1496,21 +2344,27 @@ export default {
     margin-left: 10px;
   }
 }
-.comments{
-    overflow-y: auto;
-    width: 400px!important;
+.comments {
+  overflow-y: auto;
+  width: 400px !important;
 }
-    .demo-spin-icon-load{
-        animation: ani-demo-spin 1s linear infinite;
-    }
-    @keyframes ani-demo-spin {
-        from { transform: rotate(0deg);}
-        50%  { transform: rotate(180deg);}
-        to   { transform: rotate(360deg);}
-    }
-    .demo-spin-col{
-        height: 100px;
-        position: relative;
-        border: 1px solid #eee;
-    }
+.demo-spin-icon-load {
+  animation: ani-demo-spin 1s linear infinite;
+}
+@keyframes ani-demo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.demo-spin-col {
+  height: 100px;
+  position: relative;
+  border: 1px solid #eee;
+}
 </style>
