@@ -11,11 +11,10 @@ import parentView from '@/components/parent-view'
  * }
  */
 
-export default [
-  {
+export default [{
     path: '/',
     name: '_login',
-    component: ()=>import('@/view/login/login.vue'),
+    component: () => import('@/view/login/login.vue'),
     meta: {
       title: '登录页',
       hideInMenu: true
@@ -30,18 +29,16 @@ export default [
       title: '欢迎页',
       hideInMenu: true
     },
-    children: [
-      {
-        path: '/index',
-        name: 'index',
-        meta: {
-          hideInMenu: true,
-          title: '食艺兽-管理平台',
-          notCache: true
-        },
-        component: () => import('@/view/main/index.vue')
-      }
-    ]
+    children: [{
+      path: '/index',
+      name: 'index',
+      meta: {
+        hideInMenu: true,
+        title: '食艺兽-管理平台',
+        notCache: true
+      },
+      component: () => import('@/view/main/index.vue')
+    }]
   },
   {
     path: '*/login',
@@ -86,18 +83,16 @@ export default [
       title: '欢迎页',
       hideInMenu: true
     },
-    children: [
-      {
-        path: '/index',
-        name: 'index',
-        meta: {
-          title: '食艺兽-管理平台',
-          hideInMenu: true,
-          notCache: true
-        },
-        component: () => import('@/view/main/index.vue')
-      }
-    ]
+    children: [{
+      path: '/index',
+      name: 'index',
+      meta: {
+        title: '食艺兽-管理平台',
+        hideInMenu: true,
+        notCache: true
+      },
+      component: () => import('@/view/main/index.vue')
+    }]
   },
   {
     path: '*',

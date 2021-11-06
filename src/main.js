@@ -6,6 +6,8 @@ import App from './App'
 import router from './router'
 import store from './store'
 import iView from 'iview'
+import Antd from 'ant-design-vue'
+import 'ant-design-vue/dist/antd.css'
 import i18n from '@/locale'
 import config from '@/config'
 import importDirective from '@/directive'
@@ -18,17 +20,18 @@ import '@/assets/css/fnBase.css'
 import '@/assets/css/animate.css'
 import '@/assets/css/bootstrap.min.css'
 import '@/assets/css/comon.css'
-import VueQuillEditor from "vue-quill-editor"; 
-import 'quill/dist/quill.core.css'; 
+import VueQuillEditor from "vue-quill-editor";
+import 'quill/dist/quill.core.css';
 import 'quill/dist/quill.snow.css';
 import 'quill/dist/quill.bubble.css';
-Vue.use(VueQuillEditor)
+Vue.use(VueQuillEditor, Antd)
+Vue.use(Antd)
 
 import parse from 'parse'
 
 // 注册parse-server服务
-parse.serverURL =config.parse_server.PARSE_PUBLIC_SERVER_URL
-parse.initialize(config.parse_server.PARSE_SERVER_APPLICATION_ID, config.parse_server. PARSE_SERVER_MASTER_KEY)
+parse.serverURL = config.parse_server.PARSE_PUBLIC_SERVER_URL
+parse.initialize(config.parse_server.PARSE_SERVER_APPLICATION_ID, config.parse_server.PARSE_SERVER_MASTER_KEY)
 parse.masterKey = config.parse_server.Master_Key
 Vue.prototype.ParseServer = parse
 
@@ -69,6 +72,8 @@ new Vue({
   router,
   i18n,
   store,
-  components: { App },
+  components: {
+    App
+  },
   render: h => h(App),
 })

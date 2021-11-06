@@ -120,516 +120,546 @@
 </template> 
 
 <script>
-import Editor from "@/components/editor"
-import { verification } from '@/api/verification'
-import myUpload from "@/components/myUpload"
-import { tool } from '@/api/tool'
+import Editor from "@/components/editor";
+import { verification } from "@/api/verification";
+import myUpload from "@/components/myUpload";
+import { tool } from "@/api/tool";
 export default {
-    name: "coursesmanageindex",
-    components:{
-        Editor,
-        myUpload
-    },
-    data() {
-        var self = this
-        return {
-            page:1,
-            pageSize: 10,
-            total:0,
-            isShowImg: false,
-            isShowHeadImg: false,
-            search_keyword: '',
-            search_state: -1,
-            currBackgroundImg: '',
-            courseName:'',
-            courseId:'',
-            currLevel:0,
-            currParent: {
-                id:'0',
-                price: 0
-            },
-            route:[{
-                id:'0',
-                price: 0
-            }],
-            columns: [
-                    { title: 'ID', key: 'id' },
-                    {title: '套课名称',key: 'courseName'},
-                    {title: '是否收费',key: 'isBuy',slot:'isBuy'},
-                    {title: '金额',key: 'price', slot:'price'},
-                    // { title: '展示图', key: 'img', slot:'img' },
-                    // { title: '封面图', key: 'headimg', slot:'headimg' },
-                    // { title: "内容添加", key: 'content', slot:'content' },
-                    { title: "积分抵现（元）", key: 'maxScoreMoney' },
-                    { title: "积分限制", key: 'minScore' },
-                    { title: "更新时间", key: 'updatedAt' },
-                    // { title: "收费状态", key: 'price', slot:'price',width:120 },
-                    { title: '操作', key: 'action', width:400, slot:'action'}
-                ],
-            columns1: [
-                { title: 'ID', key: 'id' },
-                {title: '套课名称',key: 'courseName'},
-                {title: '是否收费',key: 'isBuy',slot:'isBuy'},
-                {title: '金额',key: 'price', slot:'price'},
-                { title: "更新时间", key: 'updatedAt' },
-                { title: '操作', key: 'action', width:400, slot:'action'}
-            ],
-            courses_datas: [],
-            course_form:{
-                courseName:'',
-                course_ID:'',
-                // backgroundImg: '',
-                // headImg: '',
-                free:false,
-                level: 0,
-                price: 0,
-                maxScoreMoney: 0,
-                minScore: 0,
-                content:'',
-                comments:'',
-                has_down_level:false,
-                parent_ID:'0'
-            },
-            ruleValidate: {
-                courseName: [{ required: true, message: '请输入套课/章节名称', trigger: 'blur' }],
-                price: [{ trigger: 'blur', 
-                        validator: (rule, value, callback) => {
-                            if(self.course_form.free){
-                                if (value === '' ) {
-                                    callback(new Error('请输入价格'))
-                                } else if (!/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(value)) {
-                                    return callback(new Error('价格由整数、小数点和最多两个小数组成！'))
-                                } else {
-                                    callback()
-                                }
-                            } else {
-                                callback()
-                            }
-                        }
-                    }
-                ],
-                // maxScoreMoney: [{ trigger: 'blur', validator: verification.validateInt}],
-                // minScore: [{ trigger: 'blur', validator: verification.validateInt}],
-            },
-            old_price:0,
-            init_data:"",
-            parentid:"0",
-            courseid:"",
-            isShowAddForm: false,
-            isShowContentForm: false,
-            isShowCommentsForm: false,
-            loading: true,
-            modalLoading: true,
-            window_title:"新增套课"
-        }
-    },
-    computed:{
-        show_price(){
-            return this.course_form.free
-        }
-    },
-      mounted() {
-        this.init_data=JSON.stringify(this.course_form)
-        this.page_list(this.page)
-    },
-    methods: {
-        cancel(){
-            this.parentid=""
-            this.courseid=""
-            this.course_form=JSON.parse(this.init_data)
-            this.isShowAddForm=false,
-            this.window_title="新增套课"
+  name: "coursesmanageindex",
+  components: {
+    Editor,
+    myUpload,
+  },
+  data() {
+    var self = this;
+    return {
+      page: 1,
+      pageSize: 10,
+      total: 0,
+      isShowImg: false,
+      isShowHeadImg: false,
+      search_keyword: "",
+      search_state: -1,
+      currBackgroundImg: "",
+      courseName: "",
+      courseId: "",
+      currLevel: 0,
+      currParent: {
+        id: "0",
+        price: 0,
+      },
+      route: [
+        {
+          id: "0",
+          price: 0,
         },
-        handleVChange(r){
-            this.isShowImg = r
-        },
-        handleVChange1(r){
-            this.isShowHeadImg = r
-        },
-        handleShowImg(row){
-            this.isShowImg = true
-            this.currBackgroundImg = row.backgroundImg
-        },
-        handleShowHeadImg(row){
-            this.isShowHeadImg = true
-            this.currBackgroundImg = row.headImg
-        },
-        /**
-         * 免费，收费
-         */
-        handleChangeFree(e){
-            if(!e){
-                this.course_form.price = 0
-            }
-        },
-         /*
-        *获取套课实体
-        *作者：gzt
-        *时间：2020-11-22 09:21:48
-        */
-        get_entity(){
-            var self = this
-            var query = new this.ParseServer.Query("Courses")
-            query.get(this.courseid).then(res=>{
-                Object.keys(self.course_form).forEach(key => {
-                    self.course_form[key]=res.get(key)
-                })
-                self.course_form.free = (res.get('price') > 0)
-                self.old_price=res.get("price")==null?0:res.get("price")
-                self.course_form.maxScoreMoney = res.get('maxScoreMoney')?res.get('maxScoreMoney'):0
-                self.course_form.minScore = res.get('minScore')?res.get('minScore'):0
-            })
-        },
-        /** 弹出添加套课弹框 */
-        addCourse(){
-            this.courseid = ''
-            this.course_form = {
-                courseName:'',
-                course_ID:'',
-                // backgroundImg: '',
-                headImg: '',
-                free:false,
-                level: this.currLevel,
-                price: 0,
-                content:'',
-                has_down_level:false,
-                parent_ID:'0'
-            }
-            this.window_title="添加套课"
-            this.isShowAddForm=true
-        },
-        handleUploadComplate(url){
-            this.course_form.backgroundImg = url
-        },
-        handleUploadComplate1(url){
-            this.course_form.headImg = url
-        },
-        /**
-         * 弹出编辑窗口
-         */
-        EditFormShow(row) {
-            this.courseid=row.id
-            this.isShowAddForm=true
-            this.window_title="编辑套课"
-            this.get_entity()
-        },
-        /**
-         * 弹出编辑内容窗体
-         */
-        ContentFormShow(row){
-            this.courseid=row.id
-            this.course_form.content = row.content
-            this.isShowContentForm=true
-            this.window_title="编辑内容"
-        },
-        /**
-         * 弹出编辑介绍窗体
-         */
-        CommentsFormShow(row){
-            this.courseid=row.id
-            this.course_form.comments = row.comments
-            this.isShowCommentsForm=true
-            this.window_title="编辑介绍"
-        },
-        /** 查看上一级 */
-        ShowParents(row){
-            this.route.pop()
-            this.currLevel -= 1
-            this.currParent = this.route[this.route.length-1]
-            this.page = 1
-            this.page_list(1)
-        },
-        /** 查看下一级 */
-        ShowChildrens(row){
-            this.route.push(row)
-            this.currLevel += 1
-            this.currParent = row
-            this.page = 1
-            // this.old_price = row.price
-            this.page_list(1)
-        },
-        /** 添加下一级 */
-        AddChildrens(row) {
-            var self = this
-            this.$Modal.confirm({
-                title: '操作提示',
-                content: '<p>是否添加下级目录？</p>',
-                onOk: () => {
-                    self.route.push(row.id)
-                    self.currLevel += 1
-                    self.currParent = row
-                    self.page = 1
-                    self.page_list(1)
-                }
-            })
-        },
-          /*
-        *新增套课
-        *作者：gzt
-        *时间：2020-11-21 23:41:37
-        */
-        add_courses(){
-            var self = this
-            var courses = this.ParseServer.Object.extend("Courses")
-            var course = new courses()
-            if(this.courseid) {
-                course.set('id', this.courseid)
-            }
-            this.course_form.parent_ID = this.currParent.id
-            this.$refs['courseForm'].validate(valid => {
-                if (!valid) {
-                    self.$Message.error('请检查表单项')
-                    self.modalLoading = false
-                    setTimeout(() => {
-                        self.modalLoading = true
-                    }, 100)
-                    return false
+      ],
+      columns: [
+        { title: "ID", key: "id" },
+        { title: "套课名称", key: "courseName" },
+        { title: "是否收费", key: "isBuy", slot: "isBuy" },
+        { title: "金额", key: "price", slot: "price" },
+        // { title: '展示图', key: 'img', slot:'img' },
+        // { title: '封面图', key: 'headimg', slot:'headimg' },
+        // { title: "内容添加", key: 'content', slot:'content' },
+        { title: "积分抵现（元）", key: "maxScoreMoney" },
+        { title: "积分限制", key: "minScore" },
+        { title: "更新时间", key: "updatedAt" },
+        // { title: "收费状态", key: 'price', slot:'price',width:120 },
+        { title: "操作", key: "action", width: 400, slot: "action" },
+      ],
+      columns1: [
+        { title: "ID", key: "id" },
+        { title: "套课名称", key: "courseName" },
+        { title: "是否收费", key: "isBuy", slot: "isBuy" },
+        { title: "金额", key: "price", slot: "price" },
+        { title: "更新时间", key: "updatedAt" },
+        { title: "操作", key: "action", width: 400, slot: "action" },
+      ],
+      courses_datas: [],
+      course_form: {
+        courseName: "",
+        course_ID: "",
+        // backgroundImg: '',
+        // headImg: '',
+        free: false,
+        level: 0,
+
+        content: "",
+        comments: "",
+        has_down_level: false,
+        parent_ID: "0",
+      },
+      ruleValidate: {
+        courseName: [
+          { required: true, message: "请输入套课/章节名称", trigger: "blur" },
+        ],
+        price: [
+          {
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (self.course_form.free) {
+                if (value === "") {
+                  callback(new Error("请输入价格"));
+                } else if (
+                  !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
+                    value
+                  )
+                ) {
+                  return callback(
+                    new Error("价格由整数、小数点和最多两个小数组成！")
+                  );
                 } else {
-                    course.set('courseName', self.course_form.courseName)
-                    // course.set('backgroundImg', self.course_form.backgroundImg)
-                    // course.set('headImg', self.course_form.headImg)
-                    course.set('maxScoreMoney', self.course_form.maxScoreMoney)
-                    course.set('minScore', self.course_form.minScore)
-                    // course.set("content", '')
-                    course.set("price", parseFloat(self.course_form.price))
-                    course.set("level", self.currLevel)
-                    course.set("parent_ID",self.currParent.id)
-                    course.set("has_down_level",self.course_form.has_down_level)
-                    course.save().then((course)=>{
-                        if (self.currParent.id!="0"||self.currParent.id!=0){
-                            self.updateParentPrice(self.currParent.id)
-                        }else{
-                            self.$Message.success('保存成功')
-                            self.page_list(1)
-                            self.cancel()
-                        }
-
-                    },(error)=>{
-                        console.log(error)
-                        self.$Message.error('保存失败')
-                    })
+                  callback();
                 }
-            })
+              } else {
+                callback();
+              }
+            },
+          },
+        ],
+        // maxScoreMoney: [{ trigger: 'blur', validator: verification.validateInt}],
+        // minScore: [{ trigger: 'blur', validator: verification.validateInt}],
+      },
+      old_price: 0,
+      init_data: "",
+      parentid: "0",
+      courseid: "",
+      isShowAddForm: false,
+      isShowContentForm: false,
+      isShowCommentsForm: false,
+      loading: true,
+      modalLoading: true,
+      window_title: "新增套课",
+    };
+  },
+  computed: {
+    show_price() {
+      return this.course_form.free;
+    },
+  },
+  mounted() {
+    this.init_data = JSON.stringify(this.course_form);
+    this.page_list(this.page);
+  },
+  methods: {
+    cancel() {
+      this.parentid = "";
+      this.courseid = "";
+      this.course_form = JSON.parse(this.init_data);
+      (this.isShowAddForm = false), (this.window_title = "新增套课");
+    },
+    handleVChange(r) {
+      this.isShowImg = r;
+    },
+    handleVChange1(r) {
+      this.isShowHeadImg = r;
+    },
+    handleShowImg(row) {
+      this.isShowImg = true;
+      this.currBackgroundImg = row.backgroundImg;
+    },
+    handleShowHeadImg(row) {
+      this.isShowHeadImg = true;
+      this.currBackgroundImg = row.headImg;
+    },
+    /**
+     * 免费，收费
+     */
+    handleChangeFree(e) {
+      if (!e) {
+        this.course_form.price = 0;
+      }
+    },
+    /*
+     *获取套课实体
+     *作者：gzt
+     *时间：2020-11-22 09:21:48
+     */
+    get_entity() {
+      console.log(this.course_id);
+      var self = this;
+      var query = new this.ParseServer.Query("Courses");
+      query.get(this.courseid).then((res) => {
+        Object.keys(self.course_form).forEach((key) => {
+          self.course_form[key] = res.get(key);
+        });
+        self.course_form.free = res.get("price") > 0;
+        self.old_price = res.get("price") == null ? 0 : res.get("price");
+        self.course_form.maxScoreMoney = res.get("maxScoreMoney")
+          ? res.get("maxScoreMoney")
+          : 0;
+        self.course_form.minScore = res.get("minScore")
+          ? res.get("minScore")
+          : 0;
+      });
+    },
+    /** 弹出添加套课弹框 */
+    addCourse() {
+      this.courseid = "";
+      this.course_form = {
+        courseName: "",
+        course_ID: "",
+        // backgroundImg: '',
+        headImg: "",
+        free: false,
+        level: this.currLevel,
+        price: 0,
+        content: "",
+        has_down_level: false,
+        parent_ID: "0",
+      };
+      this.window_title = "添加套课";
+      this.isShowAddForm = true;
+    },
+    handleUploadComplate(url) {
+      this.course_form.backgroundImg = url;
+    },
+    handleUploadComplate1(url) {
+      this.course_form.headImg = url;
+    },
+    /**
+     * 弹出编辑窗口
+     */
+    EditFormShow(row) {
+      this.courseid = row.id;
+      this.isShowAddForm = true;
+      this.window_title = "编辑套课";
+      this.get_entity();
+    },
+    /**
+     * 弹出编辑内容窗体
+     */
+    ContentFormShow(row) {
+      this.courseid = row.id;
+      this.course_form.content = row.content;
+      this.isShowContentForm = true;
+      this.window_title = "编辑内容";
+    },
+    /**
+     * 弹出编辑介绍窗体
+     */
+    CommentsFormShow(row) {
+      this.courseid = row.id;
+      this.course_form.comments = row.comments;
+      this.isShowCommentsForm = true;
+      this.window_title = "编辑介绍";
+    },
+    /** 查看上一级 */
+    ShowParents(row) {
+      this.route.pop();
+      this.currLevel -= 1;
+      this.currParent = this.route[this.route.length - 1];
+      this.page = 1;
+      this.page_list(1);
+    },
+    /** 查看下一级 */
+    ShowChildrens(row) {
+      this.route.push(row);
+      this.currLevel += 1;
+      this.currParent = row;
+      this.page = 1;
+      // this.old_price = row.price
+      this.page_list(1);
+    },
+    /** 添加下一级 */
+    AddChildrens(row) {
+      var self = this;
+      this.$Modal.confirm({
+        title: "操作提示",
+        content: "<p>是否添加下级目录？</p>",
+        onOk: () => {
+          self.route.push(row.id);
+          self.currLevel += 1;
+          self.currParent = row;
+          self.page = 1;
+          self.page_list(1);
         },
-        /** 更新父级套课 */
-        updateParentPrice(parentId){
-            var self = this
-            var query = new self.ParseServer.Query("Courses")
-            query.equalTo("parent_ID", parentId)
-            query.limit(10000)
-            query.find().then(childrens => {
-                let hasChildren = false
-                let price = 0
-                childrens.forEach((_item, _index)=>{
-                    hasChildren = true
-                    price += _item.get('price')
-                })
-                var query1 = new self.ParseServer.Query("Courses")
-                query1.get(parentId).then((parent)=>{
-                    parent.set("has_down_level", hasChildren)
-                    parent.set("price", parseFloat(price.toFixed(2)))
-                    parent.save().then((result)=>{
-                        if(parent.get('parent_ID')!='0'){
-                            self.updateParentPrice(parent.get('parent_ID'))
-                        } else {
-                            self.$Message.success('保存成功')
-                            self.page_list(1)
-                            self.cancel()
-                        }
-                    })
-                })
-            })
-            
-        },
-        /*
-        *富文本编辑框的内容发生变化
-        *作者：gzt
-        *时间：2020-11-22 00:37:46
-        */
-        change_value(html,text){
-            this.course_form.content=html
-        },
-        change_value1(html,text){
-            this.course_form.comments = html
-        },
-        saveContent(){
-            var self = this
-            var courses = this.ParseServer.Object.extend("Courses")
-            var course = new courses()
-            course.set('id', this.courseid)
-            course.set("content", this.course_form.content)
-            course.save().then((res)=>{
-                self.page_list(self.page)
-                self.$Message.success('保存成功')
-            },(error)=>{
-                console.log(error)
-                self.$Message.error('保存失败')
-            })
-        },
-        saveComments(){
-            var self = this
-            var courses = this.ParseServer.Object.extend("Courses")
-            var course = new courses()
-            course.set('id', this.courseid)
-            course.set("comments", this.course_form.comments)
-            course.save().then((res)=>{
-                self.page_list(self.page)
-                self.$Message.success('保存成功')
-            },(error)=>{
-                console.log(error)
-                self.$Message.error('保存失败')
-            })
-        },
-        /*
-        *搜索数据
-        *作者：gzt
-        *时间：2020-11-21 23:30:19
-        */
-        search(){
-            this.page=1
-           this.page_list(this.page) 
-        },
-        pagechange(e){
-            this.page = e
-            this.page_list() 
-        },
-        /*
-        *分页加载数据
-        *作者：gzt
-        *时间：2020-11-21 23:30:27
-        */
-        page_list(page_index){
-            let _this=this
-            let query1 = new this.ParseServer.Query("Courses");
-            query1.equalTo('parent_ID', this.currParent.id)
-            query1.contains("courseName", this.search_keyword);
-
-            let query2 = new this.ParseServer.Query("Courses");
-            query2.equalTo('parent_ID', this.currParent.id)
-
-            let query3 = new this.ParseServer.Query("Courses");
-            if(this.search_state==1){ // 收费
-                query3.notEqualTo('price', 0)
-            } else if(this.search_state==0) {
-                query3.equalTo('price', 0)
+      });
+    },
+    /*
+     *新增套课
+     *作者：gzt
+     *时间：2020-11-21 23:41:37
+     */
+    add_courses() {
+      var self = this;
+      var courses = this.ParseServer.Object.extend("Courses");
+      var course = new courses();
+      if (this.courseid) {
+        course.set("id", this.courseid);
+      }
+      this.course_form.parent_ID = this.currParent.id;
+      this.$refs["courseForm"].validate((valid) => {
+        if (!valid) {
+          self.$Message.error("请检查表单项");
+          self.modalLoading = false;
+          setTimeout(() => {
+            self.modalLoading = true;
+          }, 100);
+          return false;
+        } else {
+          course.set("courseName", self.course_form.courseName);
+          // course.set('backgroundImg', self.course_form.backgroundImg)
+          // course.set('headImg', self.course_form.headImg)
+          course.set("maxScoreMoney", self.course_form.maxScoreMoney);
+          course.set("minScore", self.course_form.minScore);
+          // course.set("content", '')
+          course.set("price", parseFloat(self.course_form.price));
+          course.set("level", self.currLevel);
+          course.set("parent_ID", self.currParent.id);
+          course.set("has_down_level", self.course_form.has_down_level);
+          course.save().then(
+            (course) => {
+              if (self.currParent.id != "0" || self.currParent.id != 0) {
+                self.updateParentPrice(self.currParent.id);
+              } else {
+                self.$Message.success("保存成功12");
+                self.page_list(1);
+                self.cancel();
+              }
+            },
+            (error) => {
+              console.log(error);
+              self.$Message.error("保存失败");
             }
-
-            // query2.contains("objectId", this.courseId);
-            var query = this.ParseServer.Query.and(query1, query2, query3);
-            query.ascending('createdAt')
-            query.count().then(count=>{
-                _this.total=count
-            })
-            query.skip((this.page - 1) * this.pageSize)
-            query.limit(this.pageSize)
-            query.find().then(list => {
-                _this.courses_datas=[]
-                if (list && list.length>0){
-                    list.forEach((item)=>{
-                        _this.courses_datas.push({
-                            id:item.id,
-                            courseName:item.get("courseName"),
-                            parent_ID:item.get("parent_ID"),
-                            course_ID:item.get("course_ID"),
-                            price: parseFloat(item.get("price")),
-                            level: item.get('level'),
-                            content: item.get('content'),
-                            updatedAt: tool.dateFormat(item.get('updatedAt'), 'yyyy-MM-dd HH:mm:ss'),
-                            // backgroundImg: item.get('backgroundImg'),
-                            // headImg: item.get('headImg'),
-                            has_down_level: item.get('has_down_level'),
-                            maxScoreMoney: item.get('maxScoreMoney'),
-                            minScore: item.get('minScore'),
-                            comments: item.get('comments')
-                        })
-                    })
-                }
-                this.loading=false
-            },error=>{
-                debugger
-            })
-        },
-
-        /*
-        *递归删除套课
-        *作者：gzt
-        *时间：2020-11-22 11:57:11
-        */
-        recursive_delete(parent_id){
-            var query_deletes=new this.ParseServer.Query("Courses")
-            query_deletes.equalTo("parent_ID",parent_id)
-            query_deletes.limit(10000)
-            query_deletes.find().then((response)=>{
-                if(response&&response.length>0){
-                    response.forEach((data)=>{
-                        data.destroy().then((result)=>{
-                            this.recursive_delete(data.id)
-                        })
-                    })
-                }
-            })
-        },
-
-
-        /*
-        * 删除套课
-        *作者：gzt
-        *时间：2020-11-22 08:41:53
-        */
-        DelConfirmShow(row){
-            var course_id = row.id
-            let _this=this
-            this.$Modal.confirm({
-                title: '删除提示',
-                content: '<p>删除当前套课后，包含的子套课都会被删除，确定要删除吗？</p>',
-                onOk: () => {
-                    var query = new this.ParseServer.Query("Courses")
-                    query.get(course_id).then((response)=>{
-
-                        // 删除所有的子组件
-                        this.recursive_delete(response.id)
-                        // 删除当前组件
-                        response.destroy().then((delete_result)=>{
-                            // 更新当前的父级组件是否还存在其他的子组件
-                            var query1 = new this.ParseServer.Query("Courses")
-                            query1.equalTo("parent_ID",response.get("parent_ID"))
-                            query1.find().then((result)=>{
-                                if(result.length==0){
-                                    var query_get = new this.ParseServer.Query("Courses")
-                                    if(response.get("parent_ID")=="0"||response.get("parent_ID")==""){
-                                        this.$Message.success('删除成功');
-                                        this.page = 1
-                                        _this.page_list(this.page)
-                                        return
-                                    }
-                                    query_get.get(response.get("parent_ID")).then((course)=>{
-                                        course.set('has_down_level',false)
-                                        course.save().then((r)=>{
-                                            this.$Message.success('删除成功');
-                                            this.page = 1
-                                            _this.page_list(this.page)
-                                            _this.ShowParents()
-                                        })
-                                    })
-                                }else{
-                                    this.$Message.success('删除成功');
-                                    this.page = 1
-                                    _this.page_list(this.page)
-                                }
-                            })
-                        })
-                    })
-                },
-                onCancel: () => {
-                    this.$Message.info('取消了操作');
-                }
-            });
-        },
-        checkLogin(){
-            
+          );
         }
-    }
-}
+      });
+    },
+    /** 更新父级套课 */
+    updateParentPrice(parentId) {
+      var self = this;
+      var query = new self.ParseServer.Query("Courses");
+      query.equalTo("parent_ID", parentId);
+      query.limit(10000);
+      query.find().then((childrens) => {
+        let hasChildren = false;
+        let price = 0;
+        childrens.forEach((_item, _index) => {
+          hasChildren = true;
+          price += _item.get("price");
+        });
+        var query1 = new self.ParseServer.Query("Courses");
+        query1.get(parentId).then((parent) => {
+          parent.set("has_down_level", hasChildren);
+          parent.set("price", parseFloat(price.toFixed(2)));
+          parent.save().then((result) => {
+            if (parent.get("parent_ID") != "0") {
+              self.updateParentPrice(parent.get("parent_ID"));
+            } else {
+              self.$Message.success("保存成功55");
+              self.page_list(1);
+              self.cancel();
+            }
+          });
+        });
+      });
+    },
+    /*
+     *富文本编辑框的内容发生变化
+     *作者：gzt
+     *时间：2020-11-22 00:37:46
+     */
+    change_value(html, text) {
+      this.course_form.content = html;
+    },
+    change_value1(html, text) {
+      this.course_form.comments = html;
+    },
+    saveContent() {
+      var self = this;
+      var courses = this.ParseServer.Object.extend("Courses");
+      var course = new courses();
+      course.set("id", this.courseid);
+      course.set("content", this.course_form.content);
+      course.save().then(
+        (res) => {
+          self.page_list(self.page);
+          self.$Message.success("保存成功");
+        },
+        (error) => {
+          console.log(error);
+          self.$Message.error("保存失败");
+        }
+      );
+    },
+    saveComments() {
+      var self = this;
+      var courses = this.ParseServer.Object.extend("Courses");
+      var course = new courses();
+      course.set("id", this.courseid);
+      course.set("comments", this.course_form.comments);
+      course.save().then(
+        (res) => {
+          self.page_list(self.page);
+          self.$Message.success("保存成功");
+        },
+        (error) => {
+          console.log(error);
+          self.$Message.error("保存失败");
+        }
+      );
+    },
+    /*
+     *搜索数据
+     *作者：gzt
+     *时间：2020-11-21 23:30:19
+     */
+    search() {
+      this.page = 1;
+      this.page_list(this.page);
+    },
+    pagechange(e) {
+      this.page = e;
+      this.page_list();
+    },
+    /*
+     *分页加载数据
+     *作者：gzt
+     *时间：2020-11-21 23:30:27
+     */
+    page_list(page_index) {
+      let _this = this;
+      let query1 = new this.ParseServer.Query("Courses");
+      query1.equalTo("parent_ID", this.currParent.id);
+      query1.contains("courseName", this.search_keyword);
+
+      let query2 = new this.ParseServer.Query("Courses");
+      query2.equalTo("parent_ID", this.currParent.id);
+
+      let query3 = new this.ParseServer.Query("Courses");
+      if (this.search_state == 1) {
+        // 收费
+        query3.notEqualTo("price", 0);
+      } else if (this.search_state == 0) {
+        query3.equalTo("price", 0);
+      }
+
+      // query2.contains("objectId", this.courseId);
+      var query = this.ParseServer.Query.and(query1, query2, query3);
+      query.ascending("createdAt");
+      query.count().then((count) => {
+        _this.total = count;
+      });
+      query.skip((this.page - 1) * this.pageSize);
+      query.limit(this.pageSize);
+      query.find().then(
+        (list) => {
+          _this.courses_datas = [];
+          if (list && list.length > 0) {
+            console.log(list);
+            list.forEach((item) => {
+              console.log(item);
+              _this.courses_datas.push({
+                id: item.id,
+                courseName: item.get("courseName"),
+                parent_ID: item.get("parent_ID"),
+                course_ID: item.get("course_ID"),
+                price: parseFloat(item.get("price")),
+                level: item.get("level"),
+                content: item.get("content"),
+                updatedAt: tool.dateFormat(
+                  item.get("updatedAt"),
+                  "yyyy-MM-dd HH:mm:ss"
+                ),
+                // backgroundImg: item.get('backgroundImg'),
+                // headImg: item.get('headImg'),
+                has_down_level: item.get("has_down_level"),
+                maxScoreMoney: item.get("maxScoreMoney"),
+                minScore: item.get("minScore"),
+                comments: item.get("comments"),
+              });
+            });
+          }
+          this.loading = false;
+        },
+        (error) => {
+          debugger;
+        }
+      );
+    },
+
+    /*
+     *递归删除套课
+     *作者：gzt
+     *时间：2020-11-22 11:57:11
+     */
+    recursive_delete(parent_id) {
+      var query_deletes = new this.ParseServer.Query("Courses");
+      query_deletes.equalTo("parent_ID", parent_id);
+      query_deletes.limit(10000);
+      query_deletes.find().then((response) => {
+        if (response && response.length > 0) {
+          response.forEach((data) => {
+            data.destroy().then((result) => {
+              this.recursive_delete(data.id);
+            });
+          });
+        }
+      });
+    },
+
+    /*
+     * 删除套课
+     *作者：gzt
+     *时间：2020-11-22 08:41:53
+     */
+    DelConfirmShow(row) {
+      var course_id = row.id;
+      let _this = this;
+      this.$Modal.confirm({
+        title: "删除提示",
+        content:
+          "<p>删除当前套课后，包含的子套课都会被删除，确定要删除吗？</p>",
+        onOk: () => {
+          var query = new this.ParseServer.Query("Courses");
+          query.get(course_id).then((response) => {
+            // 删除所有的子组件
+            this.recursive_delete(response.id);
+            // 删除当前组件
+            response.destroy().then((delete_result) => {
+              // 更新当前的父级组件是否还存在其他的子组件
+              var query1 = new this.ParseServer.Query("Courses");
+              query1.equalTo("parent_ID", response.get("parent_ID"));
+              query1.find().then((result) => {
+                if (result.length == 0) {
+                  var query_get = new this.ParseServer.Query("Courses");
+                  if (
+                    response.get("parent_ID") == "0" ||
+                    response.get("parent_ID") == ""
+                  ) {
+                    this.$Message.success("删除成功");
+                    this.page = 1;
+                    _this.page_list(this.page);
+                    return;
+                  }
+                  query_get.get(response.get("parent_ID")).then((course) => {
+                    course.set("has_down_level", false);
+                    course.save().then((r) => {
+                      this.$Message.success("删除成功");
+                      this.page = 1;
+                      _this.page_list(this.page);
+                      _this.ShowParents();
+                    });
+                  });
+                } else {
+                  this.$Message.success("删除成功");
+                  this.page = 1;
+                  _this.page_list(this.page);
+                }
+              });
+            });
+          });
+        },
+        onCancel: () => {
+          this.$Message.info("取消了操作");
+        },
+      });
+    },
+    checkLogin() {},
+  },
+};
 </script>
 
 <style lang="less" scoped>
@@ -644,7 +674,7 @@ export default {
     float: left;
     width: 35%;
     span {
-    //   width: 20%;
+      //   width: 20%;
       display: inline-block;
       box-sizing: border-box;
       line-height: 36px;
@@ -653,7 +683,7 @@ export default {
     }
     .choice {
       width: 80%;
-    //   float: right;
+      //   float: right;
     }
   }
   .search-btn {
@@ -671,21 +701,27 @@ export default {
     margin-left: 10px;
   }
 }
-.comments{
-    overflow-y: auto;
-    width: 400px!important;
+.comments {
+  overflow-y: auto;
+  width: 400px !important;
 }
-    .demo-spin-icon-load{
-        animation: ani-demo-spin 1s linear infinite;
-    }
-    @keyframes ani-demo-spin {
-        from { transform: rotate(0deg);}
-        50%  { transform: rotate(180deg);}
-        to   { transform: rotate(360deg);}
-    }
-    .demo-spin-col{
-        height: 100px;
-        position: relative;
-        border: 1px solid #eee;
-    }
+.demo-spin-icon-load {
+  animation: ani-demo-spin 1s linear infinite;
+}
+@keyframes ani-demo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.demo-spin-col {
+  height: 100px;
+  position: relative;
+  border: 1px solid #eee;
+}
 </style>
