@@ -257,7 +257,7 @@
         :label-width="90"
         :rules="ruleValidate"
       >
-         <FormItem label="封面图:">
+         <FormItem label="封面图:" prop='surface'>
           <myUploadMuti
             :images="course_form.surface"
             @complate="handleUploadComplate"
@@ -493,6 +493,18 @@ export default {
                 return callback(new Error("请输入基数"));
               } else if (!/^[0-9]*$/.test(value)) {
                 return callback(new Error("基数只能输入数字！"));
+              }
+              callback();
+            },
+          },
+        ],
+        surface: [
+          {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (value.length == 0) {
+                return callback(new Error("请上传封面图"));
               }
               callback();
             },

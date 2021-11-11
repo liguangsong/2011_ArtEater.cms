@@ -381,13 +381,16 @@ export default {
     add_member() {
       let expirationDate;
       var imgs = this.imgList.find((value) => value.id == this.surfaceId);
+      console.log(imgs);
+      this.member_form.surface = imgs.src;
+      console.log(this.surfaceId);
+      console.log(this.member_form.surface);
       var members = this.ParseServer.Object.extend("MemberType");
       var member = new members();
       // 修改
       if (this.memberId) {
         this.updated_member();
       } else {
-        this.member_form.surface = imgs.src;
         if (this.member_form.expirationDate) {
           expirationDate = this.dateToString(this.member_form.expirationDate);
         }

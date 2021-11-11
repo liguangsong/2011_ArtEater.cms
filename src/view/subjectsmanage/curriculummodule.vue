@@ -133,6 +133,7 @@
             >推荐课程</Button
           >
           <Button
+           v-if="row.hide"
             type="info"
             size="small"
             style="margin-right:5px"
