@@ -273,8 +273,6 @@ export default {
             required: true,
             trigger: "blur",
             validator: (rule, value, callback) => {
-              console.log(value);
-              console.log(this.member_form.memberPrice);
               if (
                 !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
                   value
@@ -311,7 +309,6 @@ export default {
     // 下一步
     nextStep() {
       this.surfaceId == 2 ? (this.surfaceId = 0) : (this.surfaceId += 1);
-      console.log(this.surfaceId);
     },
     cancel() {},
     handleVChange(r) {
@@ -334,12 +331,8 @@ export default {
      *时间：2020-11-22 09:21:48
      */
     get_entity() {
-      console.log("asc");
-      console.log(this.memberId);
       var query = new this.ParseServer.Query("MemberType");
       query.get(this.memberId).then((res) => {
-        console.log(res);
-        console.log(res.get("memberName"));
         this.surfaceId = res.get("surfaceId");
         this.member_form.typeName = res.get("typeName");
         this.member_form.memberName = res.get("memberName");
@@ -373,7 +366,6 @@ export default {
      * 弹出编辑窗口
      */
     EditFormShow(row) {
-      console.log(row);
       this.memberId = row.id;
       this.surfaceId = row.surfaceId;
       this.member_form.surface = row.surface;
@@ -397,7 +389,6 @@ export default {
         this.member_form.surface = imgs.src;
         if (this.member_form.expirationDate) {
           expirationDate = this.dateToString(this.member_form.expirationDate);
-          console.log(expirationDate);
         }
         this.$refs["memberForm"].validate((valid) => {
           if (!valid) {
@@ -408,7 +399,6 @@ export default {
             }, 100);
             return false;
           } else {
-            console.log("保存11111111");
             // 保存
             member.set("memberName", this.member_form.memberName);
             member.set("typeName", this.member_form.typeName);
@@ -430,7 +420,6 @@ export default {
                 this.page_list();
               },
               (error) => {
-                console.log(error);
                 this.$Message.error("保存失败");
               }
             );
@@ -455,10 +444,7 @@ export default {
     },
 
     updated_member() {
-      // console.log(this.memberId);
       let expirationDate;
-      console.log(this.member_form.expirationDate);
-      console.log(typeof this.member_form.expirationDate);
       if (
         this.member_form.expirationDate &&
         typeof this.member_form.expirationDate == "string"
@@ -472,7 +458,6 @@ export default {
 
       var query = new this.ParseServer.Query("MemberType");
       query.get(this.memberId).then((item) => {
-        console.log(item);
         item.set("memberName", this.member_form.memberName);
         item.set("typeName", this.member_form.typeName);
         item.set("surface", this.member_form.surface);
@@ -490,7 +475,6 @@ export default {
             this.page_list();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
@@ -520,12 +504,9 @@ export default {
       query.limit(this.pageSize);
       query.find().then(
         (list) => {
-          console.log(list);
           _this.member_datas = [];
           if (list && list.length > 0) {
-            console.log(list);
             list.forEach((item) => {
-              console.log(item.id);
               _this.member_datas.push({
                 id: item.id,
                 typeName: item.get("typeName"),
@@ -537,14 +518,11 @@ export default {
                 expirationDate: item.get("expirationDate"),
               });
             });
-            console.log(this.member_datas);
           }
           this.isShowAddForm = false;
           this.loading = false;
         },
-        (error) => {
-          console.log(error);
-        }
+        (error) => {}
       );
     },
 
@@ -553,11 +531,9 @@ export default {
       query_deletes.equalTo("objectId", id);
       query_deletes.limit(10000);
       query_deletes.find().then((response) => {
-        console.log(response);
         if (response && response.length > 0) {
           response.forEach((data) => {
             data.destroy().then((result) => {
-              console.log(result);
               this.$Message.success("删除成功");
               this.page_list();
             });
@@ -567,9 +543,7 @@ export default {
     },
 
     DelConfirmShow(row) {
-      console.log(row);
       var id = row.id;
-      console.log(id);
       let _this = this;
       this.$Modal.confirm({
         title: "删除提示",
@@ -577,7 +551,6 @@ export default {
         onOk: () => {
           var query = new this.ParseServer.Query("MemberType");
           query.get(id).then((response) => {
-            console.log(response.id);
             this.delete(id);
             // 删除当前组件
           });

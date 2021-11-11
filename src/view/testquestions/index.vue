@@ -724,6 +724,7 @@ export default {
         type: 1,
         subjects: [],
         comments: "",
+        tagId: "",
       },
       rightMultiAnswer: [],
       rightAnswer: "",
@@ -784,7 +785,6 @@ export default {
       show_window: false,
       window_title: "新增试题",
       tags: [],
-      tagId: "",
     };
   },
   computed: {},
@@ -893,6 +893,7 @@ export default {
           this.rightAnswer = item.code;
         }
       });
+      console.log(this.question_form.tagId);
     },
     /**
      * 切换题型
@@ -1193,14 +1194,16 @@ export default {
             return false;
           } else {
             console.log(this.tagId);
-            var ClassOfMyObject =
-              this.ParseServer.Object.extend("LabelManagement");
-            var myObject = ClassOfMyObject.createWithoutData(
-              self.question_form.tagId
-            );
+            if (self.question_form.tagId) {
+              var ClassOfMyObject =
+                this.ParseServer.Object.extend("LabelManagement");
+              var myObject = ClassOfMyObject.createWithoutData(
+                self.question_form.tagId
+              );
+            }
             let realName = this.ParseServer.User.current().get("realname");
             question.set("updatedBy", realName);
-            question.set("tagId", myObject);
+            question.set("tag", myObject);
             question.set("title", self.question_form.title);
             question.set("subjects", self.question_form.subjects);
             question.set("isImportant", self.question_form.isImportant);
@@ -2059,7 +2062,7 @@ export default {
 
       // let query = new this.ParseServer.Query('TestQuestions')
       query.descending("createdAt", "objectId");
-      query.include("tagId"),
+      query.include("tag"),
         query.count().then((count) => {
           _this.total = count;
         });
@@ -2074,8 +2077,9 @@ export default {
               _this.question_datas.push({
                 id: item.id,
                 // tagName: item.get("tagId").attributes.tagName,
-                tagName: item.get("tagId")
-                  ? item.get("tagId").attributes.tagName
+                tagId: item.get("tag") ? item.get("tag").id : "",
+                tagName: item.get("tag")
+                  ? item.get("tag").attributes.tagName
                   : "",
                 subjects: item.get("subjects"),
                 images: item.get("images"),

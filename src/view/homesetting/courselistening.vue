@@ -6,7 +6,7 @@
           <Input
             v-model="search_keyword"
             size="large"
-            placeholder="ID/名称关键字搜索"
+            placeholder="ID或标题名称关键字搜索"
             style="width:200px"
           />
         </div>
@@ -157,7 +157,7 @@
             <!-- 添加课程2 -->
             <Modal
               v-model="isShowAddCourse2"
-              :title="add_titleCourse2"
+              :title="add_titleCourse"
               width="600"
               mask
               scrollable
@@ -172,7 +172,7 @@
                 :label-width="90"
                 :rules="ruleValidate"
               >
-                <FormItem label="封面图:">
+                <!-- <FormItem label="封面图:">
                   <myUploadMuti
                     :images="course_form.surface"
                     @complate="handleUploadComplate"
@@ -180,6 +180,12 @@
                     :onethis='true'
                     accept=".*"
                   ></myUploadMuti>
+                </FormItem> -->
+                    <FormItem label="封面图">
+                    <div>
+                        <img v-if="course_form.surface[0]" :src="course_form.surface[0]" width="375" height="200"/>
+                    </div>
+                    <myUpload @complate="handleUploadComplate" tips=""></myUpload>
                 </FormItem>
               <FormItem label="标题名称:" prop="title">
                   <Input
@@ -224,12 +230,12 @@
 
 <script>
 import { tool } from "@/api/tool";
-import myUploadMuti from "@/components/myUploadMuti";
+import myUpload from "@/components/myUpload";
 import itemMixin from "../../components/main/components/side-menu/item-mixin";
 export default {
   name: "coursesmanageindex",
   components: {
-    myUploadMuti,
+    myUpload,
   },
   data() {
     return {
@@ -243,7 +249,6 @@ export default {
       courses_datas2: [],
       add_titleCourse: "添加课程",
       isShowAddCourse: false,
-      add_titleCourse2: "添加课程",
       isShowAddCourse2: false,
       page: 1,
       pages: 1,
@@ -281,8 +286,8 @@ export default {
         { title: "选择", key: "radio", slot: "radio", width: 80 },
         { title: "ID", key: "id" },
         { title: "课程标题", key: "subjectName", slot: "subjectName" },
-        { title: "副标题1", key: "subheadingOne" },
-        { title: "副标题2", key: "subheadingTwo" },
+        { title: "副标题1", key: "subTitle1" },
+        { title: "副标题2", key: "subTitle2" },
         { title: "讲师", key: "lecturerName" },
         {
           title: "VIP课程",
@@ -400,7 +405,6 @@ export default {
   },
 
   mounted() {
-    console.log(this.ParseServer.User.current().toJSON());
     this.updatedBy = this.ParseServer.User.current().toJSON().realname;
     this.page_list(this.page);
   },
@@ -409,12 +413,10 @@ export default {
      * 封面图上传完成
      */
     handleUploadComplate(urls) {
-      console.log(urls);
-      this.form.surface = urls;
+      this.course_form.surface = [urls];
     },
 
     search() {
-      console.log(this.search_keyword);
       this.page = 1;
       this.page_list(this.page);
     },
@@ -429,11 +431,16 @@ export default {
 
     page_list(page_index) {
       let _this = this;
-      let query = new this.ParseServer.Query("ModuleAssociatedCourses");
-      query.equalTo("courseListening", 1);
+      let query1 = new this.ParseServer.Query("ModuleAssociatedCourses");
+      let query2 = new this.ParseServer.Query("ModuleAssociatedCourses");
       if (this.search_keyword) {
-        query.contains("moduleName", this.search_keyword);
+        query1.contains("title", this.search_keyword);
+        query2.contains("objectId", this.search_keyword);
       }
+      let query = new this.ParseServer.Query.and(
+        new this.ParseServer.Query.or(query1, query2)
+      );
+      query.equalTo("courseListening", 1);
       query.descending("createdAt");
       query.count().then((count) => {
         _this.total = count;
@@ -443,15 +450,13 @@ export default {
       query.include("course");
       query.find().then(
         (list) => {
-          console.log(list);
           _this.datas = [];
           if (list && list.length > 0) {
-            console.log(list);
             list.forEach((item) => {
-              console.log(item.id);
               _this.datas.push({
                 id: item.id,
                 title: item.get("title"),
+                surface: item.get("surface"),
                 subTitle: item.get("subTitle"),
                 order: item.get("order"),
                 updatedBy: item.get("updatedBy"),
@@ -464,20 +469,16 @@ export default {
                 ),
               });
             });
-            console.log(this.datas);
           }
           this.loading = false;
         },
         (error) => {
-          console.log(error);
         }
       );
     },
 
     DelConfirmShow(row) {
-      console.log(row);
       var id = row.id;
-      console.log(id);
       let _this = this;
       this.$Modal.confirm({
         title: "删除提示",
@@ -485,7 +486,6 @@ export default {
         onOk: () => {
           var query = new this.ParseServer.Query("ModuleAssociatedCourses");
           query.get(id).then((response) => {
-            console.log(response.id);
             this.deletes(id);
             // 删除当前组件
           });
@@ -499,11 +499,8 @@ export default {
     /** 查看上一级 */
     ShowParents(row) {
       this.route.pop();
-      console.log(this.route);
       this.currLevel -= 1;
       this.currParent = this.route[this.route.length - 1];
-      console.log(this.currParent);
-      console.log(this.route);
       this.pages = 1;
       this.addCourseList(1);
     },
@@ -512,7 +509,6 @@ export default {
       this.route.push(row);
       this.currLevel += 1;
       this.currParent = row;
-      console.log(this.currParent);
       this.pages = 1;
       this.addCourseList(1);
     },
@@ -535,6 +531,7 @@ export default {
         (this.radioData = "");
       this.isCourseCompileAdd = 1;
       this.search_keywords = "";
+      this.add_titleCourse = "添加课程";
       this.$nextTick(() => {
         this.pages = 1;
         this.currParent.id = "0";
@@ -546,10 +543,11 @@ export default {
 
     // 编辑课程单击事件
     editCourseClick(row) {
-      console.log(row);
+      this.add_titleCourse = "编辑课程";
       this.search_keywords = "";
       this.isCourseCompileAdd = 2;
       this.courseId = row.id;
+      this.surface = row.surface;
       this.course_form.radioData = row.rawCourseId;
       this.course_form.title = row.title;
       this.course_form.subTitle = row.subTitle;
@@ -570,7 +568,6 @@ export default {
 
     // 系列课程单击事件
     subjectNameClick(row) {
-      console.log(row);
       this.pages = 1;
       this.route.push(row);
       this.currLevel += 1;
@@ -581,15 +578,14 @@ export default {
     // 添加课程list
     addCourseList() {
       let _this = this;
-      console.log(this.currParent.id);
-      const query1 = new this.ParseServer.Query("coursesModule");
+      const query1 = new this.ParseServer.Query("CoursesModule");
       query1.equalTo("parent_ID", this.currParent.id);
-      const query3 = new this.ParseServer.Query("coursesModule");
+      const query3 = new this.ParseServer.Query("CoursesModule");
       if (this.search_keywords) {
         query3.contains("subjectName", this.search_keywords);
       }
       if (this.currParent.id == 0) {
-        const query2 = new this.ParseServer.Query("coursesModule");
+        const query2 = new this.ParseServer.Query("CoursesModule");
         query2.equalTo("flag", 2);
         var query = new this.ParseServer.Query.and(
           new this.ParseServer.Query.or(query1, query2),
@@ -621,14 +617,14 @@ export default {
                 flag: item.get("flag"),
                 subjectName: item.get("subjectName"),
                 updatedBy: item.get("updatedBy"),
-                subheadingOne: item.get("subheadingOne"),
-                subheadingTwo: item.get("subheadingTwo"),
+                subTitle1: item.get("subTitle1"),
+                subTitle2: item.get("subTitle2"),
                 order: item.get("order"),
                 lecturerName: item.get("lecturerName"),
                 isVipCourse: item.get("isVipCourse"),
                 kind: item.get("kind"),
                 isHideCourse: item.get("isHideCourse"),
-                tagName: item.get("tagId").attributes.tagName,
+                tagName: item.get("tag") ? item.get("tag").tagName : "",
                 putaway: item.get("putaway"),
                 has_down_level: item.get("has_down_level"),
                 level: item.get("level"),
@@ -650,7 +646,6 @@ export default {
 
     //添加课程
     add_Course() {
-      console.log("123");
       if (this.isCourseCompileAdd == 1) {
         if (this.radioData == "") {
           this.$Message.info("请选择一个课程");
@@ -666,13 +661,10 @@ export default {
     },
 
     add_Course2() {
-      console.log(this.radioData + "课程id");
-      console.log("添加课程");
+      this.updatedBy = this.ParseServer.User.current().toJSON().realname;
       var datas = this.ParseServer.Object.extend("ModuleAssociatedCourses");
       var data = new datas();
-      console.log(this.form);
       this.$refs["form"].validate((valid) => {
-        console.log(valid);
         if (!valid) {
           this.$Message.error("请检查表单项");
           this.courseLoading = false;
@@ -683,34 +675,48 @@ export default {
         } else {
           // 保存
           if (this.isCourseCompileAdd == 1) {
-            // 课程id
-            var coursesClass = this.ParseServer.Object.extend("coursesModule");
-            var coursesId = coursesClass.createWithoutData(this.radioData);
+            var query = new this.ParseServer.Query("ModuleAssociatedCourses");
+            query.equalTo("courseListening", Number(1));
+            query.equalTo("order", Number(this.course_form.order));
+            query.limit(10000);
+            query.find().then((response) => {
+              if (response && response.length > 0) {
+                this.$Message.error("排序已存在");
+                this.courseLoading = false;
+                setTimeout(() => {
+                  this.courseLoading = true;
+                }, 100);
+                return false;
+              } else {
+                // 课程id
+                var coursesClass =
+                  this.ParseServer.Object.extend("CoursesModule");
+                var coursesId = coursesClass.createWithoutData(this.radioData);
 
-            // 保存
-            data.set("surface", this.course_form.surface);
-            data.set("title", this.course_form.title);
-            data.set("subTitle", this.course_form.subTitle);
-            data.set("order", Number(this.course_form.order));
-            data.set("N", Number(this.course_form.N));
-            data.set("baseNum", Number(this.course_form.baseNum));
-            data.set("course", coursesId);
-            data.set("courseListening", 1);
-            data.set("updatedBy", this.updatedBy);
-            data.save().then(
-              (data) => {
-                this.$Message.success("保存成功");
-                this.isShowAddCourse = false;
-                this.isShowAddCourse2 = false;
-                this.page_list();
-              },
-              (error) => {
-                console.log(error);
-                this.$Message.error("保存失败");
+                // 保存
+                data.set("surface", this.course_form.surface);
+                data.set("title", this.course_form.title);
+                data.set("subTitle", this.course_form.subTitle);
+                data.set("order", Number(this.course_form.order));
+                data.set("N", Number(this.course_form.N));
+                data.set("baseNum", Number(this.course_form.baseNum));
+                data.set("course", coursesId);
+                data.set("courseListening", 1);
+                data.set("updatedBy", this.updatedBy);
+                data.save().then(
+                  (data) => {
+                    this.$Message.success("保存成功");
+                    this.isShowAddCourse = false;
+                    this.isShowAddCourse2 = false;
+                    this.page_list();
+                  },
+                  (error) => {
+                    this.$Message.error("保存失败");
+                  }
+                );
               }
-            );
+            });
           } else {
-            console.log("qwdqwD");
             //修改
             this.isUpdateCourse(this.courseId);
           }
@@ -720,48 +726,60 @@ export default {
 
     //  修改课程
     isUpdateCourse(id) {
-      console.log("修改");
+      this.updatedBy = this.ParseServer.User.current().toJSON().realname;
       var query = new this.ParseServer.Query("ModuleAssociatedCourses");
-      query.get(id).then((item) => {
-        console.log(item);
-        var coursesClass = this.ParseServer.Object.extend("coursesModule");
-        var coursesId = coursesClass.createWithoutData(this.radioData);
-        // 保存
-        item.set("surface", this.course_form.surface);
-        item.set("title", this.course_form.title);
-        item.set("subTitle", this.course_form.subTitle);
-        item.set("order", Number(this.course_form.order));
-        item.set("N", Number(this.course_form.N));
-        item.set("baseNum", Number(this.course_form.baseNum));
-        item.set("course", coursesId);
-        item.save().then(
-          (data) => {
-            this.$Message.success("修改成功");
-            this.isShowAddCourse = false;
-            this.isShowAddCourse2 = false;
-            this.page_list();
-          },
-          (error) => {
-            console.log(error);
-            this.$Message.error("修改失败");
+      query.equalTo("courseListening", Number(1));
+      query.equalTo("order", Number(this.course_form.order));
+      query.limit(10000);
+      query.find().then((response) => {
+        if (response && response.length > 0) {
+          if (id != response[0].id) {
+            this.$Message.error("排序已存在");
+            this.courseLoading = false;
+            setTimeout(() => {
+              this.courseLoading = true;
+            }, 100);
+            return false;
+          } else {
+            query.get(id).then((item) => {
+              var coursesClass =
+                this.ParseServer.Object.extend("CoursesModule");
+              var coursesId = coursesClass.createWithoutData(this.radioData);
+              // 保存
+              item.set("surface", this.course_form.surface);
+              item.set("title", this.course_form.title);
+              item.set("subTitle", this.course_form.subTitle);
+              item.set("order", Number(this.course_form.order));
+              item.set("N", Number(this.course_form.N));
+              item.set("baseNum", Number(this.course_form.baseNum));
+              item.set("course", coursesId);
+              item.set("updatedBy", this.updatedBy);
+              item.save().then(
+                (data) => {
+                  this.$Message.success("修改成功");
+                  this.isShowAddCourse = false;
+                  this.isShowAddCourse2 = false;
+                  this.page_list();
+                },
+                (error) => {
+                  this.$Message.error("修改失败");
+                }
+              );
+            });
           }
-        );
+        }
       });
     },
 
     // 模块内课程删除
     deletes(id) {
-      console.log(id);
-      console.log(id);
       var query_deletes = new this.ParseServer.Query("ModuleAssociatedCourses");
       query_deletes.equalTo("objectId", id);
       query_deletes.limit(10000);
       query_deletes.find().then((response) => {
-        console.log(response);
         if (response && response.length > 0) {
           response.forEach((data) => {
             data.destroy().then((result) => {
-              console.log(result);
               this.$Message.success("删除成功");
               this.page_list();
             });

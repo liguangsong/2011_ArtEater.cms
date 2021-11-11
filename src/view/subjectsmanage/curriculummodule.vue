@@ -59,8 +59,8 @@
         
         <!-- 右侧 -->
          <div class="addCourse" v-if="currLevel == 0">
-            <Button @click="addCourses(1)" >新增系列课程</Button>
-        <Button style="margin-left:10px" @click="addCourses(2)">新增单独课程</Button>
+            <Button @click="addCourse(1)" >新增系列课程</Button>
+        <Button style="margin-left:10px" @click="addCourse(2)">新增单独课程</Button>
          </div>
          
          <!-- xinzneg -->
@@ -100,19 +100,18 @@
             @click="Editintroduce(row)"
             >介绍</Button
           >
-
            <Button
             type="warning"
             size="small"
             style="margin-right:5px"
-            @click="EditFormShow(row)"
+            @click="editCourse(row)"
             >编辑</Button
           >
           <Button
             type="info"
             size="small"
             style="margin-right:5px"
-            @click="ExamineFormShow(row)"
+            @click="examineCourse(row)"
             >查看</Button
           >     
                      <Button v-if="row.level > 0 && flag == 1" type="info" size="small" style="margin-right:5px;cursor: pointer;" @click="ShowParents(row)">查看上一级</Button>
@@ -130,10 +129,9 @@
             type="info"
             size="small"
             style="margin-right:5px"
-            @click="recommendCourse(row)"
+            @click="recommendCourseClick(row)"
             >推荐课程</Button
           >
- 
           <Button
             type="info"
             size="small"
@@ -161,7 +159,7 @@
       mask
       scrollable
       :loading="modalLoading"
-      @on-ok="add_courses"
+      @on-ok="add_course"
     >
       <Form
         v-if="isShowAddForm"
@@ -243,7 +241,7 @@
  <FormItem label="标签:" prop="tag">
           <Select
             size="large"
-            v-model="form.tag"
+            v-model="form.tagId"
             class="choice"
             placeholder="请选择标签"
             :clearable="true"
@@ -309,7 +307,9 @@
        ></Input>
        </FormItem>
 
-          <FormItem label="课程说明">
+          <FormItem label="课程说明"  prop="explain" 
+           :rules="[{required:requiredExplain,message:'请填写课程内容',trigger:'blur'}]"
+          >
           <Editor
             v-if="show_window"
             :value="form.explain"
@@ -415,10 +415,10 @@
             >
           </RadioGroup>
         </FormItem>
- <FormItem label="标签:" prop="tag">
+ <FormItem label="标签:">
           <Select
             size="large"
-            v-model="form.tag"
+            v-model="form.tagId"
             class="choice"
             placeholder="请选择标签"
             :clearable="true"
@@ -469,15 +469,15 @@
                     <template slot-scope="{ row }" slot="check" >
                       <div v-if="row.flag == 1" >
                          <span v-if="row.level>0 && row.kind !=4">
-                          <input type="checkbox" v-model="checkData" :value="row.id" />
+                          <input type="checkbox" v-model="recommendCourse" :value="row.id" />
                      </span>
                         <span v-else-if="row.level == 0">
-                          <input type="checkbox" v-model="checkData" :value="row.id" />
+                          <input type="checkbox" v-model="recommendCourse" :value="row.id" />
                         </span>
                       </div>
                      <div v-if="row.flag == 2">     
                          <span>
-                             <input type="checkbox" v-model="checkData" :value="row.id" />
+                             <input type="checkbox" v-model="recommendCourse" :value="row.id" />
                          </span>
                      </div>
                     </template>
@@ -570,7 +570,6 @@ export default {
             required: true,
             trigger: "blur",
             validator: (rule, value, callback) => {
-              console.log(value.length);
               if (value.length == 0) {
                 return callback(new Error("请上传讲师头像"));
               }
@@ -585,7 +584,13 @@ export default {
             trigger: "blur",
           },
         ],
-
+        explain: [
+          {
+            required: true,
+            message: "请填写课程说明",
+            trigger: "blur",
+          },
+        ],
         // 课程链接
         // link: [
         //   {
@@ -595,18 +600,22 @@ export default {
         //   },
         // ],
       },
+      courseIds: [],
+      explain: true,
       isShowTransferCourse: false,
       transferTitleCourse: "转移到系列课程",
       window_titleIntroduce: "新增课程介绍",
       isShowImg: false,
       isActive: 1,
       recommendCourseId: "",
-      checkData: [],
+      recommendCourse: [],
       recommend_titleCourse: "添加推荐课程",
       recommend_courses_datas: [], //推荐课程list
       requiredLink: true, //课程链接是否必填
+      requiredExplain: true, //课程内容是否说明
       child_titleCourse: "系列课程-子课程",
       isExamineCompile: 1, //查看还是编辑
+      isAddCompile: 1, //编辑还是新增
       isShowChildCourse: false,
       isShowRecommendCourse: false,
       showAloneCourse: false,
@@ -697,7 +706,7 @@ export default {
         hide: false, //是否隐藏课程
         putaway: true, //上架
         kind: 1, //课程类别
-        tag: "", //标签
+        tagId: "", //标签
         order: "", // 顺序
         portrait: [], //负责讲师头像
         lecturerName: "", //负责讲师姓名
@@ -723,7 +732,6 @@ export default {
   },
 
   mounted() {
-    console.log(this.ParseServer.User.current().toJSON());
     this.realname = this.ParseServer.User.current().toJSON().realname;
     this.bindSubjectTree();
     this.init_data = JSON.stringify(this.form);
@@ -739,7 +747,7 @@ export default {
       query.descending("createdAt");
       query.find().then((res) => {
         var tree = this.initCoursetTree(res, "0");
-        console.log(tree);
+
         this.courseTreeData = tree;
       });
     },
@@ -762,7 +770,7 @@ export default {
         }
         treeValue.push(course);
       });
-      console.log(treeValue);
+
       return treeValue;
     },
 
@@ -771,7 +779,6 @@ export default {
       this.search_courses = "";
       this.isShowTransferCourse = true;
       this.transferCoursesId = row.id; //当前转移课程Id
-      console.log(row);
     },
 
     //转移添加
@@ -784,19 +791,14 @@ export default {
         }, 100);
         return false;
       } else {
-        console.log(this.search_courses);
         let parentLevel = "";
         var query = new this.ParseServer.Query("CoursesModule");
         //获取父级
         query.get(this.search_courses).then((item) => {
-          console.log(item);
-          console.log(item.id);
-          console.log(item.get("level"));
           parentLevel = item.get("level");
 
           //转移课程
           query.get(this.transferCoursesId).then((item) => {
-            console.log(item);
             item.set("flag", 1);
             item.set("parent_ID", this.search_courses);
             item.set("has_down_level", false);
@@ -819,22 +821,27 @@ export default {
       }
     },
 
+    // 课程类别 单选 选择
     handleChangeRadio(e) {
-      console.log(e);
-      if (e == 3 || e == 4) {
+      if (e == 3) {
         this.requiredLink = false;
-      } else {
+        this.requiredExplain = true;
+      } else if (e == 1 || e == 2) {
         this.requiredLink = true;
+        this.requiredExplain = false;
+      } else {
+        this.requiredLink = false;
+        this.requiredExplain = false;
       }
     },
 
     /** 查看上一级 */
     ShowParents(row) {
       this.route.pop();
-      console.log(this.route);
+
       this.currLevel -= 1;
       this.currParent = this.route[this.route.length - 1];
-      console.log(this.currParent);
+
       this.page = 1;
       this.page_list(1);
     },
@@ -843,10 +850,9 @@ export default {
       this.route.push(row);
       this.currLevel += 1;
       this.currParent = row;
-      console.log(this.currParent);
+
       if (row.level == 0) {
         this.rootId = row.id; //根节点Id
-        console.log(this.rootId + "rootId111111111");
       }
       this.page = 1;
       this.page_list(1);
@@ -854,14 +860,12 @@ export default {
 
     /** 添加下一级 */
     AddChildrens(row) {
-      console.log(row);
       this.$Modal.confirm({
         title: "操作提示",
         content: "<p>是否添加下级目录？</p>",
         onOk: () => {
           if (row.level == 0) {
             this.rootId = row.id; //根节点Id
-            console.log(this.rootId + "rootId111111111");
           }
           this.route.push(row.id);
           this.currLevel += 1;
@@ -885,7 +889,7 @@ export default {
     creatQrCode(row) {
       this.$refs.qrCodeUrl.innerHTML = "";
       var qrcode = new QRCode(this.$refs.qrCodeUrl, {
-        text: `https://www.baidu.com/?tn=78000241_45_hao_pg?id=${row.id}`, // 需要转换为二维码的内容
+        text: `https://www.arteater.cn/Ji2vVK7htw.txt/?id=${row.id}`, // 需要转换为二维码的内容
         width: 100,
         height: 100,
         colorDark: "#000000",
@@ -896,11 +900,12 @@ export default {
 
     //左侧tab按钮
     courseList(data) {
-      console.log(data);
       if (data == 1) {
         this.flag = 1;
         this.isActive = 1;
+        this.page = 1;
       } else {
+        this.page = 1;
         this.flag = 2;
         this.isActive = 2;
       }
@@ -911,16 +916,13 @@ export default {
       var query = new this.ParseServer.Query("LabelManagement");
       query.find().then((res) => {
         if (res) {
-          console.log(res);
           res.forEach((item) => {
-            console.log(item);
             this.tags.push({
               id: item.id,
               tagName: item.get("tagName"),
               annotation: item.get("annotation"),
             });
           });
-          console.log(this.tags);
         }
       });
     },
@@ -929,7 +931,7 @@ export default {
     putawayClick(data) {
       this.id = data.id;
       this.form.putaway = data.putaway;
-      console.log(this.form.hide + "-----隐藏课程");
+
       this.courseId = data.id;
       this.updateds(1);
     },
@@ -969,13 +971,11 @@ export default {
             this.cancel();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
       });
     },
-
     // 修改上架子级
     updatedChildPutaway(id) {
       var query = new this.ParseServer.Query("CoursesModule");
@@ -984,7 +984,6 @@ export default {
       query.find().then((response) => {
         if (response && response.length > 0) {
           response.forEach((data) => {
-            console.log(data);
             item.set("putaway", this.form.putaway);
             this.updatedChildPutaway(data.id);
           });
@@ -995,6 +994,7 @@ export default {
     // 富文本说明
     change_value(html) {
       this.form.explain = html == "<p><br></p>" ? "" : html;
+
       // this.$refs["form"].validate();
     },
 
@@ -1008,7 +1008,6 @@ export default {
      * 封面图上传完成
      */
     handleUploadComplate(urls) {
-      console.log(urls);
       this.form.headImg = urls;
     },
 
@@ -1016,9 +1015,7 @@ export default {
      * 讲师头像上传完成
      */
     handleUploadComplates(urls) {
-      console.log(urls);
       this.form.portrait = urls;
-      console.log(this.form);
     },
 
     cancel() {
@@ -1026,13 +1023,8 @@ export default {
       this.isShowAddForm = false;
     },
     get_entity() {
-      console.log("asc");
-      console.log(this.courseId);
       var query = new this.ParseServer.Query("CoursesModule");
       query.get(this.courseId).then((res) => {
-        console.log(res);
-        console.log(res.get("portrait"));
-        console.log(res.get("subjectName"));
         this.flag = res.get("flag");
         this.form.subjectName = res.get("subjectName");
         this.form.subTitle1 = res.get("subTitle1");
@@ -1044,7 +1036,7 @@ export default {
           this.form.kind = res.get("kind");
         }
         this.form.introduce = res.get("introduce");
-        this.form.tag = res.get("tag") ? res.get("tag").id : "";
+        this.form.tagId = res.get("tag") ? res.get("tag").id : "";
         this.form.order = res.get("order");
         this.form.portrait = res.get("portrait");
         if (res.get("headImg")) {
@@ -1053,11 +1045,13 @@ export default {
         this.form.lecturerName = res.get("lecturerName");
         this.form.link = res.get("link");
         this.form.explain = res.get("explain");
-        console.log(this.form);
       });
     },
-    addCourses(data) {
-      console.log("qwd");
+
+    //  弹出新增窗口 系列课程 - 单独课程
+    addCourse(data) {
+      this.isAddCompile = 1;
+
       this.courseId = "";
       this.form = JSON.parse(this.init_data);
       if (data == 1) {
@@ -1074,12 +1068,13 @@ export default {
     },
 
     /**
-     * 弹出编辑窗口
+     * 弹出编辑窗口 课程编辑
      */
-    EditFormShow(row) {
-      console.log(row);
+    async editCourse(row) {
+      this.isAddCompile = 2;
       this.isExamineCompile = 1;
       this.courseId = row.id;
+      await this.get_entity();
       if (row.flag == 1 && row.level > 0) {
         this.showRadio = true;
         this.isShowChildCourse = true;
@@ -1087,24 +1082,15 @@ export default {
         this.showRadio = false;
         this.isShowAddForm = true;
       } else if (row.flag == 2) {
-        console.log("seddcewc");
-        console.log(row);
-        if (row.kind == 3 || row.kind == 4) {
-          this.requiredLink = false;
-        } else {
-          this.requiredLink = true;
-        }
         this.showRadio = true;
         this.isShowAddForm = true;
       }
-      this.get_entity();
     },
 
     /**
      * 弹出查看窗口
      */
-    ExamineFormShow(row) {
-      console.log(row);
+    examineCourse(row) {
       this.isExamineCompile = 2;
       this.courseId = row.id;
       if (row.flag == 1 && row.level > 0) {
@@ -1120,15 +1106,23 @@ export default {
       this.get_entity();
     },
 
-    catalogueUpdateds() {
-      console.log("ewd");
-    },
+    catalogueUpdateds() {},
 
-    add_courses() {
-      console.log(this.showRadio);
-      // 判断是系列课程还是单独课程
+    // 弹框确定-新增课程
+    add_course() {
+      // 判断课程类别
+      if (this.form.kind == 3) {
+        this.requiredLink = false;
+        this.requiredExplain = true;
+      } else if (this.form.kind == 1 || this.form.kind == 2) {
+        this.requiredLink = true;
+        this.requiredExplain = false;
+      } else {
+        this.requiredLink = false;
+        this.requiredExplain = false;
+      }
+
       this.$refs["courseForm"].validate((valid) => {
-        console.log(valid);
         if (!valid) {
           this.$Message.error("请检查表单项");
           this.modalLoading = false;
@@ -1137,13 +1131,13 @@ export default {
           }, 100);
           return false;
         } else {
+          // 判断是否已有当前排序
           var query = new this.ParseServer.Query("CoursesModule");
           query.equalTo("order", Number(this.form.order));
           query.limit(10000);
+          // 系列课程 -  保存
           if (this.flag == 2 && this.courseId == "") {
-            // console.log("sdcsdcdscsdcsdcsdcsdc");
             query.find().then((response) => {
-              console.log(response);
               if (response && response.length > 0) {
                 this.$Message.error("排序已存在");
                 this.modalLoading = false;
@@ -1156,16 +1150,14 @@ export default {
                 this.isShowAddForm = false;
               }
             });
+            // 系列课程 - 修改
           } else if (this.flag == 2 && this.courseId) {
             query.find().then((response) => {
-              console.log(this.courseId);
               if (response && response.length > 0) {
                 if (this.courseId == response[0].id) {
-                  console.log("2");
                   this.isShowAlone = true;
                   this.isShowAddForm = false;
                 } else {
-                  console.log("sdcsd");
                   this.$Message.error("排序已存在");
                   this.modalLoading = false;
                   setTimeout(() => {
@@ -1181,107 +1173,21 @@ export default {
           } else {
             //新增系列课程
             this.add_series();
-            console.log("新增系列课程");
           }
         }
       });
     },
 
-    //  弹出系列课程-子课程弹框
-    addChildCourse() {
-      this.cancel();
-      this.courseId = "";
-      this.isShowChildCourse = true;
-      this.showRadio = true;
-      this.flag = 1;
-    },
-
-    //新增系列课程-子课程
-    add_ChildCourse() {
-      console.log(this.rootId);
-      console.log("ASW");
-      if (this.form.kind == 3 || this.form.kind == 4) {
-        this.requiredLink = false;
-      } else {
-        this.requiredLink = true;
-      }
-      if (this.isExamineCompile == 2) {
-        this.isShowChildCourse = false;
-        this.cancel();
-        this.page_list();
-      } else {
-        if (this.courseId && this.form.kind == 4) {
-          this.updated_series_catalog(); //修改系列课程目录
-        } else {
-          this.$refs["seriesCourseForm"].validate((valid) => {
-            console.log(valid);
-            if (!valid) {
-              this.$Message.error("请检查表单项");
-              this.modalLoading = false;
-              setTimeout(() => {
-                this.modalLoading = true;
-              }, 100);
-              return false;
-            } else {
-              if (this.form.kind != 4) {
-                this.isShowChildCourse = false;
-                this.isShowAlone = true;
-              } else {
-                // 保存 目录
-                var courses = this.ParseServer.Object.extend("CoursesModule");
-                var course = new courses();
-                if (this.form.tag) {
-                  var ClassOfMyObject =
-                    this.ParseServer.Object.extend("LabelManagement");
-                  var myObject = ClassOfMyObject.createWithoutData(
-                    this.form.tag
-                  );
-                  course.set("tag", myObject);
-                }
-                course.set("flag", this.flag);
-                course.set("headImg", this.form.headImg);
-                course.set("subjectName", this.form.subjectName);
-                course.set("vip", this.form.vip);
-                course.set("hide", this.form.hide);
-                course.set("kind", this.form.kind);
-                course.set("rootId", this.rootId);
-                course.set("level", this.currLevel);
-                course.set("parent_ID", this.currParent.id);
-                course.set("has_down_level", this.form.has_down_level);
-                course.save().then(
-                  (course) => {
-                    this.updateParent(this.currParent.id);
-                    this.$Message.success("保存成功");
-                    this.cancel();
-                    this.isShowChildCourse = false;
-                    this.page_list();
-                  },
-                  (error) => {
-                    console.log(error);
-                    this.$Message.error("保存失败");
-                  }
-                );
-              }
-            }
-          });
-        }
-      }
-      console.log("aasd");
-    },
-
     //新增系列课程
     add_series() {
-      // 修改
       if (this.courseId) {
-        this.updated_seriesCourse(); //修改系列课程
+        this.updated_series_course(); //修改系列课程
       } else {
-        console.log(this.form.order);
         //判断排序
         var query = new this.ParseServer.Query("CoursesModule");
         query.equalTo("order", Number(this.form.order));
         query.limit(10000);
         query.find().then((response) => {
-          console.log(response);
           if (response && response.length > 0) {
             this.$Message.error("排序已存在");
             this.modalLoading = false;
@@ -1293,10 +1199,10 @@ export default {
             // 保存
             var courses = this.ParseServer.Object.extend("CoursesModule");
             var course = new courses();
-            if (this.form.tag) {
+            if (this.form.tagId) {
               var ClassOfMyObject =
                 this.ParseServer.Object.extend("LabelManagement");
-              var myObject = ClassOfMyObject.createWithoutData(this.form.tag);
+              var myObject = ClassOfMyObject.createWithoutData(this.form.tagId);
               course.set("tag", myObject);
             }
             course.set("flag", this.flag);
@@ -1319,6 +1225,7 @@ export default {
             course.set("has_down_level", this.form.has_down_level);
             course.save().then(
               (course) => {
+                this.isActive = 1;
                 this.$Message.success("保存成功");
                 this.cancel();
                 this.isShowAddForm = false;
@@ -1336,22 +1243,14 @@ export default {
 
     //新增单独课程
     add_alone() {
-      console.log(this.form);
-      console.log("新增单独课程");
-      if (this.form.kind == 3 || this.form.kind == 4) {
-        this.requiredLink = false;
-      } else {
-        this.requiredLink = true;
-      }
       // 修改
       if (this.courseId) {
-        this.updated_aloneCourse();
+        this.updatedAloneCourse(); //修改单独课程
       } else {
-        console.log("asqw");
-        console.log(this.requiredLink);
-        if (this.requiredLink) {
+        // 单独课程
+        if (this.requiredLink || this.requiredExplain) {
+          // 音频 或视频
           this.$refs["courseForm"].validate((valid) => {
-            console.log(valid);
             if (!valid) {
               this.$Message.error("请检查表单项");
               this.modalLoading = false;
@@ -1360,163 +1259,94 @@ export default {
               }, 100);
               return false;
             } else {
-              console.log("qwdqW");
               // 保存
-              this.$nextTick(() => {
-                this.getDuration();
-              });
+              if (this.requiredLink) {
+                //是音频或视频
+                this.$nextTick(() => {
+                  this.getDuration(); //解析时长
+                });
+              } else {
+                this.add_alone_course();
+              }
             }
           });
         } else {
-          this.add_alone_series();
-          // console.log("awsqcqWC");
-          // if (this.form.kind == 1 || this.form.kind == 2) {
-          //   this.getDuration();
-          // } else {
-          //   this.add_alone_series();
-          // }
+          //目录
+          this.add_alone_course();
         }
       }
     },
 
-    // 系列课程 - 单独课程
-    add_alone_series() {
-      var courses = this.ParseServer.Object.extend("CoursesModule");
-      var course = new courses();
-      if (this.form.tag) {
-        var ClassOfMyObject = this.ParseServer.Object.extend("LabelManagement");
-        var myObject = ClassOfMyObject.createWithoutData(this.form.tag);
-        course.set("tag", myObject);
-      }
-      course.set("flag", this.flag);
-      course.set("putaway", this.form.putaway);
-      course.set("hide", this.form.hide);
-      course.set("subjectName", this.form.subjectName);
-      course.set("subTitle1", this.form.subTitle1);
-      course.set("subTitle2", this.form.subTitle2);
-      course.set("vip", this.form.vip);
-      course.set("hide", this.form.hide);
-      // course.set("isVipLook", this.form.isVipLook);
-      course.set("kind", this.form.kind);
-      course.set("order", Number(this.form.order));
-      course.set("portrait", this.form.portrait);
-      course.set("lecturerName", this.form.lecturerName);
-      course.set("link", this.form.link);
-      if (this.form.duration != "") {
-        console.log("qws");
-        course.set("duration", this.form.duration);
+    // 修改单独课程
+    updatedAloneCourse() {
+      if (this.isExamineCompile == 2) {
+        this.isShowAlone = false;
+        this.cancel();
+        this.page_list();
       } else {
-        course.set("duration", "");
-      }
-      course.set("explain", this.form.explain);
-      if (this.flag == 1) {
-        course.set("level", this.currLevel);
-        course.set("parent_ID", this.currParent.id);
-        course.set("rootId", this.rootId);
-        course.set("has_down_level", this.form.has_down_level);
-      }
-      course.save().then(
-        (course) => {
-          if (this.currParent.id != "0" && this.flag == 1) {
-            this.updateParent(this.currParent.id);
-          } else {
-            this.$Message.success("保存成功");
-            this.cancel();
-            this.isShowAlone = false;
-            this.page_list();
-          }
-        },
-        (error) => {
-          console.log(error);
-          this.$Message.error("保存失败");
-        }
-      );
-    },
-    getDuration() {
-      console.log("12222");
-      console.log(this.form.link);
-      var src = this.form.link;
-      var audio = document.createElement("audio");
-      audio.src = src;
-      audio.load();
-      var _this = this;
-      audio.oncanplay = function () {
-        console.log(audio.duration);
-        _this.form.duration = _this.sToHs(Math.floor(audio.duration * 1000));
-        console.log(_this.form.duration);
-        _this.add_alone_series();
-      };
-    },
-
-    // 时长解析
-    sToHs(s) {
-      let h;
-      s = s / 1000;
-      h = Math.floor(s / 60);
-      s = Math.floor(s % 60);
-      h += "";
-      s += "";
-      h = h.length === 1 ? "0" + h : h;
-      s = s.length === 1 ? "0" + s : s;
-      return h + ":" + s;
-    },
-
-    /** 更新父级科目 */
-    updateParent(parentId) {
-      console.log(parentId + "父级id");
-      console.log(+"wqdQW121111");
-      var query = new this.ParseServer.Query("CoursesModule");
-      query.equalTo("parent_ID", parentId);
-      query.limit(10000);
-      query.find().then((childrens) => {
-        let hasChildren = false;
-        childrens.forEach((_item, _index) => {
-          hasChildren = true;
-        });
-        var query1 = new this.ParseServer.Query("CoursesModule");
-        query1.get(parentId).then((parent) => {
-          console.log(parent);
-          parent.set("has_down_level", hasChildren);
-          parent.save().then((result) => {
-            if (parent.get("parent_ID") != "0") {
-              this.updateParent(parent.get("parent_ID"));
+        if (this.requiredLink || this.requiredExplain) {
+          // 音频 或视频
+          this.$refs["courseForm"].validate((valid) => {
+            if (!valid) {
+              this.$Message.error("请检查表单项");
+              this.modalLoading = false;
+              setTimeout(() => {
+                this.modalLoading = true;
+              }, 100);
+              return false;
             } else {
-              this.$Message.success("保存成功");
-              this.isShowAlone = false;
-              this.page_list(1);
-              this.cancel();
+              // 保存
+              if (this.requiredLink) {
+                //是音频或视频
+                this.$nextTick(() => {
+                  this.getDuration();
+                });
+              } else {
+                //是图文
+                this.updated_alone_course();
+              }
             }
           });
-        });
-      });
+        } else {
+        }
+      }
     },
 
-    // 修改系列课程目录
-    updated_series_catalog() {
-      console.log("修改系列课程目录");
+    // 修改 单独课程 系列课程-子课程
+    updated_alone_course() {
       var query = new this.ParseServer.Query("CoursesModule");
       query.get(this.courseId).then((item) => {
-        console.log(item);
-        if (this.form.tag) {
+        if (this.form.tagId) {
           var ClassOfMyObject =
             this.ParseServer.Object.extend("LabelManagement");
-          var myObject = ClassOfMyObject.createWithoutData(this.form.tag);
+          var myObject = ClassOfMyObject.createWithoutData(this.form.tagId);
           item.set("tag", myObject);
         }
         item.set("flag", this.flag);
         item.set("headImg", this.form.headImg);
-        item.set("subjectName", this.form.subjectName);
-        item.set("vip", this.form.vip);
+        item.set("putaway", this.form.putaway);
         item.set("hide", this.form.hide);
+        item.set("subjectName", this.form.subjectName);
+        item.set("subTitle1", this.form.subTitle1);
+        item.set("subTitle2", this.form.subTitle2);
+        item.set("vip", this.form.vip);
+        // course.set("isVipLook", this.form.isVipLook);
         item.set("kind", this.form.kind);
-        item.set("rootId", this.rootId);
-        item.set("level", this.currLevel);
-        item.set("parent_ID", this.currParent.id);
-        item.set("has_down_level", this.form.has_down_level);
+        item.set("order", Number(this.form.order));
+        item.set("portrait", this.form.portrait);
+        item.set("lecturerName", this.form.lecturerName);
+        item.set("link", this.form.link);
+        item.set("explain", this.form.explain);
+        if (this.form.duration != "") {
+          item.set("duration", this.form.duration);
+        } else {
+          item.set("duration", "");
+        }
         item.save().then(
           () => {
+            this.isActive = 2;
             this.$Message.success("修改成功");
-            this.isShowChildCourse = false;
+            this.isShowAlone = false;
             this.cancel();
             this.page_list();
           },
@@ -1529,7 +1359,7 @@ export default {
     },
 
     //修改系列课程
-    updated_seriesCourse() {
+    updated_series_course() {
       if (this.isExamineCompile == 2) {
         this.isShowAddForm = false;
         this.cancel();
@@ -1539,13 +1369,10 @@ export default {
         query.equalTo("order", Number(this.form.order));
         query.limit(10000);
         query.find().then((response) => {
-          console.log(this.courseId);
           if (response && response.length > 0) {
             if (this.courseId == response[0].id) {
-              console.log("2");
-              this.updatedCourse();
+              this.updatedSeriesCourse();
             } else {
-              console.log("sdcsd");
               this.$Message.error("排序已存在");
               this.modalLoading = false;
               setTimeout(() => {
@@ -1554,21 +1381,20 @@ export default {
               return false;
             }
           } else {
-            this.updatedCourse();
+            this.updatedSeriesCourse();
           }
         });
       }
     },
 
-    // 修改课程
-    updatedCourse() {
+    // 修改系列课程
+    updatedSeriesCourse() {
       var query = new this.ParseServer.Query("CoursesModule");
       query.get(this.courseId).then((item) => {
-        console.log(item);
-        if (this.form.tag) {
+        if (this.form.tagId) {
           var ClassOfMyObject =
             this.ParseServer.Object.extend("LabelManagement");
-          var myObject = ClassOfMyObject.createWithoutData(this.form.tag);
+          var myObject = ClassOfMyObject.createWithoutData(this.form.tagId);
           item.set("tag", myObject);
         }
         item.set("flag", this.flag);
@@ -1586,6 +1412,7 @@ export default {
         item.set("lecturerName", this.form.lecturerName);
         item.save().then(
           () => {
+            this.isActive = 1;
             this.$Message.success("修改成功");
             this.isShowAddForm = false;
             this.cancel();
@@ -1599,42 +1426,226 @@ export default {
       });
     },
 
-    // 修改单独课程
-    updated_aloneCourse() {
+    // 新增系列课程-单独子课程 / 单独课程
+    add_alone_course() {
+      var courses = this.ParseServer.Object.extend("CoursesModule");
+      var course = new courses();
+      if (this.form.tagId) {
+        var ClassOfMyObject = this.ParseServer.Object.extend("LabelManagement");
+        var myObject = ClassOfMyObject.createWithoutData(this.form.tagId);
+        course.set("tag", myObject);
+      }
+      course.set("flag", this.flag);
+      course.set("putaway", this.form.putaway);
+      course.set("hide", this.form.hide);
+      course.set("subjectName", this.form.subjectName);
+      course.set("subTitle1", this.form.subTitle1);
+      course.set("subTitle2", this.form.subTitle2);
+      course.set("vip", this.form.vip);
+      course.set("hide", this.form.hide);
+      // course.set("isVipLook", this.form.isVipLook);
+      course.set("kind", this.form.kind);
+      course.set("order", Number(this.form.order));
+      course.set("portrait", this.form.portrait);
+      course.set("lecturerName", this.form.lecturerName);
+      course.set("link", this.form.link);
+      if (this.form.duration != "") {
+        course.set("duration", this.form.duration);
+      } else {
+        course.set("duration", "");
+      }
+      course.set("explain", this.form.explain);
+      if (this.flag == 1) {
+        course.set("level", this.currLevel);
+        course.set("parent_ID", this.currParent.id);
+        course.set("rootId", this.rootId);
+        course.set("has_down_level", this.form.has_down_level);
+      }
+      course.save().then(
+        (course) => {
+          this.isActive = 2;
+          if (this.currParent.id != "0" && this.flag == 1) {
+            this.updateParent(this.currParent.id);
+          } else {
+            this.$Message.success("保存成功");
+            this.cancel();
+            this.isShowAlone = false;
+            this.page_list();
+          }
+        },
+        (error) => {
+          console.log(error);
+          this.$Message.error("保存失败");
+        }
+      );
+    },
+
+    getDuration() {
+      var src = this.form.link;
+      var audio = document.createElement("audio");
+      audio.src = src;
+      audio.load();
+      var _this = this;
+      audio.oncanplay = function () {
+        _this.form.duration = _this.sToHs(Math.floor(audio.duration * 1000));
+        //是新增还是修改
+        if (_this.isAddCompile == 1) {
+          _this.add_alone_course();
+        } else {
+          //修改单独课程-子课程
+          _this.updated_alone_course();
+        }
+      };
+    },
+
+    // 时长解析
+    sToHs(s) {
+      let h;
+      s = s / 1000;
+      h = Math.floor(s / 60);
+      s = Math.floor(s % 60);
+      h += "";
+      s += "";
+      h = h.length === 1 ? "0" + h : h;
+      s = s.length === 1 ? "0" + s : s;
+      return h + ":" + s;
+    },
+
+    //  弹出系列课程-子课程弹框
+    addChildCourse() {
+      this.cancel();
+      this.courseId = "";
+      this.isShowChildCourse = true;
+      this.showRadio = true;
+      this.flag = 1;
+    },
+
+    //新增系列课程-子课程
+    add_ChildCourse() {
+      // 判断课程类别
+      if (this.form.kind == 3) {
+        this.requiredLink = false;
+        this.requiredExplain = true;
+      } else if (this.form.kind == 1 || this.form.kind == 2) {
+        this.requiredLink = true;
+        this.requiredExplain = false;
+      } else {
+        this.requiredLink = false;
+        this.requiredExplain = false;
+      }
+      if (this.courseId && this.form.kind == 4) {
+        this.updated_catalog_series(); //修改系列课程-子课程目录
+      } else {
+        //新增
+        this.$refs["seriesCourseForm"].validate((valid) => {
+          if (!valid) {
+            this.$Message.error("请检查表单项");
+            this.modalLoading = false;
+            setTimeout(() => {
+              this.modalLoading = true;
+            }, 100);
+            return false;
+          } else {
+            // 音频 视频 图文
+            if (this.form.kind != 4) {
+              this.isShowChildCourse = false;
+              this.isShowAlone = true;
+            } else {
+              // 保存 目录
+              var courses = this.ParseServer.Object.extend("CoursesModule");
+              var course = new courses();
+              if (this.form.tagId) {
+                var ClassOfMyObject =
+                  this.ParseServer.Object.extend("LabelManagement");
+                var myObject = ClassOfMyObject.createWithoutData(
+                  this.form.tagId
+                );
+                course.set("tag", myObject);
+              }
+              course.set("flag", this.flag);
+              course.set("headImg", this.form.headImg);
+              course.set("subjectName", this.form.subjectName);
+              course.set("vip", this.form.vip);
+              course.set("hide", this.form.hide);
+              course.set("kind", this.form.kind);
+              course.set("rootId", this.rootId);
+              course.set("level", this.currLevel);
+              course.set("parent_ID", this.currParent.id);
+              course.set("has_down_level", this.form.has_down_level);
+              course.save().then(
+                (course) => {
+                  this.updateParent(this.currParent.id);
+                  this.$Message.success("保存成功");
+                  this.cancel();
+                  this.isShowChildCourse = false;
+                  this.page_list();
+                },
+                (error) => {
+                  console.log(error);
+                  this.$Message.error("保存失败");
+                }
+              );
+            }
+          }
+        });
+      }
+    },
+
+    /** 更新父级科目 */
+    updateParent(parentId) {
+      var query = new this.ParseServer.Query("CoursesModule");
+      query.equalTo("parent_ID", parentId);
+      query.limit(10000);
+      query.find().then((childrens) => {
+        let hasChildren = false;
+        childrens.forEach((_item, _index) => {
+          hasChildren = true;
+        });
+        var query1 = new this.ParseServer.Query("CoursesModule");
+        query1.get(parentId).then((parent) => {
+          parent.set("has_down_level", hasChildren);
+          parent.save().then((result) => {
+            if (parent.get("parent_ID") != "0") {
+              this.updateParent(parent.get("parent_ID"));
+            } else {
+              this.$Message.success("保存成功");
+              this.isShowAlone = false;
+              this.page_list(1);
+              this.cancel();
+            }
+          });
+        });
+      });
+    },
+
+    // 修改系列课程-子课程目录
+    updated_catalog_series() {
       if (this.isExamineCompile == 2) {
-        console.log("修稿单独");
-        this.isShowAlone = false;
-        this.cancel();
+        this.isShowChildCourse = false;
         this.page_list();
       } else {
         var query = new this.ParseServer.Query("CoursesModule");
         query.get(this.courseId).then((item) => {
-          console.log(item);
-          if (this.form.tag) {
+          if (this.form.tagId) {
             var ClassOfMyObject =
               this.ParseServer.Object.extend("LabelManagement");
-            var myObject = ClassOfMyObject.createWithoutData(this.form.tag);
+            var myObject = ClassOfMyObject.createWithoutData(this.form.tagId);
             item.set("tag", myObject);
           }
           item.set("flag", this.flag);
           item.set("headImg", this.form.headImg);
-          item.set("putaway", this.form.putaway);
-          item.set("hide", this.form.hide);
           item.set("subjectName", this.form.subjectName);
-          item.set("subTitle1", this.form.subTitle1);
-          item.set("subTitle2", this.form.subTitle2);
           item.set("vip", this.form.vip);
-          // course.set("isVipLook", this.form.isVipLook);
+          item.set("hide", this.form.hide);
           item.set("kind", this.form.kind);
-          item.set("order", Number(this.form.order));
-          item.set("portrait", this.form.portrait);
-          item.set("lecturerName", this.form.lecturerName);
-          item.set("link", this.form.link);
-          item.set("explain", this.form.explain);
+          item.set("rootId", this.rootId);
+          item.set("level", this.currLevel);
+          item.set("parent_ID", this.currParent.id);
+          // item.set("has_down_level", this.form.has_down_level);
           item.save().then(
             () => {
               this.$Message.success("修改成功");
-              this.isShowAlone = false;
+              this.isShowChildCourse = false;
               this.cancel();
               this.page_list();
             },
@@ -1649,7 +1660,7 @@ export default {
 
     // 介绍
     Editintroduce(data) {
-      console.log("介绍");
+   
       this.courseId = data.id;
       this.get_entity();
       this.isIntroduce = true;
@@ -1657,8 +1668,7 @@ export default {
 
     //新增系列课程介绍
     add_introduce() {
-      console.log(this.courseId);
-      console.log(this.form.introduce + "介绍一11111111111111");
+      
       var query = new this.ParseServer.Query("CoursesModule");
       query.get(this.courseId).then((item) => {
         item.set("introduce", this.form.introduce);
@@ -1674,12 +1684,12 @@ export default {
             this.$Message.error("修改失败");
           }
         );
-        console.log(this.form);
+        
       });
     },
 
     search() {
-      console.log(this.search_keyword);
+  
       this.page = 1;
       this.page_list(this.page);
     },
@@ -1694,8 +1704,7 @@ export default {
     },
 
     page_list(page_index) {
-      console.log(this.flag);
-      console.log(this.currParent.id);
+   
       let _this = this;
       const query1 = new this.ParseServer.Query("CoursesModule");
       if (this.flag == 1) {
@@ -1746,14 +1755,12 @@ export default {
       query.limit(this.pageSize);
       query.find().then(
         (list) => {
-          console.log(list);
+      
           _this.courses_datas = [];
           if (list && list.length > 0) {
-            console.log(list);
+        
             list.forEach((item) => {
-              console.log(item.get("kind") + "种类");
-              console.log(item.id);
-              console.log(item.get("hide"));
+            
               _this.courses_datas.push({
                 id: item.id,
                 flag: item.get("flag"),
@@ -1779,15 +1786,11 @@ export default {
                 ),
               });
             });
-            console.log(this.form);
-            console.log(this.courses_datas);
+           
           }
           // this.isShowAddForm = false;
           this.loading = false;
-          console.log(
-            this.flag +
-              "flagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflagflag"
-          );
+      
         },
         (error) => {
           // debugger;
@@ -1796,13 +1799,14 @@ export default {
     },
 
     delete(parent_id) {
-      console.log(parent_id);
+      
       var query_deletes = new this.ParseServer.Query("CoursesModule");
       query_deletes.equalTo("parent_ID", parent_id);
       query_deletes.limit(10000);
       query_deletes.find().then((response) => {
         if (response && response.length > 0) {
           response.forEach((data) => {
+            this.courseIds.push(data.id);
             data.destroy().then((result) => {
               this.delete(data.id);
             });
@@ -1812,105 +1816,151 @@ export default {
     },
 
     DelConfirmShow(row) {
-      console.log(row);
+    
       var id = row.id;
-      console.log(id);
+   
+      this.courseIds = [];
       let _this = this;
       var query1 = new this.ParseServer.Query("ModuleAssociatedCourses");
       var ClassOfMyObject = this.ParseServer.Object.extend("CoursesModule");
       var queryId = ClassOfMyObject.createWithoutData(id);
-      console.log(queryId);
+      
       query1.equalTo("course", queryId);
       query1.find().then((response) => {
-        console.log(response.length);
+    
         if (response.length > 0) {
           //如果模块有添加的课程 不能删除
           this.$Message.error("首页模块已有添加此课程,不能删除!");
-        } else {
-          this.$Modal.confirm({
-            title: "删除提示",
-            content: "<p>当前课程模块会被删除，确定要删除吗？</p>",
-            onOk: () => {
-              var query = new this.ParseServer.Query("CoursesModule");
-              query.get(id).then((response) => {
-                console.log(response.id);
-                // 删除所有的子组件
-                this.delete(response.id);
-                // 删除当前组件
-                response.destroy().then((delete_result) => {
-                  // 更新当前的父级组件是否还存在其他的子组件
-                  var query1 = new this.ParseServer.Query("CoursesModule");
-                  query1.equalTo("parent_ID", response.get("parent_ID"));
-                  query1.find().then((result) => {
-                    if (result.length == 0) {
-                      var query_get = new this.ParseServer.Query(
-                        "CoursesModule"
-                      );
-                      if (
-                        response.get("parent_ID") == "0" ||
-                        response.get("parent_ID") == ""
-                      ) {
-                        this.$Message.success("删除成功");
-                        this.page = 1;
-                        _this.page_list(this.page);
-                        return;
-                      }
-                      query_get
-                        .get(response.get("parent_ID"))
-                        .then((subject) => {
-                          subject.set("has_down_level", false);
-                          subject.save().then((r) => {
+        } else if (response.length <= 0) {
+          this.childCourseIds(id);
+          setTimeout(() => {
+       
+            let arr1 = [];
+            var query2 = new this.ParseServer.Query("ModuleAssociatedCourses");
+            var ClassOfMyObject =
+              this.ParseServer.Object.extend("CoursesModule");
+            for (const key in this.courseIds) {
+           
+              var queryIds = ClassOfMyObject.createWithoutData(
+                this.courseIds[key]
+              );
+              arr1.push(queryIds);
+            }
+            query2.containedIn("course", arr1);
+            query2.find().then((response) => {
+             
+              if (response && response.length > 0) {
+                this.$Message.error("首页模块已添加此课程的子课程,不能删除!");
+                return;
+              } else {
+            
+                this.$Modal.confirm({
+                  title: "删除提示",
+                  content: "<p>当前课程模块会被删除，确定要删除吗？</p>",
+                  onOk: () => {
+                    var query = new this.ParseServer.Query("CoursesModule");
+                    query.get(id).then((response) => {
+                      
+                      // 删除所有的子组件
+                      this.delete(response.id);
+                      // 删除当前组件
+                      response.destroy().then((delete_result) => {
+                        // 更新当前的父级组件是否还存在其他的子组件
+                        var query1 = new this.ParseServer.Query(
+                          "CoursesModule"
+                        );
+                        query1.equalTo("parent_ID", response.get("parent_ID"));
+                        query1.find().then((result) => {
+                          if (result.length == 0) {
+                            var query_get = new this.ParseServer.Query(
+                              "CoursesModule"
+                            );
+                            if (
+                              response.get("parent_ID") == "0" ||
+                              response.get("parent_ID") == ""
+                            ) {
+                              this.$Message.success("删除成功");
+                              this.page = 1;
+                              _this.page_list(this.page);
+                              return;
+                            }
+                            query_get
+                              .get(response.get("parent_ID"))
+                              .then((subject) => {
+                                subject.set("has_down_level", false);
+                                subject.save().then((r) => {
+                                  this.$Message.success("删除成功");
+                                  this.page = 1;
+                                  _this.page_list(this.page);
+                                  _this.ShowParents();
+                                });
+                              });
+                          } else {
                             this.$Message.success("删除成功");
                             this.page = 1;
                             _this.page_list(this.page);
-                            _this.ShowParents();
-                          });
+                          }
                         });
-                    } else {
-                      this.$Message.success("删除成功");
-                      this.page = 1;
-                      _this.page_list(this.page);
-                    }
-                  });
+                      });
+                    });
+                  },
+                  onCancel: () => {
+                    this.$Message.info("取消了操作");
+                  },
                 });
-              });
-            },
-            onCancel: () => {
-              this.$Message.info("取消了操作");
-            },
-          });
+                return;
+              }
+            });
+          }, 500);
         }
       });
     },
 
+    // 系列课程子课程有没有添加到首页模块
+    childCourseIds(id) {
+      var query_deletes = new this.ParseServer.Query("CoursesModule");
+      query_deletes.equalTo("parent_ID", id);
+      query_deletes.limit(10000);
+      query_deletes.find().then((response) => {
+        if (response && response.length > 0) {
+          response.forEach((data) => {
+         
+            this.childCourseIds(data.id);
+            this.courseIds.push(data.id);
+          });
+        }
+      });
+      setTimeout(() => {
+
+      }, 1000);
+    },
+
     // 系列课程单击事件
     subjectNameClick(data) {
-      console.log(data);
+      
       this.pages = 1;
       this.currParents.id = data.id;
       this.recommendCourseList();
     },
 
     //推荐课程
-    recommendCourse(data) {
-      console.log(data);
+    recommendCourseClick(data) {
+ 
       this.recommendCourseId = data.id;
       var query = new this.ParseServer.Query("CoursesModule");
       query.equalTo("objectId", this.recommendCourseId);
       query.find().then(
         (list) => {
-          this.checkData = [];
-          console.log(this.checkData);
+          this.recommendCourse = [];
+ 
           if (list && list.length > 0) {
             list.forEach((item) => {
-              console.log(item);
-              console.log(item.get("checkData"));
-              if (item.get("checkData")) {
-                this.checkData = item.get("checkData");
+        
+              if (item.get("recommendCourse")) {
+                this.recommendCourse = item.get("recommendCourse");
               }
             });
-            console.log(this.checkData);
-            console.log(this.recommend_courses_datas);
+          
           }
           // this.loading = false;
         },
@@ -1930,7 +1980,7 @@ export default {
     // 推荐课程list
     recommendCourseList() {
       let _this = this;
-      console.log(this.currParents.id);
+ 
       const query1 = new this.ParseServer.Query("CoursesModule");
       query1.equalTo("parent_ID", this.currParents.id);
 
@@ -1952,8 +2002,7 @@ export default {
           _this.recommend_courses_datas = [];
           if (list && list.length > 0) {
             list.forEach((item) => {
-              console.log(item);
-              console.log(item.get("checkData"));
+         
               _this.recommend_courses_datas.push({
                 id: item.id,
                 flag: item.get("flag"),
@@ -1990,13 +2039,10 @@ export default {
 
     //添加推荐课程
     add_RecommendCourse() {
-      console.log(this.checkData);
-      // let checkData = [...new Set(this.checkDatas)].filter((item) => item);
-      // console.log(checkData);
-      // console.log("add_RecommendCourse");
+  
       var query = new this.ParseServer.Query("CoursesModule");
       query.get(this.recommendCourseId).then((item) => {
-        item.set("checkData", this.checkData);
+        item.set("recommendCourse", this.recommendCourse);
         item.save().then(
           () => {
             this.currParents.id = "0";

@@ -1,4 +1,7 @@
+import '../../static/urlconfig'
+
 export const urlConfig = () => {
+  console.log(window.SysConfig)
   return {
     VirtualDir: process.env.NODE_ENV === 'development' ? '/admin/' : window.SysConfig.VirtualDir,
     mainApiUrl: process.env.NODE_ENV === 'development' ? 'http://localhost:8081/api/' : window.SysConfig.mainApiUrl,

@@ -363,7 +363,7 @@ export default {
      */
     add_subjects() {
       var self = this;
-      console.log(self.subject_form.has_down_level + "wsedawedqwD=---------");
+
       var subjects = this.ParseServer.Object.extend("Subjects");
       var subject = new subjects();
       if (this.subjectid) {
@@ -409,7 +409,7 @@ export default {
     },
     /** 更新父级科目 */
     updateParentPrice(parentId) {
-      console.log(+"wqdQW121111");
+ 
       var self = this;
       var query = new self.ParseServer.Query("Subjects");
       query.equalTo("parent_ID", parentId);

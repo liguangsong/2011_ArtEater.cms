@@ -91,7 +91,7 @@
             type="textarea"
             :rows="6"
            v-model="form.note"
-            placeholder="购买说明"
+            placeholder="注释"
             style="width:400px"
           ></Input>
         </FormItem>
@@ -192,7 +192,6 @@ export default {
     EditFormShow(row) {
       console.log(row);
       this.tagId = row.id;
-      console.log(this.tagId);
       this.isShowAddForm = true;
       this.window_title = "编辑标签管理";
       this.get_entity();
@@ -202,7 +201,6 @@ export default {
      *新增标签管理
      */
     add_tag() {
-      console.log(this.tagId);
       var datas = this.ParseServer.Object.extend("LabelManagement");
       var data = new datas();
       console.log(this.form);
@@ -350,11 +348,11 @@ export default {
       let nums = 0;
       console.log(this.labelId);
       let _this = this;
-      var query1 = new this.ParseServer.Query("coursesModule");
+      var query1 = new this.ParseServer.Query("CoursesModule");
       var ClassOfMyObject = this.ParseServer.Object.extend("LabelManagement");
       var queryId = ClassOfMyObject.createWithoutData(id);
       console.log(queryId);
-      query1.equalTo("tagId", queryId);
+      query1.equalTo("tag", queryId);
       query1.find().then((response) => {
         console.log(response.length);
         num = response.length;
@@ -363,14 +361,14 @@ export default {
       var ClassOfMyObject = this.ParseServer.Object.extend("LabelManagement");
       var queryId = ClassOfMyObject.createWithoutData(id);
       console.log(queryId);
-      query2.equalTo("tagId", queryId);
+      query2.equalTo("tag", queryId);
       query2.find().then((response) => {
         console.log(response.length);
         nums = response.length;
       });
       setTimeout(() => {
         this.labelDeletes(num, nums);
-      }, 500);
+      }, 200);
     },
 
     labelDeletes(num, nums) {

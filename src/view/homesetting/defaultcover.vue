@@ -142,7 +142,6 @@ export default {
      * 封面图上传完成
      */
     handleUploadComplate(urls) {
-      console.log(urls);
       this.form.surface = urls;
     },
 
@@ -165,7 +164,6 @@ export default {
             this.isShowAddForm = false;
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
@@ -186,9 +184,7 @@ export default {
      * 弹出编辑窗口
      */
     EditFormShow(row) {
-      console.log(row);
       this.Id = row.id;
-      console.log(this.Id);
       this.form.surface = row.surface;
       this.form.isUse = row.isUse;
       this.isShowAddForm = true;
@@ -200,10 +196,8 @@ export default {
      */
     add_cover() {
       this.form.updatedBy = this.ParseServer.User.current().toJSON().realname;
-      console.log(this.Id);
       var datas = this.ParseServer.Object.extend("DefaultCover");
       var data = new datas();
-      console.log(this.form);
       // 修改
       if (this.Id) {
         this.updated();
@@ -218,43 +212,15 @@ export default {
             this.page_list();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("保存失败");
           }
         );
-
-        // this.$refs["form"].validate((valid) => {
-        //   if (!valid) {
-        //     this.$Message.error("请检查表单项");
-        //     this.loading = false;
-        //     setTimeout(() => {
-        //       this.loading = true;
-        //     }, 100);
-        //     return false;
-        //   } else {
-        //     // 保存
-        //     data.set("surface", this.form.surface);
-        //     data.set("isUse", this.form.isUse);
-        //     data.save().then(
-        //       (data) => {
-        //         this.$Message.success("保存成功");
-        //         this.page_list();
-        //       },
-        //       (error) => {
-        //         console.log(error);
-        //         this.$Message.error("保存失败");
-        //       }
-        //     );
-        //   }
-        // });
       }
     },
 
     updated() {
-      console.log(this.Id);
       var query = new this.ParseServer.Query("DefaultCover");
       query.get(this.Id).then((item) => {
-        console.log(item);
         item.set("updatedBy", this.form.updatedBy);
         item.set("surface", this.form.surface);
         item.set("isUse", this.form.isUse);
@@ -264,7 +230,6 @@ export default {
             this.page_list();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
@@ -272,7 +237,6 @@ export default {
     },
 
     search() {
-      console.log(this.search_keyword);
       this.page = 1;
       this.page_list(this.page);
     },
@@ -293,12 +257,9 @@ export default {
       query.limit(this.pageSize);
       query.find().then(
         (list) => {
-          console.log(list);
           _this.datas = [];
           if (list && list.length > 0) {
-            console.log(list);
             list.forEach((item) => {
-              console.log(item.id);
               _this.datas.push({
                 id: item.id,
                 surface: item.get("surface"),
@@ -310,13 +271,11 @@ export default {
                 ),
               });
             });
-            console.log(this.datas);
           }
           this.isShowAddForm = false;
           this.loading = false;
         },
         (error) => {
-          console.log(error);
         }
       );
     },
@@ -326,11 +285,9 @@ export default {
       query_deletes.equalTo("objectId", id);
       query_deletes.limit(10000);
       query_deletes.find().then((response) => {
-        console.log(response);
         if (response && response.length > 0) {
           response.forEach((data) => {
             data.destroy().then((result) => {
-              console.log(result);
               this.$Message.success("删除成功");
               this.page_list();
             });
@@ -340,9 +297,7 @@ export default {
     },
 
     DelConfirmShow(row) {
-      console.log(row);
       var id = row.id;
-      console.log(id);
       let _this = this;
       this.$Modal.confirm({
         title: "删除提示",
@@ -350,7 +305,6 @@ export default {
         onOk: () => {
           var query = new this.ParseServer.Query("DefaultCover");
           query.get(id).then((response) => {
-            console.log(response.id);
             this.delete(id);
             // 删除当前组件
           });

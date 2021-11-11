@@ -302,7 +302,6 @@ export default {
           _this.show_windows = false;
         },
         error => {
-          console.log(error);
           _this.$Message.error("提交失败");
         }
       );

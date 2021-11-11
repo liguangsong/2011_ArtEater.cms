@@ -114,7 +114,7 @@
       @on-ok="add_Course"
     >
 
-    <div style="display: flex;
+    <div v-if="isCourseCompileAdd == 1" style="display: flex; 
     justify-content: start;align-items: center;">
       <div class="search-keyword" style="width:250px">
           <Input
@@ -185,8 +185,8 @@
                </Table>
 
    <!-- 父级课程系列课程-子课程 -->
-      <Table :loading="loading" v-if="currParent.id > '0'" :columns="courses_columns3" :data="courses_datas" style="margin-top:10px">
-                 <template slot-scope="{ row }" slot="subjectName"> 
+      <Table :loading="loading" v-if="currParent.id > '0'"  :columns="status == 1?courses_columns3:courses_columns2" :data="status == 1?courses_datas:courses_datas2" style="margin-top:10px">
+                 <template slot-scope="{ row }" slot="subjectName" v-if="status == 1"> 
                        <div>
                          <span v-if='row.has_down_level && row.flag == 1'  @click="subjectNameClick(row)" style="color:#57a3f3;
                         cursor: pointer;
@@ -196,12 +196,12 @@
 
                    </template> 
                  
-               <template slot-scope="{ row }" slot="isVipCourse"> 
+               <template slot-scope="{ row }" slot="isVipCourse" v-if="status == 1"> 
                      <span v-if="row.isVipCourse">是</span>
                       <span v-else>否</span>
                 </template> 
                 
-                 <template slot-scope="{ row }" slot="radio">
+                 <template slot-scope="{ row }" slot="radio" v-if="status == 1">
                       <div v-if="row.flag == 1" >
                          <span v-if="row.level>0 && row.kind !=4">
                           <input type="radio" v-model="radioData" :value="row.id" />
@@ -213,12 +213,22 @@
                  
                     </template>
 
-                       <template slot-scope="{ row }" slot="action"> 
+                       <template slot-scope="{ row }" slot="action" v-if="status == 1"> 
                        <div v-if="row.flag == 1">
                           <span v-if="row.has_down_level" style="margin-right:5px;cursor: pointer;" @click="ShowChildrens(row)">查看下一级</span>
                          <span v-if="row.level > 0" style="margin-right:5px;cursor: pointer;"  @click="ShowParents(row)">查看上一级</span>
                        </div>
                    </template> 
+
+
+                          <template slot-scope="{ row }" slot="surface"  v-if="status == 2"> 
+                    <img :src="row.surface" alt="" srcset="" style="width:85px;">
+                 </template> 
+
+                 <template slot-scope="{ row }" slot="actions"  v-if="status == 2"> 
+                     <span @click="compile(row)">编辑</span>
+                     <span style="margin-left:6px" @click="deletes(row)">删除</span>
+                 </template> 
 
                </Table>
 
@@ -262,16 +272,16 @@
             placeholder="请输入标题名称"
           ></Input>
         </FormItem>
-            <FormItem label="副标题:" prop="subheading">
+            <FormItem label="副标题:" prop="subTitle">
           <Input
-            v-model="course_form.subheading"
+            v-model="course_form.subTitle"
             placeholder="请输入副标题"
           ></Input>
         </FormItem>
 
-          <FormItem label="基数:" prop="cardinalNum">
+          <FormItem label="基数:" prop="baseNum">
           <Input
-            v-model="course_form.cardinalNum"
+            v-model="course_form.baseNum"
             placeholder="请输入基数"
           ></Input>
         </FormItem>
@@ -283,9 +293,9 @@
           ></Input>
         </FormItem>
         
-        <FormItem label="展示顺序:" prop="displayOrder">
+        <FormItem label="展示顺序:" prop="order">
           <Input
-            v-model="course_form.displayOrder"
+            v-model="course_form.order"
             placeholder="请输入展示顺序"
           ></Input>
         </FormItem>
@@ -356,8 +366,8 @@ export default {
         { title: "选择", key: "radio", slot: "radio", width: 80 },
         { title: "ID", key: "id" },
         { title: "课程标题", key: "subjectName", slot: "subjectName" },
-        { title: "副标题1", key: "subheadingOne" },
-        { title: "副标题2", key: "subheadingTwo" },
+        { title: "副标题1", key: "subTitle1" },
+        { title: "副标题2", key: "subTitle2" },
         { title: "讲师", key: "lecturerName" },
         {
           title: "VIP课程",
@@ -385,12 +395,12 @@ export default {
       // 编辑课程
       courses_columns2: [
         { title: "课程标题", key: "title" },
-        { title: "课程副标题", key: "subheading" },
+        { title: "课程副标题", key: "subTitle" },
         { title: "封面图", key: "surface", slot: "surface" },
         { title: "原课程标题", key: "subjectName", width: 80 },
         {
           title: "展示顺序",
-          key: "displayOrder",
+          key: "order",
         },
         { title: "更新时间", key: "updatedAt" },
         { title: "操作", key: "action", width: 200, slot: "actions" },
@@ -406,10 +416,10 @@ export default {
       course_form: {
         surface: [], //封面图
         title: "", //标题
-        subheading: "", //副标题
-        displayOrder: "", //展示顺序
+        subTitle: "", //副标题
+        order: "", //展示顺序
         N: "",
-        cardinalNum: "", //基数
+        baseNum: "", //基数
       },
       ruleValidate: {
         name: [{ required: true, message: "请输入模块名称", trigger: "blur" }],
@@ -429,7 +439,7 @@ export default {
           },
         ],
 
-        displayOrder: [
+        order: [
           {
             required: true,
             trigger: "blur",
@@ -473,7 +483,7 @@ export default {
             },
           },
         ],
-        cardinalNum: [
+        baseNum: [
           {
             required: true,
             message: "请输入基数",
@@ -497,9 +507,7 @@ export default {
   },
 
   mounted() {
-    console.log(this.ParseServer.User.current().toJSON());
     this.form.updatedBy = this.ParseServer.User.current().toJSON().realname;
-    console.log(this.form.updatedBy);
     this.page_list(this.page);
   },
   methods: {
@@ -507,14 +515,12 @@ export default {
      * 封面图上传完成
      */
     handleUploadComplate(urls) {
-      console.log(urls);
       this.form.surface = urls;
     },
 
     get_entity() {
       var query = new this.ParseServer.Query("Module");
       query.get(this.id).then((res) => {
-        console.log(res);
         this.form.name = res.get("name");
         this.form.showAmount = res.get("showAmount");
         this.form.order = res.get("order");
@@ -523,7 +529,6 @@ export default {
 
     /** 弹出添加新增模块分类弹框 */
     addModule() {
-      console.log(this.form.updatedBy);
       this.id = "";
       this.form = {
         name: "", //模块名称
@@ -538,9 +543,7 @@ export default {
      * 弹出编辑窗口
      */
     EditFormShow(row) {
-      console.log(row);
       this.id = row.id;
-      console.log(this.id);
       this.isShowAddForm = true;
       this.window_title = "编辑模块管理";
       this.get_entity();
@@ -551,18 +554,13 @@ export default {
      */
     add_moudles() {
       this.form.updatedBy = this.ParseServer.User.current().toJSON().realname;
-      console.log("AS");
-      console.log(this.form);
-      console.log(this.id);
       var datas = this.ParseServer.Object.extend("Module");
       var data = new datas();
-      console.log(this.form);
       // 修改
       if (this.id) {
         this.updated();
       } else {
         this.$refs["form"].validate((valid) => {
-          console.log(valid);
           if (!valid) {
             this.$Message.error("请检查表单项");
             this.modalLoading = false;
@@ -571,7 +569,6 @@ export default {
             }, 100);
             return false;
           } else {
-            console.log(this.form.updatedBy);
             // 保存
             data.set("updatedBy", this.form.updatedBy);
             data.set("name", this.form.name);
@@ -583,7 +580,6 @@ export default {
                 this.page_list();
               },
               (error) => {
-                console.log(error);
                 this.$Message.error("保存失败");
               }
             );
@@ -593,14 +589,11 @@ export default {
     },
 
     updated() {
-      console.log(this.form.updatedBy);
-      console.log(this.id);
       var query = new this.ParseServer.Query("Module");
       query.get(this.id).then((item) => {
-        console.log(item);
         item.set("updatedBy", this.form.updatedBy);
         item.set("name", this.form.name);
-        item.set("showAmount", this.form.showAmount);
+        item.set("showAmount", Number(this.form.showAmount));
         item.set("order", Number(this.form.order));
         item.save().then(
           (item) => {
@@ -608,7 +601,6 @@ export default {
             this.page_list();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
@@ -616,7 +608,6 @@ export default {
     },
 
     search() {
-      console.log(this.search_keyword);
       this.page = 1;
       this.page_list(this.page);
     },
@@ -642,12 +633,9 @@ export default {
       query.limit(this.pageSize);
       query.find().then(
         (list) => {
-          console.log(list);
           _this.datas = [];
           if (list && list.length > 0) {
-            console.log(list);
             list.forEach((item) => {
-              console.log(item.id);
               let query1 = new this.ParseServer.Query(
                 "ModuleAssociatedCourses"
               );
@@ -657,7 +645,6 @@ export default {
               var moduleId = moduleClass.createWithoutData(item.id);
               query1.equalTo("module", moduleId);
               query1.count().then((count) => {
-                console.log(count);
                 item.counts = count;
               });
               setTimeout(() => {
@@ -675,15 +662,11 @@ export default {
                 });
               }, 300);
             });
-            console.log(list);
-            console.log(this.datas);
           }
           this.isShowAddForm = false;
           this.loading = false;
         },
-        (error) => {
-          console.log(error);
-        }
+        (error) => {}
       );
     },
 
@@ -692,12 +675,10 @@ export default {
       query_deletes.equalTo("objectId", id);
       query_deletes.limit(10000);
       query_deletes.find().then((response) => {
-        console.log(response);
         if (response && response.length > 0) {
           //删除模块关联的关系表课程
           response.forEach((data) => {
             data.destroy().then((result) => {
-              console.log(result);
               this.deleteModuleAssociatedCourses(id);
             });
           });
@@ -709,23 +690,19 @@ export default {
       var query3 = new this.ParseServer.Query("ModuleAssociatedCourses");
       var ClassOfMyObject = this.ParseServer.Object.extend("Module");
       var queryId = ClassOfMyObject.createWithoutData(id);
-      console.log(queryId);
+
       query3.equalTo("module", queryId);
       query3.find().then((response) => {
-        console.log(response);
         response.forEach((data) => {
-          data.destroy().then((result) => {
-            console.log(result);
-          });
+          data.destroy().then((result) => {});
         });
         this.page_list();
       });
     },
 
     DelConfirmShow(row) {
-      console.log(row);
       var id = row.id;
-      console.log(id);
+
       let _this = this;
       this.$Modal.confirm({
         title: "删除提示",
@@ -733,7 +710,6 @@ export default {
         onOk: () => {
           var query = new this.ParseServer.Query("Module");
           query.get(id).then((response) => {
-            console.log(response.id);
             this.delete(id);
             // 删除当前组件
           });
@@ -747,21 +723,19 @@ export default {
     /** 查看上一级 */
     ShowParents(row) {
       this.route.pop();
-      console.log(this.route);
+
       this.currLevel -= 1;
       this.currParent = this.route[this.route.length - 1];
-      console.log(this.currParent);
-      console.log(this.route);
+
       this.pages = 1;
       this.addCourseList(1);
     },
     /** 查看下一级 */
     ShowChildrens(row) {
-      console.log("wecqw ");
       this.route.push(row);
       this.currLevel += 1;
       this.currParent = row;
-      console.log(this.currParent);
+
       this.pages = 1;
       this.addCourseList(1);
     },
@@ -776,10 +750,10 @@ export default {
       (this.course_form = {
         surface: [], //封面图
         title: "", //标题
-        subheading: "", //副标题
-        displayOrder: "", //展示顺序
+        subTitle: "", //副标题
+        order: "", //展示顺序
         N: "",
-        cardinalNum: "", //基数
+        baseNum: "", //基数
       }),
         (this.isCourseCompileAdd = 1);
       this.moduleId = row.id;
@@ -800,12 +774,10 @@ export default {
       this.isCourseCompileAdd = 2;
       this.status = 2;
       this.search_keywords = "";
-      this.isShowAddCourse = true;
       let _this = this;
       const query = new this.ParseServer.Query("ModuleAssociatedCourses");
       var ClassOfMyObject = this.ParseServer.Object.extend("Module");
       var moudleId = ClassOfMyObject.createWithoutData(id);
-      console.log(moudleId);
       query.equalTo("module", moudleId);
       query.descending("createdAt");
       query.count().then((count) => {
@@ -820,18 +792,16 @@ export default {
           _this.courses_datas2 = [];
           if (list && list.length > 0) {
             list.forEach((item) => {
-              // console.log(item.get("module").id);
-              // console.log(item.get("course").attributes.subjectName);
               _this.courses_datas2.push({
                 id: item.id,
                 title: item.get("title"),
-                subheading: item.get("subheading"),
+                subTitle: item.get("subTitle"),
                 surface: item.get("surface"),
                 subjectName: item.get("course").attributes.subjectName,
                 rawCourseId: item.get("course").id,
-                displayOrder: item.get("displayOrder"),
+                order: item.get("order"),
                 N: item.get("N"),
-                cardinalNum: item.get("cardinalNum"),
+                baseNum: item.get("baseNum"),
                 courseId: item.get("id"),
                 moduleId: item.get("module").id,
                 // isVipLook: item.get("isVipLook"),
@@ -841,7 +811,6 @@ export default {
                 ),
               });
             });
-            console.log(this.courses_datas2);
           }
           // this.loading = false;
         },
@@ -849,11 +818,11 @@ export default {
           // debugger;
         }
       );
+      this.isShowAddCourse = true;
     },
 
     // 系列课程单击事件
     subjectNameClick(row) {
-      console.log(row);
       this.pages = 1;
       this.route.push(row);
       this.currLevel += 1;
@@ -864,16 +833,15 @@ export default {
     // 添加课程list
     addCourseList() {
       let _this = this;
-      console.log(this.currParent.id);
-      console.log(this.search_keywords + "关键字         11");
-      const query1 = new this.ParseServer.Query("coursesModule");
+
+      const query1 = new this.ParseServer.Query("CoursesModule");
       query1.equalTo("parent_ID", this.currParent.id);
-      const query3 = new this.ParseServer.Query("coursesModule");
+      const query3 = new this.ParseServer.Query("CoursesModule");
       if (this.search_keywords) {
         query3.contains("subjectName", this.search_keywords);
       }
       if (this.currParent.id == 0) {
-        const query2 = new this.ParseServer.Query("coursesModule");
+        const query2 = new this.ParseServer.Query("CoursesModule");
         query2.equalTo("flag", 2);
         var query = new this.ParseServer.Query.and(
           new this.ParseServer.Query.or(query1, query2),
@@ -895,19 +863,17 @@ export default {
         (list) => {
           _this.courses_datas = [];
           if (list && list.length > 0) {
-            console.log(list[0].id);
             if (this.isCourseCompileAdd == 1 && this.currParent.id == 0) {
               this.radioData = list[0].id;
             }
             list.forEach((item) => {
-              console.log(item.get("tagId"));
               _this.courses_datas.push({
                 id: item.id,
                 flag: item.get("flag"),
                 subjectName: item.get("subjectName"),
                 updatedBy: item.get("updatedBy"),
-                subheadingOne: item.get("subheadingOne"),
-                subheadingTwo: item.get("subheadingTwo"),
+                subTitle1: item.get("subTitle1"),
+                subTitle2: item.get("subTitle2"),
                 order: item.get("order"),
                 lecturerName: item.get("lecturerName"),
                 isVipCourse: item.get("isVipCourse"),
@@ -934,8 +900,6 @@ export default {
 
     //添加课程
     add_Course() {
-      console.log("123");
-      console.log(this.isCourseCompileAdd);
       if (this.isCourseCompileAdd == 2) {
         if (this.isCourseCompile == 1) {
           this.isShowAddCourse = false;
@@ -957,13 +921,10 @@ export default {
     },
 
     add_Course2() {
-      console.log(this.radioData + "课程id");
-      console.log("添加课程");
       var datas = this.ParseServer.Object.extend("ModuleAssociatedCourses");
       var data = new datas();
-      console.log(this.form);
+
       this.$refs["form"].validate((valid) => {
-        console.log(valid);
         if (!valid) {
           this.$Message.error("请检查表单项");
           this.modalLoading = false;
@@ -975,7 +936,7 @@ export default {
           // 保存
           if (this.isCourseCompileAdd == 1) {
             // 课程id
-            var coursesClass = this.ParseServer.Object.extend("coursesModule");
+            var coursesClass = this.ParseServer.Object.extend("CoursesModule");
             var coursesId = coursesClass.createWithoutData(this.radioData);
 
             // 模块id
@@ -985,10 +946,10 @@ export default {
             // 保存
             data.set("surface", this.course_form.surface);
             data.set("title", this.course_form.title);
-            data.set("subheading", this.course_form.subheading);
-            data.set("displayOrder", Number(this.course_form.displayOrder));
+            data.set("subTitle", this.course_form.subTitle);
+            data.set("order", Number(this.course_form.order));
             data.set("N", Number(this.course_form.N));
-            data.set("cardinalNum", Number(this.course_form.cardinalNum));
+            data.set("baseNum", Number(this.course_form.baseNum));
             data.set("module", moduleId);
             data.set("course", coursesId);
             data.save().then(
@@ -999,12 +960,10 @@ export default {
                 this.page_list();
               },
               (error) => {
-                console.log(error);
                 this.$Message.error("保存失败");
               }
             );
           } else {
-            console.log("qwdqwD");
             //修改
             this.isUpdateCourse(this.courseId);
           }
@@ -1014,12 +973,9 @@ export default {
 
     //  修改课程
     isUpdateCourse(id) {
-      console.log("修改");
-
       var query = new this.ParseServer.Query("ModuleAssociatedCourses");
       query.get(id).then((item) => {
-        console.log(item);
-        var coursesClass = this.ParseServer.Object.extend("coursesModule");
+        var coursesClass = this.ParseServer.Object.extend("CoursesModule");
         var coursesId = coursesClass.createWithoutData(this.radioData);
 
         // 模块id
@@ -1029,10 +985,10 @@ export default {
         // 保存
         item.set("surface", this.course_form.surface);
         item.set("title", this.course_form.title);
-        item.set("subheading", this.course_form.subheading);
-        item.set("displayOrder", Number(this.course_form.displayOrder));
+        item.set("subTitle", this.course_form.subTitle);
+        item.set("order", Number(this.course_form.order));
         item.set("N", Number(this.course_form.N));
-        item.set("cardinalNum", Number(this.course_form.cardinalNum));
+        item.set("baseNum", Number(this.course_form.baseNum));
         item.set("module", moduleId);
         item.set("course", coursesId);
         item.save().then(
@@ -1043,7 +999,6 @@ export default {
             this.page_list();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
@@ -1052,17 +1007,16 @@ export default {
 
     // 模块内课程编辑
     compile(row) {
-      console.log(row);
       this.status = 1;
       this.isCourseCompile = 2;
       this.courseId = row.id;
       this.course_form.radioData = row.rawCourseId;
       this.course_form.title = row.title;
-      this.course_form.subheading = row.subheading;
+      this.course_form.subTitle = row.subTitle;
       this.course_form.surface = row.surface;
-      this.course_form.displayOrder = row.displayOrder;
+      this.course_form.order = row.order;
       this.course_form.N = row.N;
-      this.course_form.cardinalNum = row.cardinalNum;
+      this.course_form.baseNum = row.baseNum;
       this.moduleId = row.moduleId; //模块id
       this.isCourseCompileAdd = 2;
       this.$nextTick(() => {
@@ -1077,17 +1031,13 @@ export default {
 
     // 模块内课程删除
     deletes(row) {
-      console.log(row);
-      console.log(row.id);
       var query_deletes = new this.ParseServer.Query("ModuleAssociatedCourses");
       query_deletes.equalTo("objectId", row.id);
       query_deletes.limit(10000);
       query_deletes.find().then((response) => {
-        console.log(response);
         if (response && response.length > 0) {
           response.forEach((data) => {
             data.destroy().then((result) => {
-              console.log(result);
               this.$Message.success("删除成功");
               this.editCourseClick(row.moduleId);
               this.page_list();

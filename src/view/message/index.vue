@@ -2,8 +2,13 @@
   <div class="container-wrap">
     <div class="header-wrap clear-fix">
       <div class="search-wrap clear-fix">
-        <div class="search-keyword" style="width:300px">
-          <Input v-model="search_keyword" size="large" placeholder="请输入ID/主题" style="width:300px" />
+        <div class="search-keyword" style="width: 300px">
+          <Input
+            v-model="search_keyword"
+            size="large"
+            placeholder="请输入ID/主题"
+            style="width: 300px"
+          />
         </div>
         <div class="search-btn">
           <Button type="primary" @click="search" size="large">查询</Button>
@@ -11,17 +16,19 @@
       </div>
 
       <div class="operation-wrap clear-fix">
-        <Button class="func" type="success" @click="show_window = true">发布消息</Button>
+        <Button class="func" type="success" @click="show_window = true"
+          >发布消息</Button
+        >
       </div>
     </div>
     <Row class="table-wrap">
       <Table :loading="loading" :columns="columns" :data="message_datas">
         <template slot-scope="{ row }" slot="content">
-          <div style="margin:10px 0">{{row.content}}</div>
+          <div style="margin: 10px 0">{{ row.content }}</div>
         </template>
       </Table>
       <div class="page-wrap">
-        <Page :total="total" @on-change="pagechange"  v-if="total!=0" />
+        <Page :total="total" @on-change="pagechange" v-if="total != 0" />
       </div>
     </Row>
     <Modal
@@ -43,7 +50,12 @@
           <Input v-model="message_form.title" placeholder="请输入主题"></Input>
         </FormItem>
         <FormItem label="内容" prop="content">
-          <Input type="textarea" :rows="15" v-model="message_form.content" placeholder="请输入内容"></Input>
+          <Input
+            type="textarea"
+            :rows="15"
+            v-model="message_form.content"
+            placeholder="请输入内容"
+          ></Input>
         </FormItem>
       </Form>
     </Modal>
@@ -51,11 +63,11 @@
 </template>
 
 <script>
-import { tool } from '@/api/tool'
+import { tool } from "@/api/tool";
 import { verification } from "@/api/verification";
 export default {
   name: "messageindex",
-  data () {
+  data() {
     return {
       close: false,
       page: 1,
@@ -66,16 +78,26 @@ export default {
       show_window: false,
       search_keyword: "",
       columns: [
-        { title: "ID",key: "id", width: 130 },
-        { title: "时间",key: "createdAt", width: 180,
-          render:(h, params)=>{
-            var txt = tool.dateFormat(params.row.createdAt, 'yyyy-MM-dd HH:mm:ss')
-            return h('div', txt)
-          } 
+        { title: "ID", key: "id", width: 130 },
+        {
+          title: "时间",
+          key: "createdAt",
+          width: 180,
+          render: (h, params) => {
+            var txt = tool.dateFormat(
+              params.row.createdAt,
+              "yyyy-MM-dd HH:mm:ss"
+            );
+            return h("div", txt);
+          },
         },
         { title: "主题", key: "title", width: 200 },
-        { title: "内容", key: "content", slot: 'content' },
-        { title: "操作", key: "action", align: "center", width: 150,
+        { title: "内容", key: "content", slot: "content" },
+        {
+          title: "操作",
+          key: "action",
+          align: "center",
+          width: 150,
           render: (h, params) => {
             var button = [
               h(
@@ -83,10 +105,10 @@ export default {
                 {
                   props: {
                     type: "primary",
-                    size: "small"
+                    size: "small",
                   },
                   style: {
-                    marginRight: "5px"
+                    marginRight: "5px",
                   },
                   on: {
                     click: () => {
@@ -94,8 +116,8 @@ export default {
                       this.get_entity();
                       this.show_window = true;
                       this.window_title = "编辑消息";
-                    }
-                  }
+                    },
+                  },
                 },
                 "编辑"
               ),
@@ -104,28 +126,28 @@ export default {
                 {
                   props: {
                     type: "error",
-                    size: "small"
+                    size: "small",
                   },
                   style: {
-                    marginRight: "5px"
+                    marginRight: "5px",
                   },
                   on: {
                     click: () => {
                       this.delete(params.row.id);
-                    }
-                  }
+                    },
+                  },
                 },
                 "删除"
-              )
+              ),
             ];
             return h("div", button);
-          }
-        }
+          },
+        },
       ],
       message_datas: [],
       message_form: {
         title: "",
-        content: ""
+        content: "",
       },
       ruleValidate: {
         title: [
@@ -133,23 +155,23 @@ export default {
             required: true,
             message: "请输入主题",
             trigger: "blur",
-            validator: verification.validateIsNull
-          }
+            validator: verification.validateIsNull,
+          },
         ],
         content: [
           {
             required: true,
             message: "请输入内容",
             trigger: "blur",
-            validator: verification.validateIsNull
-          }
-        ]
+            validator: verification.validateIsNull,
+          },
+        ],
       },
-      init_data: ""
+      init_data: "",
     };
   },
-  mounted () {
-    var self = this
+  mounted() {
+    var self = this;
     // var _users = new self.ParseServer.Query(self.ParseServer.User)
     // _users.equalTo('role', 'student')
     // _users.find().then(users=> {
@@ -215,32 +237,32 @@ export default {
     //         }
     //         let _score = bili * cash
     //         if(_score>0) {
-              // var ScoreRecords = self.ParseServer.Object.extend("ScoreRecord")
-              // var scoreRecord = new ScoreRecords()
-              // scoreRecord.set('openid', openId)
-              // scoreRecord.set('channel', 'shop')
-              // scoreRecord.set('score', _score)
-              // scoreRecord.set('extend', '') // 首次答题
-              // scoreRecord.save().then(()=>{
-                
-                // var _users = new self.ParseServer.Query(self.ParseServer.User)
-                // _users.equalTo('openid', openId)
-                // _users.first().then(user=> {
-                //   if(user){
-                //       if((!user.get('score_all') || user.get('score_all')==0)){
-                //         user.set('score_all', user.get('score') + _score)
-                //       } else {
-                //         user.set('score_all', user.get('score_all') + _score)
-                //       }
-                //       user.set('score', user.get('score')+ _score)
-                //       user.save().then(r=>{
-                //         debugger
-                //       },error=>{
-                //         debugger
-                //       })
-                //     }
-                //   })
-              // })
+    // var ScoreRecords = self.ParseServer.Object.extend("ScoreRecord")
+    // var scoreRecord = new ScoreRecords()
+    // scoreRecord.set('openid', openId)
+    // scoreRecord.set('channel', 'shop')
+    // scoreRecord.set('score', _score)
+    // scoreRecord.set('extend', '') // 首次答题
+    // scoreRecord.save().then(()=>{
+
+    // var _users = new self.ParseServer.Query(self.ParseServer.User)
+    // _users.equalTo('openid', openId)
+    // _users.first().then(user=> {
+    //   if(user){
+    //       if((!user.get('score_all') || user.get('score_all')==0)){
+    //         user.set('score_all', user.get('score') + _score)
+    //       } else {
+    //         user.set('score_all', user.get('score_all') + _score)
+    //       }
+    //       user.set('score', user.get('score')+ _score)
+    //       user.save().then(r=>{
+    //         debugger
+    //       },error=>{
+    //         debugger
+    //       })
+    //     }
+    //   })
+    // })
     //         }
     //     }
     //   })
@@ -254,7 +276,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 14:42:57
      */
-    cancel () {
+    cancel() {
       this.show_window = false;
       this.$refs["form"].resetFields();
       this.window_title = "法布消息";
@@ -266,8 +288,8 @@ export default {
      *作者：gzt
      *时间：2020-11-22 14:50:34
      */
-    add_message () {
-      this.$refs["form"].validate(valid => {
+    add_message() {
+      this.$refs["form"].validate((valid) => {
         if (valid) {
           var Messages = this.ParseServer.Object.extend("Message");
           var message = new Messages();
@@ -276,16 +298,16 @@ export default {
           }
           message.set("title", this.message_form.title);
           message.set("content", this.message_form.content);
-          debugger
+          debugger;
           message.save().then(
-            response => {
-              debugger
+            (response) => {
+              debugger;
               this.$Message.success("保存成功");
               this.cancel();
               this.page_list(this.page);
             },
-            error => {
-              debugger
+            (error) => {
+              debugger;
               this.$Message.error("保存失败");
             }
           );
@@ -300,10 +322,10 @@ export default {
      *作者：gzt
      *时间：2020-11-22 09:21:48
      */
-    get_entity () {
+    get_entity() {
       var query = new this.ParseServer.Query("Message");
-      query.get(this.message_id).then(response => {
-        Object.keys(this.message_form).forEach(key => {
+      query.get(this.message_id).then((response) => {
+        Object.keys(this.message_form).forEach((key) => {
           this.message_form[key] = response.get(key);
         });
       });
@@ -314,52 +336,51 @@ export default {
      *作者：gzt
      *时间：2020-11-21 23:30:19
      */
-    search () {
+    search() {
       this.page = 1;
       this.page_list(this.page);
     },
-    pagechange(e){
-      this.page = e
-      this.page_list()
+    pagechange(e) {
+      this.page = e;
+      this.page_list();
     },
     /*
      *分页加载数据
      *作者：gzt
      *时间：2020-11-21 23:30:27
      */
-    page_list (page_index) {
+    page_list(page_index) {
       this.loading = true;
 
       let query1 = new this.ParseServer.Query("Message");
-      query1.contains('objectId', this.search_keyword)
+      query1.contains("objectId", this.search_keyword);
       let query2 = new this.ParseServer.Query("Message");
-      query2.contains('title', this.search_keyword)
+      query2.contains("title", this.search_keyword);
       var query = this.ParseServer.Query.or(query1, query2);
       query.descending("createdAt");
-      query.count().then(count => {
+      query.count().then((count) => {
         this.total = count;
       });
       query.skip((this.page - 1) * 10);
       query.limit(10);
 
       query.find().then(
-        list => {
+        (list) => {
           this.message_datas = [];
           if (list && list.length > 0) {
-            this.message_datas = list.map(item => {
+            this.message_datas = list.map((item) => {
               var message = {
                 id: item.id,
                 title: item.get("title"),
                 content: item.get("content"),
-                createdAt: item.get("createdAt")
+                createdAt: item.get("createdAt"),
               };
               return message;
             });
           }
           this.loading = false;
         },
-        error => {
-          console.log(error);
+        (error) => {
           this.$Message.error("获取失败");
         }
       );
@@ -370,7 +391,7 @@ export default {
      *作者：gzt
      *时间：2020-11-22 08:41:53
      */
-    delete (subject_id) {
+    delete(subject_id) {
       let _this = this;
       this.$Modal.confirm({
         title: "删除提示",
@@ -378,29 +399,29 @@ export default {
         onOk: () => {
           var query = new this.ParseServer.Query("Message");
           query.get(subject_id).then(
-            response => {
+            (response) => {
               response.destroy().then(
-                delete_result => {
+                (delete_result) => {
                   this.$Message.success("删除成功");
-                  this.page = 1
+                  this.page = 1;
                   this.page_list(this.page);
                 },
-                error => {
+                (error) => {
                   this.$Message.error("删除失败");
                 }
               );
             },
-            error => {
+            (error) => {
               this.$Message.error("清确保删除的数据真实存在");
             }
           );
         },
         onCancel: () => {
           this.$Message.info("取消了操作");
-        }
+        },
       });
-    }
-  }
+    },
+  },
 };
 </script>
 
