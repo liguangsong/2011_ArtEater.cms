@@ -1660,7 +1660,6 @@ export default {
 
     // 介绍
     Editintroduce(data) {
-   
       this.courseId = data.id;
       this.get_entity();
       this.isIntroduce = true;
@@ -1668,7 +1667,6 @@ export default {
 
     //新增系列课程介绍
     add_introduce() {
-      
       var query = new this.ParseServer.Query("CoursesModule");
       query.get(this.courseId).then((item) => {
         item.set("introduce", this.form.introduce);
@@ -1684,12 +1682,10 @@ export default {
             this.$Message.error("修改失败");
           }
         );
-        
       });
     },
 
     search() {
-  
       this.page = 1;
       this.page_list(this.page);
     },
@@ -1704,7 +1700,6 @@ export default {
     },
 
     page_list(page_index) {
-   
       let _this = this;
       const query1 = new this.ParseServer.Query("CoursesModule");
       if (this.flag == 1) {
@@ -1755,12 +1750,9 @@ export default {
       query.limit(this.pageSize);
       query.find().then(
         (list) => {
-      
           _this.courses_datas = [];
           if (list && list.length > 0) {
-        
             list.forEach((item) => {
-            
               _this.courses_datas.push({
                 id: item.id,
                 flag: item.get("flag"),
@@ -1786,11 +1778,9 @@ export default {
                 ),
               });
             });
-           
           }
           // this.isShowAddForm = false;
           this.loading = false;
-      
         },
         (error) => {
           // debugger;
@@ -1799,7 +1789,6 @@ export default {
     },
 
     delete(parent_id) {
-      
       var query_deletes = new this.ParseServer.Query("CoursesModule");
       query_deletes.equalTo("parent_ID", parent_id);
       query_deletes.limit(10000);
@@ -1816,31 +1805,27 @@ export default {
     },
 
     DelConfirmShow(row) {
-    
       var id = row.id;
-   
+
       this.courseIds = [];
       let _this = this;
       var query1 = new this.ParseServer.Query("ModuleAssociatedCourses");
       var ClassOfMyObject = this.ParseServer.Object.extend("CoursesModule");
       var queryId = ClassOfMyObject.createWithoutData(id);
-      
+
       query1.equalTo("course", queryId);
       query1.find().then((response) => {
-    
         if (response.length > 0) {
           //如果模块有添加的课程 不能删除
           this.$Message.error("首页模块已有添加此课程,不能删除!");
         } else if (response.length <= 0) {
           this.childCourseIds(id);
           setTimeout(() => {
-       
             let arr1 = [];
             var query2 = new this.ParseServer.Query("ModuleAssociatedCourses");
             var ClassOfMyObject =
               this.ParseServer.Object.extend("CoursesModule");
             for (const key in this.courseIds) {
-           
               var queryIds = ClassOfMyObject.createWithoutData(
                 this.courseIds[key]
               );
@@ -1848,19 +1833,16 @@ export default {
             }
             query2.containedIn("course", arr1);
             query2.find().then((response) => {
-             
               if (response && response.length > 0) {
                 this.$Message.error("首页模块已添加此课程的子课程,不能删除!");
                 return;
               } else {
-            
                 this.$Modal.confirm({
                   title: "删除提示",
                   content: "<p>当前课程模块会被删除，确定要删除吗？</p>",
                   onOk: () => {
                     var query = new this.ParseServer.Query("CoursesModule");
                     query.get(id).then((response) => {
-                      
                       // 删除所有的子组件
                       this.delete(response.id);
                       // 删除当前组件
@@ -1924,20 +1906,16 @@ export default {
       query_deletes.find().then((response) => {
         if (response && response.length > 0) {
           response.forEach((data) => {
-         
             this.childCourseIds(data.id);
             this.courseIds.push(data.id);
           });
         }
       });
-      setTimeout(() => {
-
-      }, 1000);
+      setTimeout(() => {}, 1000);
     },
 
     // 系列课程单击事件
     subjectNameClick(data) {
-      
       this.pages = 1;
       this.currParents.id = data.id;
       this.recommendCourseList();
@@ -1945,22 +1923,19 @@ export default {
 
     //推荐课程
     recommendCourseClick(data) {
- 
       this.recommendCourseId = data.id;
       var query = new this.ParseServer.Query("CoursesModule");
       query.equalTo("objectId", this.recommendCourseId);
       query.find().then(
         (list) => {
           this.recommendCourse = [];
- 
+
           if (list && list.length > 0) {
             list.forEach((item) => {
-        
               if (item.get("recommendCourse")) {
                 this.recommendCourse = item.get("recommendCourse");
               }
             });
-          
           }
           // this.loading = false;
         },
@@ -1980,7 +1955,7 @@ export default {
     // 推荐课程list
     recommendCourseList() {
       let _this = this;
- 
+
       const query1 = new this.ParseServer.Query("CoursesModule");
       query1.equalTo("parent_ID", this.currParents.id);
 
@@ -2002,7 +1977,6 @@ export default {
           _this.recommend_courses_datas = [];
           if (list && list.length > 0) {
             list.forEach((item) => {
-         
               _this.recommend_courses_datas.push({
                 id: item.id,
                 flag: item.get("flag"),
@@ -2039,7 +2013,10 @@ export default {
 
     //添加推荐课程
     add_RecommendCourse() {
-  
+      console.log(this.recommendCourse);
+      // let recommendCourse = [...new Set(this.recommendCourses)].filter((item) => item);
+      // console.log(recommendCourse);
+      // console.log("add_RecommendCourse");
       var query = new this.ParseServer.Query("CoursesModule");
       query.get(this.recommendCourseId).then((item) => {
         item.set("recommendCourse", this.recommendCourse);

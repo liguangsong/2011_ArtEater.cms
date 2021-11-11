@@ -431,15 +431,18 @@ export default {
 
     page_list(page_index) {
       let _this = this;
-      let query1 = new this.ParseServer.Query("ModuleAssociatedCourses");
-      let query2 = new this.ParseServer.Query("ModuleAssociatedCourses");
+      let query = new this.ParseServer.Query("ModuleAssociatedCourses");
       if (this.search_keyword) {
+        console.log(this.search_keyword);
+        let query1 = new this.ParseServer.Query("ModuleAssociatedCourses");
+        let query2 = new this.ParseServer.Query("ModuleAssociatedCourses");
         query1.contains("title", this.search_keyword);
         query2.contains("objectId", this.search_keyword);
+        query = new this.ParseServer.Query.or(query1, query2);
       }
-      let query = new this.ParseServer.Query.and(
-        new this.ParseServer.Query.or(query1, query2)
-      );
+      // let query = new this.ParseServer.Query.and(
+      //   new this.ParseServer.Query.or(query1, query2)
+      // );
       query.equalTo("courseListening", 1);
       query.descending("createdAt");
       query.count().then((count) => {
@@ -472,8 +475,7 @@ export default {
           }
           this.loading = false;
         },
-        (error) => {
-        }
+        (error) => {}
       );
     },
 
@@ -581,20 +583,20 @@ export default {
       const query1 = new this.ParseServer.Query("CoursesModule");
       query1.equalTo("parent_ID", this.currParent.id);
       const query3 = new this.ParseServer.Query("CoursesModule");
+      query3.contains("subjectName", this.search_keywords);
       if (this.search_keywords) {
-        query3.contains("subjectName", this.search_keywords);
       }
       if (this.currParent.id == 0) {
         const query2 = new this.ParseServer.Query("CoursesModule");
         query2.equalTo("flag", 2);
         var query = new this.ParseServer.Query.and(
           new this.ParseServer.Query.or(query1, query2),
-          new this.ParseServer.Query.and(query3)
+          query3
         );
       } else {
         var query = new this.ParseServer.Query.and(
           new this.ParseServer.Query.or(query1),
-          new this.ParseServer.Query.and(query3)
+          query3
         );
       }
       query.descending("createdAt");
@@ -711,6 +713,7 @@ export default {
                     this.page_list();
                   },
                   (error) => {
+                    console.log(error);
                     this.$Message.error("保存失败");
                   }
                 );
@@ -762,6 +765,7 @@ export default {
                   this.page_list();
                 },
                 (error) => {
+                  console.log(error);
                   this.$Message.error("修改失败");
                 }
               );

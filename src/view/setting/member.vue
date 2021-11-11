@@ -169,7 +169,7 @@
               font-size: 18px;
             "
           >
-            <Button size="small" style="margin-right: 5px" @click="nextStep()"
+            <Button size="small" style="margin-right: 5px" @click="nextStep"
               >下一步</Button
             >
           </div>
@@ -192,7 +192,7 @@ export default {
   },
   data() {
     return {
-      surfaceId: 0,
+      surfaceId: 1,
       page: 1,
       pageSize: 10,
       total: 0,
@@ -225,15 +225,15 @@ export default {
       imgList: [
         {
           src: "https://art-eater.oss-cn-beijing.aliyuncs.com/video/heijin1.png",
-          id: 0,
-        },
-        {
-          src: "https://art-eater.oss-cn-beijing.aliyuncs.com/video/bojin2.png",
           id: 1,
         },
         {
-          src: "https://art-eater.oss-cn-beijing.aliyuncs.com/video/baiyin3.png",
+          src: "https://art-eater.oss-cn-beijing.aliyuncs.com/video/bojin2.png",
           id: 2,
+        },
+        {
+          src: "https://art-eater.oss-cn-beijing.aliyuncs.com/video/baiyin3.png",
+          id: 3,
         },
       ],
       member_form: {
@@ -308,7 +308,8 @@ export default {
   methods: {
     // 下一步
     nextStep() {
-      this.surfaceId == 2 ? (this.surfaceId = 0) : (this.surfaceId += 1);
+      this.surfaceId == 3 ? (this.surfaceId = 1) : (this.surfaceId += 1);
+      console.log(this.surfaceId);
     },
     cancel() {},
     handleVChange(r) {
@@ -347,7 +348,7 @@ export default {
     },
     /** 弹出添加会员设置分类弹框 */
     addClassify() {
-      this.surfaceId = 0;
+      this.surfaceId = 1;
       this.memberId = "";
       this.member_form = {
         typeName: "", //会员类型名称

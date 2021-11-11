@@ -173,18 +173,20 @@ export default {
   },
   methods: {
     users() {
+      let query = new this.ParseServer.Query(this.ParseServer.User);
       let user1 = new this.ParseServer.Query(this.ParseServer.User);
       user1.equalTo("role", "student");
-      let user2 = new this.ParseServer.Query(this.ParseServer.User);
-      let user3 = new this.ParseServer.Query(this.ParseServer.User);
       if (this.search_keywords) {
+        let user2 = new this.ParseServer.Query(this.ParseServer.User);
+        let user3 = new this.ParseServer.Query(this.ParseServer.User);
         user2.contains("nickName", this.search_keywords);
         user3.contains("phone", this.search_keywords);
+        query = new this.ParseServer.Query.and(
+          new this.ParseServer.Query.or(user2, user3),
+          user1
+        );
       }
-      var query = this.ParseServer.Query.and(
-        this.ParseServer.Query.or(user2, user3),
-        user1
-      );
+
       query.count().then((count) => {
         this.totals = count;
       });
@@ -324,14 +326,17 @@ export default {
     page_list(page_index) {
       this.loading = true;
       let user1 = new this.ParseServer.Query("MemberList");
+      user1.contains("realName", this.search_keyword);
       let user2 = new this.ParseServer.Query("MemberList");
+      user2.contains("nickName", this.search_keyword);
       let user3 = new this.ParseServer.Query("MemberList");
+      user3.contains("objectId", this.search_keyword);
+      // if (this.search_keyword) {
+      //   user1.contains("realName", this.search_keyword);
+      //   user2.contains("nickName", this.search_keyword);
+      //   user3.contains("objectId", this.search_keyword);
+      // }
       let user6 = new this.ParseServer.Query("MemberList");
-      if (this.search_keyword) {
-        user1.contains("realName", this.search_keyword);
-        user2.contains("nickName", this.search_keyword);
-        user3.contains("objectId", this.search_keyword);
-      }
       user6.notEqualTo("phone", "");
       let user4 = new this.ParseServer.Query("MemberList");
       if (this.search_start_date) {

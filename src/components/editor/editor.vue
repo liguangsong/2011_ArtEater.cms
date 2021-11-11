@@ -9,7 +9,6 @@
       style="display: none"
     />
     <quillEditor
-      class="ql-editor quillEditor"
       v-model="content"
       ref="myQuillEditor"
       :options="editorOption"
@@ -140,7 +139,7 @@ export default {
 .ql-editor {
   min-height: 300px;
 }
-.ql-editor p {
+.ql-editor {
   height: 300px;
 }
 .newsEdit .quillEditor img {

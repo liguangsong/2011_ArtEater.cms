@@ -144,8 +144,8 @@
                     <span v-if="row.flag == 2"> {{row.subjectName}}</span>
                    </template> 
                  
-               <template slot-scope="{ row }" slot="isVipCourse"  v-if="status == 1"> 
-                     <span v-if="row.isVipCourse">是</span>
+               <template slot-scope="{ row }" slot="vip"  v-if="status == 1"> 
+                     <span v-if="row.vip">是</span>
                       <span v-else>否</span>
                 </template> 
                    
@@ -196,8 +196,8 @@
 
                    </template> 
                  
-               <template slot-scope="{ row }" slot="isVipCourse" v-if="status == 1"> 
-                     <span v-if="row.isVipCourse">是</span>
+               <template slot-scope="{ row }" slot="vip" v-if="status == 1"> 
+                     <span v-if="row.vip">是</span>
                       <span v-else>否</span>
                 </template> 
                 
@@ -371,8 +371,8 @@ export default {
         { title: "讲师", key: "lecturerName" },
         {
           title: "VIP课程",
-          key: "isVipCourse",
-          slot: "isVipCourse",
+          key: "vip",
+          slot: "vip",
         },
         { title: "更新时间", key: "updatedAt" },
         { title: "操作", key: "action", width: 200, slot: "action" },
@@ -385,8 +385,8 @@ export default {
         { title: "课程标题", key: "subjectName", slot: "subjectName" },
         {
           title: "VIP课程",
-          key: "isVipCourse",
-          slot: "isVipCourse",
+          key: "vip",
+          slot: "vip",
         },
         { title: "更新时间", key: "updatedAt" },
         { title: "操作", key: "action", width: 200, slot: "action" },
@@ -845,12 +845,12 @@ export default {
         query2.equalTo("flag", 2);
         var query = new this.ParseServer.Query.and(
           new this.ParseServer.Query.or(query1, query2),
-          new this.ParseServer.Query.and(query3)
+          query3
         );
       } else {
         var query = new this.ParseServer.Query.and(
           new this.ParseServer.Query.or(query1),
-          new this.ParseServer.Query.and(query3)
+          query3
         );
       }
       query.descending("createdAt");
@@ -876,7 +876,7 @@ export default {
                 subTitle2: item.get("subTitle2"),
                 order: item.get("order"),
                 lecturerName: item.get("lecturerName"),
-                isVipCourse: item.get("isVipCourse"),
+                vip: item.get("vip"),
                 kind: item.get("kind"),
                 isHideCourse: item.get("isHideCourse"),
                 putaway: item.get("putaway"),
