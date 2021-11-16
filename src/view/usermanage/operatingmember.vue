@@ -176,17 +176,14 @@ export default {
       let query = new this.ParseServer.Query(this.ParseServer.User);
       let user1 = new this.ParseServer.Query(this.ParseServer.User);
       user1.equalTo("role", "student");
-      if (this.search_keywords) {
-        let user2 = new this.ParseServer.Query(this.ParseServer.User);
-        let user3 = new this.ParseServer.Query(this.ParseServer.User);
-        user2.contains("nickName", this.search_keywords);
-        user3.contains("phone", this.search_keywords);
-        query = new this.ParseServer.Query.and(
-          new this.ParseServer.Query.or(user2, user3),
-          user1
-        );
-      }
-
+      let user2 = new this.ParseServer.Query(this.ParseServer.User);
+      let user3 = new this.ParseServer.Query(this.ParseServer.User);
+      user2.contains("nickName", this.search_keywords);
+      user3.contains("phone", this.search_keywords);
+      query = new this.ParseServer.Query.and(
+        new this.ParseServer.Query.or(user2, user3),
+        user1
+      );
       query.count().then((count) => {
         this.totals = count;
       });
@@ -239,10 +236,8 @@ export default {
         return false;
       } else {
         let newDates = Date.now() + 1000 * 60 * 60 * 24 * 366;
-
         for (const key in this.addMember) {
           let openId = this.addMember[key].openId;
-
           var query = new this.ParseServer.Query("MemberList");
           query.equalTo("openId", openId);
           query.limit(10000);
@@ -254,6 +249,7 @@ export default {
                 data.set("phone", this.addMember[key].phone);
                 data.set("nickName", this.addMember[key].nickName);
                 data.set("realName", this.addMember[key].realName);
+                data.set("status", 2);
                 data.save().then(
                   () => {
                     this.page_list();
@@ -276,6 +272,7 @@ export default {
               member.set("phone", this.addMember[key].phone);
               member.set("nickName", this.addMember[key].nickName);
               member.set("realName", this.addMember[key].realName);
+              member.set("status", 2);
               member.save().then(
                 (member) => {
                   this.modalLoading = false;
@@ -331,13 +328,6 @@ export default {
       user2.contains("nickName", this.search_keyword);
       let user3 = new this.ParseServer.Query("MemberList");
       user3.contains("objectId", this.search_keyword);
-      // if (this.search_keyword) {
-      //   user1.contains("realName", this.search_keyword);
-      //   user2.contains("nickName", this.search_keyword);
-      //   user3.contains("objectId", this.search_keyword);
-      // }
-      let user6 = new this.ParseServer.Query("MemberList");
-      user6.notEqualTo("phone", "");
       let user4 = new this.ParseServer.Query("MemberList");
       if (this.search_start_date) {
         user4.greaterThan("createdAt", this.search_start_date);
@@ -346,6 +336,8 @@ export default {
       if (this.search_end_date) {
         user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
+      let user6 = new this.ParseServer.Query("MemberList");
+      user6.equalTo("status", 2);
       var query = this.ParseServer.Query.and(
         this.ParseServer.Query.or(user1, user2, user3),
         user4,

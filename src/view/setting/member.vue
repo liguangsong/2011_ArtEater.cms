@@ -224,15 +224,15 @@ export default {
       member_datas: [],
       imgList: [
         {
-          src: "https://art-eater.oss-cn-beijing.aliyuncs.com/video/heijin1.png",
+          src: "https://art-eater.oss-cn-beijing.aliyuncs.com/photo/%E9%BB%91%E9%87%91vip-%E8%AF%A6%E6%83%85%E9%A1%B5%E9%9D%A2.png",
           id: 1,
         },
         {
-          src: "https://art-eater.oss-cn-beijing.aliyuncs.com/video/bojin2.png",
+          src: "https://art-eater.oss-cn-beijing.aliyuncs.com/photo/%E9%93%82%E9%87%91vip-%E8%AF%A6%E6%83%85%E9%A1%B5%E9%9D%A2.png",
           id: 2,
         },
         {
-          src: "https://art-eater.oss-cn-beijing.aliyuncs.com/video/baiyin3.png",
+          src: "https://art-eater.oss-cn-beijing.aliyuncs.com/photo/%E7%99%BD%E9%93%B6vip-%E8%AF%A6%E6%83%85%E9%A1%B5%E9%9D%A2.png",
           id: 3,
         },
       ],
