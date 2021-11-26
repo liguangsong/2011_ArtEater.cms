@@ -46,6 +46,17 @@
         ref="form"
         :rules="ruleValidate"
       >
+        <FormItem label="封面图" prop="surface">
+          <div>
+            <img
+              v-if="message_form.surface[0]"
+              :src="message_form.surface[0]"
+              width="375"
+              height="200"
+            />
+          </div>
+          <myUpload @complate="handleUploadComplate" tips=""></myUpload>
+        </FormItem>
         <FormItem label="主题" prop="title">
           <Input v-model="message_form.title" placeholder="请输入主题"></Input>
         </FormItem>
@@ -64,9 +75,13 @@
 
 <script>
 import { tool } from "@/api/tool";
+import myUpload from "@/components/myUpload";
 import { verification } from "@/api/verification";
 export default {
   name: "messageindex",
+  components: {
+    myUpload,
+  },
   data() {
     return {
       close: false,
@@ -146,6 +161,7 @@ export default {
       ],
       message_datas: [],
       message_form: {
+        surface: [],
         title: "",
         content: "",
       },
@@ -271,6 +287,10 @@ export default {
     this.page_list(this.page);
   },
   methods: {
+    handleUploadComplate(urls) {
+      this.message_form.surface = [urls];
+    },
+
     /*
      *取消操作
      *作者：gzt
@@ -296,12 +316,13 @@ export default {
           if (this.message_id) {
             message.set("id", this.message_id);
           }
+          message.set("surface", this.message_form.surface);
           message.set("title", this.message_form.title);
           message.set("content", this.message_form.content);
-          debugger;
+          // debugger;
           message.save().then(
             (response) => {
-              debugger;
+              // debugger;
               this.$Message.success("保存成功");
               this.cancel();
               this.page_list(this.page);
@@ -325,9 +346,14 @@ export default {
     get_entity() {
       var query = new this.ParseServer.Query("Message");
       query.get(this.message_id).then((response) => {
-        Object.keys(this.message_form).forEach((key) => {
-          this.message_form[key] = response.get(key);
-        });
+        // Object.keys(this.message_form).forEach((key) => {
+        //   this.message_form[key] = response.get(key);
+        // });
+        response.get("surface")
+          ? (this.message_form.surface = response.get("surface"))
+          : [];
+        this.message_form.content = response.get("content");
+        this.message_form.title = response.get("title");
       });
     },
 

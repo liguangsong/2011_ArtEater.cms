@@ -6,8 +6,6 @@ import App from './App'
 import router from './router'
 import store from './store'
 import iView from 'iview'
-import Antd from 'ant-design-vue'
-import 'ant-design-vue/dist/antd.css'
 import i18n from '@/locale'
 import config from '@/config'
 import importDirective from '@/directive'
@@ -24,8 +22,7 @@ import VueQuillEditor from "vue-quill-editor";
 import 'quill/dist/quill.core.css';
 import 'quill/dist/quill.snow.css';
 import 'quill/dist/quill.bubble.css';
-Vue.use(VueQuillEditor, Antd)
-Vue.use(Antd)
+Vue.use(VueQuillEditor)
 
 import parse from 'parse'
 
