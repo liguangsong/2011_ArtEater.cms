@@ -46,6 +46,22 @@
         <Page :total="total" @on-change="pagechange" v-if="total > 0" />
       </div>
     </Row>
+
+    <Modal
+      v-model="isShowEdit"
+      :title="window_title"
+      mask
+      width="450"
+      scrollable
+      @on-ok="edit"
+    >
+      <Form label-position="left" :label-width="45">
+        <FormItem label="标签:">
+          <Input v-model="user_forms.label" placeholder="请输入标签"></Input>
+        </FormItem>
+      </Form>
+    </Modal>
+
     <Modal v-model="show_window" :title="window_title" @on-ok="cancel">
       <div
         class="form"
@@ -76,6 +92,10 @@
         <div class="myFormShow">
           <div class="head">姓名</div>
           <div class="cont">{{ user_forms.realname }}</div>
+        </div>
+           <div class="myFormShow">
+          <div class="head">标签</div>
+          <div class="cont">{{ user_forms.label }}</div>
         </div>
         <div class="myFormShow">
           <div class="head">手机号</div>
@@ -118,6 +138,7 @@ export default {
       page: 1,
       total: 0,
       loading: true,
+      isShowEdit: false,
       user_id: "",
       window_title: "用户信息",
       show_window: false,
@@ -127,6 +148,7 @@ export default {
       columns: [
         { title: "ID", key: "id" },
         { title: "昵称", key: "nickName" },
+        { title: "标签", key: "label" },
         { title: "姓名", key: "realname" },
         { title: "手机号", key: "phone" },
         {
@@ -153,6 +175,27 @@ export default {
                 "Button",
                 {
                   props: {
+                    type: "warning",
+                    size: "small",
+                  },
+                  style: {
+                    marginRight: "5px",
+                  },
+                  on: {
+                    click: () => {
+                      this.isShowEdit = true;
+                      this.user_forms.label = params.row.label;
+                      this.user_id = params.row.id;
+                      this.window_title = "标签编辑";
+                    },
+                  },
+                },
+                "编辑"
+              ),
+              h(
+                "Button",
+                {
+                  props: {
                     type: "info",
                     size: "small",
                   },
@@ -161,6 +204,7 @@ export default {
                   },
                   on: {
                     click: () => {
+                      this.window_title = "用户信息";
                       this.user_id = params.row.id;
                       this.show_window = true;
                       this.get_entity();
@@ -175,8 +219,10 @@ export default {
         },
       ],
       users_datas: [],
+      users_datas2: [],
       user_forms: {
         nickName: "",
+        label: "",
         realname: "",
         phone: "",
         amount: "",
@@ -194,6 +240,25 @@ export default {
     this.page_list(this.page);
   },
   methods: {
+    edit() {
+      console.log(this.user_forms.label);
+      var query = new this.ParseServer.Query(this.ParseServer.User);
+      query.get(this.user_id).then((item) => {
+        item.set("label", this.user_forms.label);
+        item.save().then(
+          () => {
+            this.page_list();
+            this.$Message.success("编辑成功");
+            this.isShowEdit = false;
+            // this.cancel();
+          },
+          (error) => {
+            this.$Message.error("编辑失败");
+          }
+        );
+      });
+      console.log("sdecwe");
+    },
     /*
      *取消操作
      *作者：gzt
@@ -226,6 +291,7 @@ export default {
     search() {
       this.page = 1;
       this.page_list(this.page);
+      this.page_list2();
     },
 
     pagechange(e) {
@@ -276,6 +342,7 @@ export default {
             this.users_datas = list.map((item) => {
               var account = {
                 id: item.id,
+                label: item.get("label"),
                 nickName: item.get("nickName"),
                 realname: item.get("realname"),
                 phone: item.get("phone"),
@@ -291,6 +358,66 @@ export default {
             });
           }
           this.loading = false;
+        },
+        (error) => {
+          this.$Message.error("用户列表获取失败");
+        }
+      );
+    },
+
+    async page_list2() {
+      console.log("sc");
+      let counts = 0;
+      let user1 = new this.ParseServer.Query(this.ParseServer.User);
+      user1.contains("realname", this.search_keyword);
+      user1.equalTo("role", "student");
+      let user2 = new this.ParseServer.Query(this.ParseServer.User);
+      user2.contains("phone", this.search_keyword);
+      user2.equalTo("role", "student");
+      let user3 = new this.ParseServer.Query(this.ParseServer.User);
+      user3.contains("nickName", this.search_keyword);
+      user3.equalTo("role", "student");
+      let user4 = new this.ParseServer.Query(this.ParseServer.User);
+      if (this.search_start_date) {
+        user4.greaterThan("createdAt", this.search_start_date);
+      }
+      let user5 = new this.ParseServer.Query(this.ParseServer.User);
+      if (this.search_end_date) {
+        user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+      }
+      var query = this.ParseServer.Query.and(
+        this.ParseServer.Query.or(user1, user2, user3),
+        user4,
+        user5
+      );
+      await query.count().then((count) => {
+        counts = count;
+      });
+      query.limit(counts);
+      query.descending("createdAt");
+      query.find().then(
+        (list) => {
+          this.users_datas2 = [];
+          if (list && list.length > 0) {
+            this.users_datas2 = list.map((item) => {
+              var account = {
+                id: item.id,
+                label: item.get("label"),
+                nickName: item.get("nickName"),
+                realname: item.get("realname"),
+                phone: item.get("phone"),
+                amount: item.get("amount"),
+                score: item.get("score"),
+                avatarUrl: item.get("avatarUrl"),
+                createdAt: tool.dateFormat(
+                  item.createdAt,
+                  "yyyy-MM-dd HH:mm:ss"
+                ),
+              };
+              return account;
+            });
+          }
+          console.log(this.users_datas2);
         },
         (error) => {
           this.$Message.error("用户列表获取失败");
@@ -335,50 +462,59 @@ export default {
     },
 
     // 全部导出
-    exports() {
-      const initColumn = [
-        {
-          title: "ID",
-          dataIndex: "id",
-          key: "id",
-        },
-        {
-          title: "昵称",
-          dataIndex: "nickName",
-          key: "nickName",
-        },
-        {
-          title: "姓名",
-          dataIndex: "realname",
-          key: "realname",
-        },
-        {
-          title: "手机号",
-          dataIndex: "phone",
-          key: "phone",
-        },
-        {
-          title: "注册时间",
-          dataIndex: "createdAt",
-          key: "createdAt",
-        },
-        {
-          title: "消费金额",
-          dataIndex: "amount",
-          key: "amount",
-        },
+    async exports() {
+      this.page_list2();
+      console.log(this.users_datas2);
+      setTimeout(() => {
+        const initColumn = [
+          {
+            title: "ID",
+            dataIndex: "id",
+            key: "id",
+          },
+          {
+            title: "昵称",
+            dataIndex: "nickName",
+            key: "nickName",
+          },
+          {
+            title: "姓名",
+            dataIndex: "realname",
+            key: "realname",
+          },
+          {
+            title: "标签",
+            dataIndex: "label",
+            key: "label",
+          },
+          {
+            title: "手机号",
+            dataIndex: "phone",
+            key: "phone",
+          },
+          {
+            title: "注册时间",
+            dataIndex: "createdAt",
+            key: "createdAt",
+          },
+          {
+            title: "消费金额",
+            dataIndex: "amount",
+            key: "amount",
+          },
 
-        {
-          title: "积分",
-          dataIndex: "score",
-          key: "score",
-        },
-      ];
-      excelUtil.exportExcel(
-        initColumn,
-        this.users_datas,
-        "学生管理数据记录.xlsx"
-      );
+          {
+            title: "积分",
+            dataIndex: "score",
+            key: "score",
+          },
+        ];
+        excelUtil.exportExcel(
+          initColumn,
+          this.users_datas2,
+          "学生管理数据记录.xlsx"
+        );
+      }, 3000);
     },
   },
 };
