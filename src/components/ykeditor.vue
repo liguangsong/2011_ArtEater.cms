@@ -229,7 +229,6 @@ export default {
         
     async change(val) {
       let newContent = val.match(/<img src="data:image[^>]*>/gi);
-      console.log(newContent,765)
       if(newContent){ 
         var srcReg = /src=[\'\"]?([^\'\"]*)[\'\"]?/i;
         let promises=[];
@@ -237,7 +236,6 @@ export default {
              let item=newContent[i];
               var arr = item.match(srcReg);  // arr 为包含所有img标签的数组
               let arr1=JSON.parse(JSON.stringify(arr[1]));
-                  console.log(122)
                   // 调用
                   const blob = await this.base64ToBlob(arr[1]);
                   const file = await this.blobToFile(blob, (new Date().getTime())+"_upPic");
@@ -257,7 +255,6 @@ export default {
                   promises.push(p)
            }
            Promise.all(promises).then((result) => {
-             console.log(result,443333)
              let arrs=[].concat.apply([],result);
                  this.$emit('change',val)
                   }).catch((error) => {
