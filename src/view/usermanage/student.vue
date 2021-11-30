@@ -322,8 +322,10 @@ export default {
       user1.contains("realname", this.search_keyword);
       user1.equalTo("role", "student");
       let user6 = new this.ParseServer.Query(this.ParseServer.User);
-      user6.contains("label", this.label);
-      user6.equalTo("role", "student");
+      if (this.label) {
+        user6.contains("label", this.label);
+        user6.equalTo("role", "student");
+      }
       let user2 = new this.ParseServer.Query(this.ParseServer.User);
       user2.contains("phone", this.search_keyword);
       user2.equalTo("role", "student");
@@ -388,8 +390,10 @@ export default {
       user1.contains("realname", this.search_keyword);
       user1.equalTo("role", "student");
       let user6 = new this.ParseServer.Query(this.ParseServer.User);
-      user6.contains("label", this.label);
-      user6.equalTo("role", "student");
+      if (this.label) {
+        user6.contains("label", this.label);
+        user6.equalTo("role", "student");
+      }
       let user2 = new this.ParseServer.Query(this.ParseServer.User);
       user2.contains("phone", this.search_keyword);
       user2.equalTo("role", "student");
