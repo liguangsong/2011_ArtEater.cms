@@ -7,17 +7,20 @@
             v-model="search_keyword"
             size="large"
             style="width: 200px"
-            placeholder="请输入ID/昵称/姓名/标签"
+            placeholder="请输入ID/昵称/姓名"
           />
         </div>
-        <!-- <div class="search-keyword" style="width: 200px">
-          <Input
-            v-model="label"
-            size="large"
-            style="width: 200px"
-            placeholder="请输入标签"
-          />
-        </div> -->
+        <div class="select-choice clear-fix" style="width: 300px">
+          <span>标签</span>
+          <div class="search-keyword" style="width: 200px">
+            <Input
+              v-model="label"
+              size="large"
+              style="width: 200px"
+              placeholder="请输入标签"
+            />
+          </div>
+        </div>
         <div class="select-choice clear-fix" style="width: 500px">
           <span>注册时间</span>
           <div class="date-picker-wrap clear-fix" style="width: 400px">
@@ -319,7 +322,7 @@ export default {
       user1.contains("realname", this.search_keyword);
       user1.equalTo("role", "student");
       let user6 = new this.ParseServer.Query(this.ParseServer.User);
-      user6.contains("label", this.search_keyword);
+      user6.contains("label", this.label);
       user6.equalTo("role", "student");
       let user2 = new this.ParseServer.Query(this.ParseServer.User);
       user2.contains("phone", this.search_keyword);
@@ -336,9 +339,10 @@ export default {
         user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
       var query = this.ParseServer.Query.and(
-        this.ParseServer.Query.or(user1, user2, user3, user6),
+        this.ParseServer.Query.or(user1, user2, user3),
         user4,
-        user5
+        user5,
+        user6
       );
       query.count().then((count) => {
         this.total = count;
@@ -384,7 +388,7 @@ export default {
       user1.contains("realname", this.search_keyword);
       user1.equalTo("role", "student");
       let user6 = new this.ParseServer.Query(this.ParseServer.User);
-      user6.contains("label", this.search_keyword);
+      user6.contains("label", this.label);
       user6.equalTo("role", "student");
       let user2 = new this.ParseServer.Query(this.ParseServer.User);
       user2.contains("phone", this.search_keyword);
@@ -401,9 +405,10 @@ export default {
         user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
       var query = this.ParseServer.Query.and(
-        this.ParseServer.Query.or(user1, user2, user3,user6),
+        this.ParseServer.Query.or(user1, user2, user3),
         user4,
-        user5
+        user5,
+        user6
       );
       await query.count().then((count) => {
         counts = count;
