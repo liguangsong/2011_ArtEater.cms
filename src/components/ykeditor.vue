@@ -11,6 +11,7 @@ import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor'
 import EssentialsPlugin from '@ckeditor/ckeditor5-essentials/src/essentials';
 import BoldPlugin from '@ckeditor/ckeditor5-basic-styles/src/bold';
 import ItalicPlugin from '@ckeditor/ckeditor5-basic-styles/src/italic';
+import Italicediting from '@ckeditor/ckeditor5-basic-styles/src/italic/italicediting'
 import LinkPlugin from '@ckeditor/ckeditor5-link/src/link';
 import ParagraphPlugin from '@ckeditor/ckeditor5-paragraph/src/paragraph';
 import Heading from '@ckeditor/ckeditor5-heading/src/heading';
@@ -44,7 +45,6 @@ import TableCellProperties from '@ckeditor/ckeditor5-table/src/tablecellproperti
 import List from "@ckeditor/ckeditor5-list/src/list";
 import TodoList from "@ckeditor/ckeditor5-list/src/todolist";
 import Strikethrough from "@ckeditor/ckeditor5-basic-styles/src/strikethrough"; //删除线
-import { forEach } from 'jszip';
 export default {
   name: 'ykEditor',
   components: {
@@ -110,7 +110,9 @@ export default {
           TableCellProperties,
           Strikethrough,
           List,
-          TodoList
+          TodoList,
+          // NumberedList,
+          Italicediting
         ],
         toolbar: {
           items: [
@@ -118,7 +120,7 @@ export default {
             // 'heading',
             // '|',
             'bold',
-            'italic',
+            // 'italic',
             // 'link',
             '|',
             'fontFamily',
@@ -139,10 +141,12 @@ export default {
             'Strikethrough',
             'list',
             'todoList',
+            'italicediting',
+            // 'numberedList',
             'undo',
             'redo',
           ],
-          // shouldNotGroupWhenFull:true //工具栏自动换行
+          shouldNotGroupWhenFull:true //工具栏自动换行
         },
         table: {
             contentToolbar: [ 'tableColumn', 'tableRow', 'mergeTableCells' ]
@@ -183,20 +187,20 @@ export default {
         fontSize: {
           options: [
             'default',
-                  12,
-                  14,
-                  16,
-                  18,
-                  20,
-                  22,
-                  24,
-                  26,
-                  28,
-                  30,
-                  32,
-                  34,
-                  36,
-                  38 
+                  '12px',
+                  '14px',
+                  '16px',
+                  '18px',
+                  '20px',
+                  '22px',
+                  '24px',
+                  '26px',
+                  '28px',
+                  '30px',
+                  '32px',
+                  '34px',
+                  '36px',
+                  '38px' 
           ],
           supportAllValues: true
         },
@@ -263,7 +267,6 @@ export default {
                     })
                   })
       }else{
-        console.log(val,'rrrrrr')
         this.$emit('change',val)
       }
           
