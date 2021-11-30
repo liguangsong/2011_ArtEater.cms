@@ -45,6 +45,8 @@ import TableCellProperties from '@ckeditor/ckeditor5-table/src/tablecellproperti
 import List from "@ckeditor/ckeditor5-list/src/list";
 import TodoList from "@ckeditor/ckeditor5-list/src/todolist";
 import Strikethrough from "@ckeditor/ckeditor5-basic-styles/src/strikethrough"; //删除线
+import HtmlComment from '@ckeditor/ckeditor5-html-support/src/htmlcomment';
+import GeneralHtmlSupport from '@ckeditor/ckeditor5-html-support/src/generalhtmlsupport';
 export default {
   name: 'ykEditor',
   components: {
@@ -112,7 +114,9 @@ export default {
           List,
           TodoList,
           // NumberedList,
-          Italicediting
+          Italicediting,
+          HtmlComment,
+          GeneralHtmlSupport
         ],
         toolbar: {
           items: [
