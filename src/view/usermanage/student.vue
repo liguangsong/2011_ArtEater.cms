@@ -250,6 +250,7 @@ export default {
   },
   mounted() {
     this.page_list(this.page);
+    this.page_list2();
   },
   methods: {
     edit() {
@@ -487,7 +488,6 @@ export default {
 
     // 全部导出
     async exports() {
-      this.page_list2();
       console.log(this.users_datas2);
       setTimeout(() => {
         const initColumn = [

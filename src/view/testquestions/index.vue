@@ -645,7 +645,6 @@ export default {
     },
     uploadImgIndex(val) {
       var self = this;
-      console.log("var:" + val);
       if (val == this.uploadImgCount && val != 0) {
         if (self.uploadIndex == self.uploadCount && self.uploadIndex > 0) {
           setTimeout(() => {
@@ -665,6 +664,7 @@ export default {
     var self = this;
     return {
       code: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      question_datas2: [],
       uploadCount: 0,
       uploadIndex: 0,
       uploadImgCount: 0,
@@ -790,6 +790,7 @@ export default {
   computed: {},
   mounted() {
     this.init_data = JSON.stringify(this.question_form);
+    this.page_list2();
     this.page_list(this.page);
     this.bindSubjectTree();
     this.handleGetMaxIndex();
@@ -801,16 +802,13 @@ export default {
       var query = new this.ParseServer.Query("LabelManagement");
       query.find().then((res) => {
         if (res) {
-          console.log(res);
           res.forEach((item) => {
-            console.log(item);
             self.tags.push({
               id: item.id,
               tagName: item.get("tagName"),
               annotation: item.get("annotation"),
             });
           });
-          console.log(self.tags);
         }
       });
     },
@@ -873,7 +871,6 @@ export default {
     },
     /** 编辑试题 */
     handleEditQuestion(row) {
-      console.log(row);
       this.show_window = true;
       this.question_form = {
         id: row.id,
@@ -893,7 +890,6 @@ export default {
           this.rightAnswer = item.code;
         }
       });
-      console.log(this.question_form.tagId);
     },
     /**
      * 切换题型
@@ -938,7 +934,6 @@ export default {
         }
       } else if (self.question_form.type == 4) {
         let txt = eval("/[(][)]/ig");
-        console.log(txt);
         var count =
           self.question_form.title.indexOf("()") == -1
             ? 0
@@ -958,7 +953,6 @@ export default {
           }
           self.question_form.options = _options;
         }
-        console.log(self.question_form.options);
       }
     },
     /** 添加答案 */
@@ -978,7 +972,6 @@ export default {
         });
       } else {
         option.value.push({ txt: "" });
-        console.log(option);
       }
     },
     /** 选择正确答案 */
@@ -1008,7 +1001,6 @@ export default {
           });
         }
       });
-      console.log(self.question_form.options);
     },
     /** 答案输入验证 */
     validateOptions: (rule, value, callback, self) => {
@@ -1049,7 +1041,6 @@ export default {
       if (hasNullContent) {
         callback(new Error("请输入答案"));
       }
-      console.log("answerCount:" + answerCount);
       if (answerCount == 0 && _question_form.type == 1) {
         callback(new Error("请选择正确答案"));
       } else if (_question_form.type == 4 && answerCount < value.length) {
@@ -1168,7 +1159,6 @@ export default {
      */
     add_questions() {
       var self = this;
-      console.log(this.question_form.tagId);
       var query = new this.ParseServer.Query("TestQuestions");
       query.descending("createdAt");
       query.first().then((res) => {
@@ -1193,7 +1183,6 @@ export default {
             }, 100);
             return false;
           } else {
-            console.log(this.tagId);
             if (self.question_form.tagId) {
               var ClassOfMyObject =
                 this.ParseServer.Object.extend("LabelManagement");
@@ -1237,12 +1226,10 @@ export default {
     bindSubjectTree() {
       var self = this;
       var query = new this.ParseServer.Query("Subjects");
-      console.log(query);
       query.limit(10000);
       query.ascending("createdAt");
       query.find().then((res) => {
         this.subjects = res;
-        console.log(this.subjects);
         var tree = self.initSubjectTree(res, "0");
         self.subjectTreeData = tree;
       });
@@ -1267,7 +1254,6 @@ export default {
         }
         treeValue.push(subject);
       });
-      console.log(treeValue);
       return treeValue;
     },
     /**
@@ -1695,7 +1681,6 @@ export default {
           resList.forEach((_question) => {
             if (_question.get("images")) {
               _question.get("images").forEach((_img, _idx) => {
-                console.log("正在导入图片：" + _img);
                 self.uploadImg(excelFile, _img).then((url) => {
                   let images = _question.get("images");
                   images[_idx] = url;
@@ -1963,6 +1948,7 @@ export default {
      *时间：2020-11-21 23:30:19
      */
     search() {
+      this.page_list2();
       this.page = 1;
       this.page_list(this.page);
     },
@@ -2106,10 +2092,142 @@ export default {
         }
       );
     },
+
+    async page_list2() {
+      console.log("cQW ");
+      let counts = 0;
+      var self = this;
+      let _this = this;
+
+      let querya = new this.ParseServer.Query("TestQuestions");
+      querya.contains("objectId", this.search_ID);
+
+      let queryb = new this.ParseServer.Query("TestQuestions");
+      queryb.contains("title", this.search_ID);
+
+      var query1 = this.ParseServer.Query.or(querya, queryb);
+
+      let query2 = new this.ParseServer.Query("TestQuestions");
+      if (this.search_subjects) {
+        query2.containedIn("subjects", [this.search_subjects]); // 科目名称
+      }
+
+      let query3 = new this.ParseServer.Query("TestQuestions");
+      if (this.search_type && this.search_type != -1) {
+        query3.equalTo("type", this.search_type);
+      }
+
+      let query4 = new this.ParseServer.Query("TestQuestions");
+      if (this.search_updateBy) {
+        query4.contains("updatedBy", this.search_updateBy); // 更新人
+      }
+
+      let query5 = new this.ParseServer.Query("TestQuestions");
+      if (this.search_important == 1 || this.search_important == 0) {
+        query5.equalTo("isImportant", this.search_important);
+      }
+      let queryc = new this.ParseServer.Query("TestQuestions"); // 正确率大于
+      if (this.search_right_percent_start >= 0) {
+        queryc.greaterThanOrEqualTo(
+          "accuracy",
+          parseFloat(this.search_right_percent_start / 100)
+        );
+        // queryc.exists('accuracy')
+      }
+
+      let queryd = new this.ParseServer.Query("TestQuestions"); // 正确率大于
+      if (this.search_right_percent_start == 0) {
+        queryd.doesNotExist("accuracy");
+      } else {
+        queryd.greaterThanOrEqualTo(
+          "accuracy",
+          parseFloat(this.search_right_percent_start / 100)
+        );
+      }
+      var query6 = this.ParseServer.Query.or(queryc, queryd);
+
+      let querye = new this.ParseServer.Query("TestQuestions"); // 正确率小于
+      if (
+        this.search_right_percent_end >= 0 &&
+        this.search_right_percent_end <= 100
+      ) {
+        querye.lessThanOrEqualTo(
+          "accuracy",
+          parseFloat(this.search_right_percent_end / 100)
+        );
+      }
+      let queryf = new this.ParseServer.Query("TestQuestions"); // 正确率小于
+      if (
+        this.search_right_percent_start == 0 &&
+        this.search_right_percent_end == 100
+      ) {
+        queryf.doesNotExist("accuracy");
+      } else {
+        queryf.lessThanOrEqualTo(
+          "accuracy",
+          parseFloat(this.search_right_percent_end / 100)
+        );
+      }
+      var query7 = this.ParseServer.Query.or(querye, queryf);
+
+      let query = this.ParseServer.Query.and(
+        query1,
+        query2,
+        query3,
+        query4,
+        query5,
+        query6,
+        query7
+      );
+
+      // let query = new this.ParseServer.Query('TestQuestions')
+      query.descending("createdAt", "objectId");
+      query.include("tag"),
+        await query.count().then((count) => {
+          counts = count;
+        });
+
+      query.limit(counts);
+      query.find().then(
+        (list) => {
+          _this.question_datas2 = [];
+          if (list && list.length > 0) {
+            list.forEach((item) => {
+              // console.log(item);
+              _this.question_datas2.push({
+                id: item.id,
+                // tagName: item.get("tagId").attributes.tagName,
+                tagId: item.get("tag") ? item.get("tag").id : "",
+                tagName: item.get("tag")
+                  ? item.get("tag").attributes.tagName
+                  : "",
+                subjects: item.get("subjects"),
+                images: item.get("images"),
+                type: item.get("type"),
+                title: item.get("title"),
+                options: item.get("options"),
+                comments: item.get("comments"),
+                isImportant: item.get("isImportant"),
+                updatedBy: item.get("updatedBy"),
+                index: item.get("index"),
+                accuracy: item.get("accuracy"),
+                updatedAt: tool.dateFormat(
+                  item.updatedAt,
+                  "yyyy-MM-dd HH:mm:ss"
+                ),
+              });
+            });
+            console.log(_this.question_datas2);
+          }
+          this.loading = false;
+        },
+        (error) => {
+          debugger;
+        }
+      );
+    },
     /** 获取科目名称 */
     getSubjectName(id) {
-      console.log(id);
-      console.log(this.subjects);
       var subject = this.subjects.find((item) => {
         return item.id == id;
       });
@@ -2117,8 +2235,6 @@ export default {
     },
     /** 获取答案 */
     getRightAnswer(options, type) {
-      console.log(options);
-      console.log(type);
       var _rightAnswer = "";
       if (type == 4) {
         options.forEach((_item, _idx) => {
@@ -2163,13 +2279,12 @@ export default {
         },
       });
     },
-    exports() {
-      console.log(this.question_datas);
+    async exports() {
+      console.log(this.question_datas2);
       console.log("全部导出");
-      let question_datas = this.question_datas;
+      let question_datas = this.question_datas2;
       let rightAnswer = "";
       for (const key in question_datas) {
-        console.log(question_datas[key]);
         if (question_datas[key].type == 1) {
           question_datas[key].types = "单选";
           question_datas[key].rightAnswer = this.getRightAnswer(
@@ -2221,65 +2336,67 @@ export default {
       }
       console.log(question_datas);
       // if (this.question_datas.length > 0) {
-      const initColumn = [
-        {
-          title: "ID",
-          dataIndex: "id",
-          key: "id",
-        },
-        {
-          title: "科目",
-          dataIndex: "subjectName",
-          key: "subjectName",
-        },
-        {
-          title: "类型",
-          dataIndex: "types",
-          key: "types",
-        },
-        {
-          title: "重点题库",
-          dataIndex: "isImportants",
-          key: "isImportants",
-        },
-        {
-          title: "题干",
-          dataIndex: "title",
-          key: "title",
-        },
-        {
-          title: "答案",
-          dataIndex: "rightAnswer",
-          key: "rightAnswer",
-        },
+      setTimeout(() => {
+        const initColumn = [
+          {
+            title: "ID",
+            dataIndex: "id",
+            key: "id",
+          },
+          {
+            title: "科目",
+            dataIndex: "subjectName",
+            key: "subjectName",
+          },
+          {
+            title: "类型",
+            dataIndex: "types",
+            key: "types",
+          },
+          {
+            title: "重点题库",
+            dataIndex: "isImportants",
+            key: "isImportants",
+          },
+          {
+            title: "题干",
+            dataIndex: "title",
+            key: "title",
+          },
+          {
+            title: "答案",
+            dataIndex: "rightAnswer",
+            key: "rightAnswer",
+          },
 
-        {
-          title: "正确率",
-          dataIndex: "accuracys",
-          key: "accuracys",
-        },
+          {
+            title: "正确率",
+            dataIndex: "accuracy",
+            key: "accuracy",
+          },
 
-        {
-          title: "标签",
-          dataIndex: "tagName",
-          key: "tagName",
-        },
-        {
-          title: "更新人",
-          dataIndex: "updatedBy",
-          key: "updatedBy",
-        },
-        {
-          title: "日期",
-          dataIndex: "updatedAt",
-          key: "updatedAt",
-        },
-      ];
-      excelUtil.exportExcel(
-        initColumn,
-        question_datas,
-        "试题管理数据记录.xlsx"
-      );
+          {
+            title: "标签",
+            dataIndex: "tagName",
+            key: "tagName",
+          },
+          {
+            title: "更新人",
+            dataIndex: "updatedBy",
+            key: "updatedBy",
+          },
+          {
+            title: "日期",
+            dataIndex: "updatedAt",
+            key: "updatedAt",
+          },
+        ];
+        excelUtil.exportExcel(
+          initColumn,
+          question_datas,
+          "试题管理数据记录.xlsx"
+        );
+      }, 3000);
       // }
     },
   },
