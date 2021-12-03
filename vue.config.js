@@ -1,5 +1,6 @@
 const path = require('path')
-
+const CKEditorWebpackPlugin = require('@ckeditor/ckeditor5-dev-webpack-plugin');
+const {styles} = require('@ckeditor/ckeditor5-dev-utils');
 const resolve = dir => {
   return path.join(__dirname, dir)
 }
@@ -28,16 +29,55 @@ module.exports = {
   // see https://github.com/vuejs/vue-cli/blob/dev/docs/webpack.md
   // 如果你不需要使用eslint，把lintOnSave设为false即可
   lintOnSave: true,
+  transpileDependencies: [
+        /ckeditor5-[^/\\]+[/\\]src[/\\].+\.js$/,
+    ],
+    configureWebpack: {
+        plugins: [
+            // CKEditor needs its own plugin to be built using webpack.
+            new CKEditorWebpackPlugin({
+                // See https://ckeditor.com/docs/ckeditor5/latest/features/ui-language.html
+                // language: 'zh-cn',
+
+                // Append translations to the file matching the `app` name.
+                translationsOutputFile: /app/
+            })
+        ]
+    },
   chainWebpack: config => {
+    const svgRule = config.module.rule('svg');
+    svgRule.exclude.add(path.join(__dirname, 'node_modules', '@ckeditor'));
+    config.module
+            .rule('cke-svg')
+            .test(/ckeditor5-[^/\\]+[/\\]theme[/\\]icons[/\\][^/\\]+\.svg$/)
+            .use('raw-loader')
+            .loader('raw-loader');
+    config.module
+            .rule('cke-css')
+            .test(/ckeditor5-[^/\\]+[/\\].+\.css$/)
+            .use('postcss-loader')
+            .loader('postcss-loader')
+            .tap(() => {
+                return styles.getPostCssConfig({
+                    themeImporter: {
+                        themePath: require.resolve('@ckeditor/ckeditor5-theme-lark'),
+                    },
+                    minify: true
+                });
+            });
     config.resolve.alias
       .set('@', resolve('src')) // key,value自行定义，比如.set('@@', resolve('src/components'))
       .set('_c', resolve('src/components'))
       .set('_conf', resolve('config'))
   },
   // 设为false打包时不生成.map文件
-  productionSourceMap: false
+  productionSourceMap: false,
   // 这里写你调用接口的基础路径，来解决跨域，如果设置了代理，那你本地开发环境的axios的baseUrl要写为 '' ，即空字符串
   // devServer: {
   //   proxy: 'localhost:3000'
   // }
+  // 第三方插件配置
+    pluginOptions: {
+        // ...
+    }
 }

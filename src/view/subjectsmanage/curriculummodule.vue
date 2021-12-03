@@ -317,6 +317,7 @@
             placeholder="请输入课程说明"
             @on-change="change_value"
           ></Editor>
+           <!-- <yk-editor :value="form.explain" placeholder="请输入课程说明" @change="change_value" v-if="show_window"></yk-editor> -->
         </FormItem>
       </Form>
     </Modal>
@@ -346,6 +347,7 @@
             placeholder="请输入课程介绍"
             @on-change="change_introduce"
           ></Editor>
+          <!-- <yk-editor :value="form.introduce" placeholder="请输入课程介绍" @change="change_introduce" v-if="show_window"></yk-editor> -->
         </FormItem>
       </Form>
     </Modal>
@@ -530,6 +532,7 @@
 <script>
 import QRCode from "qrcodejs2";
 import Editor from "@/components/editor";
+// import ykEditor from "@/components/ykeditor";
 import { verification } from "@/api/verification";
 import selectTree from "@/components/iview-select-tree";
 import myUploadMuti from "@/components/myUploadMuti";
@@ -540,6 +543,7 @@ export default {
   name: "coursesmanageindex",
   components: {
     Editor,
+    // ykEditor,
     myUpload,
     myUploadMuti,
     selectTree,
