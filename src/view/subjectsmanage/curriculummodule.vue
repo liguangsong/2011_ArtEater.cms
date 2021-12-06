@@ -1600,10 +1600,13 @@ export default {
             innerquery1.equalTo("innerOrder", Number(this.form.innerOrder));
             let innerquery2 = new this.ParseServer.Query("CoursesModule");
             innerquery2.equalTo("rootId", this.rootId);
+            let innerquery3 = new this.ParseServer.Query("CoursesModule");
+            innerquery3.equalTo("parent_ID",  this.currParent.id);
             var query = this.ParseServer.Query.and(
               innerquery,
               innerquery1,
-              innerquery2
+              innerquery2,
+              innerquery3
             );
             console.log("ascqWC");
             console.log(this.courseId);
@@ -1645,10 +1648,13 @@ export default {
             innerquery1.equalTo("innerOrder", Number(this.form.innerOrder));
             let innerquery2 = new this.ParseServer.Query("CoursesModule");
             innerquery2.equalTo("rootId", this.rootId);
+            let innerquery3 = new this.ParseServer.Query("CoursesModule");
+            innerquery3.equalTo("parent_ID",  this.currParent.id);
             var query = this.ParseServer.Query.and(
               innerquery,
               innerquery1,
-              innerquery2
+              innerquery2,
+              innerquery3
             );
             query.find().then((response) => {
               if (response && response.length > 0) {
