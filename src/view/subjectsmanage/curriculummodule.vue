@@ -705,6 +705,7 @@ export default {
         },
         { title: "隐藏课程", key: "hide", slot: "HideCourse" },
         { title: "上架", key: "putaway", slot: "putaway" },
+        { title: "排序", key: "innerOrder" },
         { title: "更新时间", key: "updatedAt" },
         { title: "操作", key: "action", width: 500, slot: "action" },
       ],
@@ -1601,7 +1602,7 @@ export default {
             let innerquery2 = new this.ParseServer.Query("CoursesModule");
             innerquery2.equalTo("rootId", this.rootId);
             let innerquery3 = new this.ParseServer.Query("CoursesModule");
-            innerquery3.equalTo("parent_ID",  this.currParent.id);
+            innerquery3.equalTo("parent_ID", this.currParent.id);
             var query = this.ParseServer.Query.and(
               innerquery,
               innerquery1,
@@ -1649,7 +1650,7 @@ export default {
             let innerquery2 = new this.ParseServer.Query("CoursesModule");
             innerquery2.equalTo("rootId", this.rootId);
             let innerquery3 = new this.ParseServer.Query("CoursesModule");
-            innerquery3.equalTo("parent_ID",  this.currParent.id);
+            innerquery3.equalTo("parent_ID", this.currParent.id);
             var query = this.ParseServer.Query.and(
               innerquery,
               innerquery1,
