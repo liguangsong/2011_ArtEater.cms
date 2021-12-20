@@ -22,6 +22,11 @@ import VueQuillEditor from "vue-quill-editor";
 import 'quill/dist/quill.core.css';
 import 'quill/dist/quill.snow.css';
 import 'quill/dist/quill.bubble.css';
+import VueClipboard from 'vue-clipboard2'
+import Antd from 'ant-design-vue';
+import 'ant-design-vue/dist/antd.css';
+Vue.use(Antd);
+Vue.use(VueClipboard)
 Vue.use(VueQuillEditor)
 import CKEditor from '@ckeditor/ckeditor5-vue2';
 

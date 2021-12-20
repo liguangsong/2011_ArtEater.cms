@@ -21,10 +21,15 @@
                     <div style="margin:5px 0"><img v-if="row.headImg" :src="row.headImg" @click="handleShowHeadImg(row)" width="84" height="38"></div>
                 </template>
                 
-                <template slot-scope="{ row }" slot="price">
+                <!-- <template slot-scope="{ row }" slot="price">
                     <strong v-if="row.price&&row.price>0">¥{{ row.price }}元</strong>
                     <strong v-else>免费</strong>
-                </template>
+                </template> -->
+                  <template label="是否vip可查看" slot-scope="{ row }" slot="vip">
+                       <strong v-if="row.vie">是</strong>
+                    <strong v-else>否</strong>
+                     </template>
+
                 <template slot-scope="{ row }" slot="content">
                     <strong>{{ row.content?'已添加':'---' }}</strong>
                 </template>
@@ -52,7 +57,7 @@
                 <FormItem label="科目名称" prop='subject_name'>
                     <Input v-model="subject_form.subject_name" placeholder="请输入科目名称"></Input>
                 </FormItem>
-                <FormItem label="是否收费" prop='price'>
+                <!-- <FormItem label="是否收费" prop='price'>
                     <div style="display:flex">
                         <div style="width:80px">
                             <i-switch v-model="subject_form.free" @on-change="handleChangeFree" size="large">
@@ -66,7 +71,11 @@
                             </Input>
                         </div>
                     </div>
-                </FormItem>
+                </FormItem> -->
+                      <FormItem label="是否vip可查看" prop='vip'>
+                      <i-switch v-model="subject_form.vip" size="large" />
+                      </FormItem>
+
                 <FormItem label="积分抵现（元）" prop='maxScoreMoney'>
                     <InputNumber v-model="subject_form.maxScoreMoney" :min="0" :max="1000000" :precision="0" style="width:200px" placeholder="请输入积分最多可抵现金额"></InputNumber>
                     <label style="margin-left:5px;color:#808695">积分最多可抵现金额</label>
@@ -144,14 +153,16 @@ export default {
         { title: "内容添加", key: "content", slot: "content" },
         { title: "积分抵现（元）", key: "maxScoreMoney" },
         { title: "积分限制", key: "minScore" },
-        { title: "收费状态", key: "price", slot: "price", width: 120 },
+        // { title: "收费状态", key: "price", slot: "price", width: 120 },
+        { title: "是否Vip可查看", key: "vip", slot: "vip", width: 120 },
         { title: "操作", key: "action", width: 400, slot: "action" },
       ],
       columns1: [
         { title: "科目名称", key: "subject_name" },
         { title: "ID", key: "id" },
         { title: "内容添加", key: "content", slot: "content" },
-        { title: "收费状态", key: "price", slot: "price", width: 120 },
+        // { title: "收费状态", key: "price", slot: "price", width: 120 },
+         { title: "是否Vip可查看", key: "vip", slot: "vip", width: 120 },
         { title: "操作", key: "action", width: 400, slot: "action" },
       ],
       subjects_datas: [],
@@ -169,6 +180,7 @@ export default {
         comments: "",
         has_down_level: false,
         parent_ID: "0",
+        vip:true,
       },
       ruleValidate: {
         subject_name: [
@@ -243,6 +255,8 @@ export default {
       this.isShowHeadImg = true;
       this.currBackgroundImg = row.headImg;
     },
+
+
     /**
      * 免费，收费
      */
@@ -283,6 +297,7 @@ export default {
         headImg: "",
         free: false,
         level: this.currLevel,
+        vip:true,
         price: 0,
         content: "",
         has_down_level: false,
@@ -362,8 +377,8 @@ export default {
      *时间：2020-11-21 23:41:37
      */
     add_subjects() {
+      this.get_entity()
       var self = this;
-
       var subjects = this.ParseServer.Object.extend("Subjects");
       var subject = new subjects();
       if (this.subjectid) {
@@ -386,6 +401,7 @@ export default {
           subject.set("minScore", self.subject_form.minScore);
           // subject.set("content", '')
           subject.set("price", parseFloat(self.subject_form.price));
+                subject.set("vip",self.subject_form.vip);
           subject.set("level", self.currLevel);
           subject.set("parent_ID", self.currParent.id);
           subject.set("has_down_level", self.subject_form.has_down_level);
@@ -409,7 +425,6 @@ export default {
     },
     /** 更新父级科目 */
     updateParentPrice(parentId) {
- 
       var self = this;
       var query = new self.ParseServer.Query("Subjects");
       query.equalTo("parent_ID", parentId);
@@ -527,6 +542,7 @@ export default {
                 parent_ID: item.get("parent_ID"),
                 subject_ID: item.get("subject_ID"),
                 price: parseFloat(item.get("price")),
+                 vip: item.get("vip"),
                 level: item.get("level"),
                 content: item.get("content"),
                 backgroundImg: item.get("backgroundImg"),

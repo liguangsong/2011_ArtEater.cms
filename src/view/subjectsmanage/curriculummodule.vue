@@ -648,7 +648,6 @@ export default {
       isShowChildCourse: false,
       isShowRecommendCourse: false,
       showAloneCourse: false,
-      showQrcode: false,
       titleIntroduce: "编辑介绍",
       isIntroduce: false,
       isShowAlone: false,
@@ -693,7 +692,7 @@ export default {
         // { title: "VIP可看", key: "isVipLook", slot: "isVipLook" },
         { title: "隐藏课程", key: "hide", slot: "HideCourse" },
         { title: "更新时间", key: "updatedAt" },
-        { title: "操作", key: "action", width: 400, slot: "action" },
+        { title: "操作", key: "action", width: 330, slot: "action" },
       ],
       columns1: [
         { title: "ID", key: "id" },
@@ -707,7 +706,7 @@ export default {
         { title: "上架", key: "putaway", slot: "putaway" },
         { title: "排序", key: "innerOrder" },
         { title: "更新时间", key: "updatedAt" },
-        { title: "操作", key: "action", width: 500, slot: "action" },
+        { title: "操作", key: "action", width: 430, slot: "action" },
       ],
 
       recommend_columns: [
@@ -1961,13 +1960,6 @@ export default {
         user5,
         user6
       );
-
-      // let query = new this.ParseServer.Query("CoursesModule");
-      // if (this.flag == 1) {
-      //   query.equalTo("parent_ID", this.currParent.id);
-      // }
-      // query.contains("subjectName", this.search_keyword);
-      // query.equalTo("flag", _this.flag);
       query.descending("createdAt");
       query.count().then((count) => {
         _this.total = count;

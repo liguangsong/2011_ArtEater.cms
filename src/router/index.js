@@ -182,6 +182,26 @@ const modules = [{
           "href": "homesetting/defaultcover.vue",
           "level": 1
         },
+        //公告栏
+        {
+          "Id": "1312-sdfs-w3rwe-xgsdfs-2342434",
+          "path": "bulletinboard",
+          "name": "bulletinboard",
+          "redirect": null,
+          "meta": {
+            "icon": "ios-list-box-outline",
+            "title": "公告栏",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "homesetting/bulletinboard.vue",
+          "permissionInfos": [
+
+          ],
+          "children": null,
+          "href": "homesetting/bulletinboard.vue",
+          "level": 1
+        },
       ],
       "href": null,
       "level": 1
@@ -437,23 +457,25 @@ const modules = [{
           "children": null,
           "href": "opinion/index.vue",
           "level": 1
-        }, {
-          "Id": "zfdwsrf-23423-sdfs-23423",
-          "path": "setprice",
-          "name": "setprice",
-          "redirect": null,
-          "meta": {
-            "icon": "logo-usd",
-            "title": "功能收费",
-            "hideInMenu": false,
-            "showAlways": true
-          },
-          "component": "setting/setprice.vue",
-          "permissionInfos": [],
-          "children": null,
-          "href": "setting/setprice.vue",
-          "level": 1
-        }, {
+        },
+        //  {
+        //   "Id": "zfdwsrf-23423-sdfs-23423",
+        //   "path": "setprice",
+        //   "name": "setprice",
+        //   "redirect": null,
+        //   "meta": {
+        //     "icon": "logo-usd",
+        //     "title": "功能收费",
+        //     "hideInMenu": false,
+        //     "showAlways": true
+        //   },
+        //   "component": "setting/setprice.vue",
+        //   "permissionInfos": [],
+        //   "children": null,
+        //   "href": "setting/setprice.vue",
+        //   "level": 1
+        // },
+         {
           "Id": "zfdwsrf-23423-sdfs-234d4",
           "path": "setbanner",
           "name": "setbanner",
@@ -571,6 +593,57 @@ const modules = [{
           "permissionInfos": [],
           "children": null,
           "href": "activity/coupon.vue",
+          "level": 1
+        },
+        {
+          "Id": "zfdwsrf-23423-sdfs-23423",
+          "path": "activitymanagement",
+          "name": "activitymanagement",
+          "redirect": null,
+          "meta": {
+            "icon": "md-pricetag",
+            "title": "活动管理",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "activity/activitymanagement.vue",
+          "permissionInfos": [],
+          "children": null,
+          "href": "activity/activitymanagement.vue",
+          "level": 1
+        },
+        {
+          "Id": "zfdwsrf-23423-sdfs-23423",
+          "path": "channelmanagement",
+          "name": "channelmanagement",
+          "redirect": null,
+          "meta": {
+            "icon": "md-pricetag",
+            "title": "渠道管理",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "activity/channelmanagement.vue",
+          "permissionInfos": [],
+          "children": null,
+          "href": "activity/channelmanagement.vue",
+          "level": 1
+        },
+        {
+          "Id": "zfdwsrf-23423-sdfs-23423",
+          "path": "pullnewlist",
+          "name": "pullnewlist",
+          "redirect": null,
+          "meta": {
+            "icon": "md-pricetag",
+            "title": "拉新列表",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "activity/pullnewlist.vue",
+          "permissionInfos": [],
+          "children": null,
+          "href": "activity/pullnewlist.vue",
           "level": 1
         }
       ],

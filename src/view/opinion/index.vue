@@ -21,6 +21,34 @@
         <Page :total="total" @on-change="pagechange" v-if="total != 0" />
       </div>
     </Row>
+
+
+        <!-- 消息回复 -->
+        <Modal
+      v-model="isReplyMessage"
+      :title="ReplyMessage_title"
+       width="600"
+      mask
+      scrollable
+      :loading="loading"
+      @on-ok="add_ReplyMessage"
+    >
+      <Form
+        v-if="isReplyMessage"
+        label-position="left"
+        :label-width="50"
+      >
+      <FormItem label="消息">
+          <Input
+            type="textarea"
+            :rows="6"
+           v-model="message"
+            placeholder="消息"
+            style="width:400px"
+          ></Input>
+        </FormItem>
+      </Form>
+    </Modal>
   </div>
 </template>
 
@@ -31,9 +59,13 @@ export default {
   data() {
     return {
       page: 1,
+      Id:"",
       total: 0,
       loading: true,
       search_keyword: "",
+      isReplyMessage:false,
+      message:"",
+      ReplyMessage_title:"回复消息",
       columns: [
         {
           title: "ID",
@@ -61,6 +93,24 @@ export default {
           align: "center",
           render: (h, params) => {
             var button = [
+               h(
+                "Button",
+                {
+                  props: {
+                    type: "success",
+                    size: "small"
+                  },
+                  style: {
+                    marginRight: "5px"
+                  },
+                  on: {
+                    click: () => {
+                      this.reply(params.row.id);
+                    }
+                  }
+                },
+                "回复"
+              ),
               h(
                 "Button",
                 {
@@ -152,6 +202,32 @@ export default {
       );
     },
 
+    //回复消息
+    reply(id){
+      this.Id = id
+     this.isReplyMessage = true;
+    },
+   
+
+   //增加回复用户消息
+   add_ReplyMessage(){
+        var query = new this.ParseServer.Query("Opinions");
+            query.get(this.Id).then((item) => {
+                item.set("message", this.message);
+                item.save().then(
+                (items) => {
+                    this.$Message.success("回复成功");
+                    this.page_list();
+                    this.isReplyMessage = false;
+                },
+                (error) => {
+                    console.log(error);
+                    this.$Message.error("回复失败");
+                }
+                );
+            });
+   },
+   
     /*
      * 删除反馈信息
      *作者：gzt
