@@ -346,7 +346,6 @@ export default {
     handleSendCoupon(){
       var self = this
       var CouponRecords = self.ParseServer.Object.extend("CouponRecord");
-      
       if(self.coupon_curr) {
         var list = []
         if(self.sendMode=='all'){ // 发送给全部用户

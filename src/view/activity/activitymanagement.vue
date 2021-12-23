@@ -36,7 +36,7 @@
         </div>
       </div>
        <div class="search-btn" style="width:150px;margin:0">
-          <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
+          <Button type="primary" class="search-btn" @click="search">搜索</Button>
         </div>
       
     </div>
@@ -48,7 +48,7 @@
       <Table :loading="loading" :columns="columns" :data="datas">
    <template slot-scope="{ row }" slot="link">
               <span>{{row.link}}</span>
-            <span style="color:#0758a2;margin-left:45px;cursor: pointer;" v-clipboard:copy="row.link" v-clipboard:success="onCopy" v-clipboard:error="onError">  复制</span>
+            <span v-if="row.link" style="color:#0758a2;margin-left:45px;cursor: pointer;" v-clipboard:copy="row.link" v-clipboard:success="onCopy" v-clipboard:error="onError">  复制</span>
        </template>
         <template slot-scope="{ row }" slot="action">
           <Button
@@ -109,38 +109,38 @@
         </FormItem>
 
            <FormItem label="活动底图" prop="baseMap">
-          <Input
-           style="width: 200px"
-            v-model="form.baseMap"
-          ></Input>
+             <Editor
+            :value="form.baseMap"
+            placeholder="请增加活动底图"
+            @on-change="change_value"
+          ></Editor>
         </FormItem>
       </Form>
  <div class="bottom">
-   <Button
+              <a-button
             type="into"
-            size="big"
             style="margin-right:5px;cursor: pointer;"
             @click="goback"
-            >返回</Button
+            >返回</a-button
           >
-           <Button
-            type="primary"
-            size="big"
-            style="margin-right:5px;cursor: pointer;"
-            @click="add_active"
-            >保存</Button
-          >
+         
+            <a-button type="primary"  style="margin-right:5px;cursor: pointer;"
+            @click="add_active">
+      保存
+    </a-button>
       </div>
 </div>
 </div>
 </template>
 
 <script>
+import Editor from "@/components/editor";
 import { tool } from "@/api/tool";
 import myUploadMuti from "@/components/myUploadMuti";
 export default {
   name: "coursesmanageindex",
   components: {
+    Editor,
     myUploadMuti,
   },
   data() {
@@ -165,14 +165,73 @@ export default {
       datas: [],
       form: {
         title: "",
-        blackActivePrice: "",
-        platinumActivePrice: "",
-        silverActivePrice: "",
+        blackActivePrice: 0,
+        platinumActivePrice: 0,
+        silverActivePrice: 0,
         link: "",
         baseMap: "",
       },
       Id: "",
-      ruleValidate: {},
+      ruleValidate: {
+        title: [
+          { required: true, message: "请输入活动名称", trigger: "blur" },
+        ],
+        blackActivePrice: [
+             {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (
+                !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
+                  value
+                )
+              ) {
+                return callback(
+                  new Error("请输入黑金活动价格,价格由整数、小数点和最多两个小数组成！")
+                );
+              }
+              callback();
+            },
+          },
+        ],
+           platinumActivePrice:[
+           {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (
+                !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
+                  value
+                )
+              ) {
+                return callback(
+                  new Error("请输入铂金活动价格,价格由整数、小数点和最多两个小数组成！")
+                );
+              }
+              callback();
+            },
+          },
+        ],
+         silverActivePrice:[
+           {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (
+                !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
+                  value
+                )
+              ) {
+                return callback(
+                  new Error("请输入白银活动价格,价格由整数、小数点和最多两个小数组成！")
+                );
+              }
+              callback();
+            },
+          },
+        ],
+        
+      },
       isShowAddForm: false,
       loading: true,
     };
@@ -182,17 +241,21 @@ export default {
     this.page_list(this.page);
   },
   methods: {
+   // 富文本说明
+      change_value(html) {
+        this.form.baseMap = html == "<p><br></p>" ? "" : html;
+      },
 
-// 复制成功时的回调函数
-onCopy (e) {
-  console.log(e)
-   console.log('内容已复制到剪切板！')
-   this.$message.info('复制成功!');
-},
-// 复制失败时的回调函数
-onError (e) {
-  console.log('抱歉，复制失败！')
-},
+    // 复制成功时的回调函数
+    onCopy (e) {
+      console.log(e)
+      console.log('内容已复制到剪切板！')
+      this.$message.info('复制成功!');
+    },
+    // 复制失败时的回调函数
+    onError (e) {
+      console.log('抱歉，复制失败！')
+    },
 
 
     addActivity() {
@@ -200,9 +263,9 @@ onError (e) {
       this.Id = "";
       this.form = {
         title: "",
-        blackActivePrice: "",
-        platinumActivePrice: "",
-        silverActivePrice: "",
+        blackActivePrice: 0,
+        platinumActivePrice: 0,
+        silverActivePrice: 0,
         link: "",
         baseMap: "",
       };
@@ -230,7 +293,14 @@ onError (e) {
      *新增活动
      */
     add_active() {
-      var datas = this.ParseServer.Object.extend("ActiveManagement");
+      this.$refs["form"].validate((valid) => {
+        if (!valid) {
+          this.$Message.error("请检查表单项");
+          setTimeout(() => {
+          }, 100);
+          return false;
+        } else {
+         var datas = this.ParseServer.Object.extend("ActiveManagement");
       var data = new datas();
       // 修改
       if (this.Id) {
@@ -254,6 +324,8 @@ onError (e) {
           }
         );
       }
+        }
+      });
     },
 
     updated() {
@@ -264,11 +336,11 @@ onError (e) {
         item.set("platinumActivePrice", Number(this.form.platinumActivePrice));
         item.set("silverActivePrice", Number(this.form.silverActivePrice));
         item.set("link", this.form.link);
-        item.set("baseMap", this.form.baseMap);
-
+        item.set("baseMap", this.form.baseMap); this.isAddActivity = false;
         item.save().then(
           (item) => {
             this.$Message.success("修改成功");
+             this.isAddActivity = false;
             this.page_list();
           },
           (error) => {
@@ -489,5 +561,8 @@ onError (e) {
   display: flex;
   justify-content: space-between;
   margin: 0 auto;
+}
+.ql-editor{
+  height: 600px !important;
 }
 </style>

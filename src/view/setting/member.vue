@@ -63,7 +63,7 @@
           ref="memberForm"
           :model="member_form"
           label-position="left"
-          :label-width="90"
+          :label-width="100"
           :rules="ruleValidate"
         >
           <FormItem label="会员类型名称" prop="typeName">
@@ -97,6 +97,13 @@
             <Input
               v-model="member_form.promotionPrice"
               placeholder="请输入会员优惠价"
+            ></Input>
+          </FormItem>
+
+            <FormItem label="拉新个数限制" prop="limitNumber">
+            <Input
+              v-model="member_form.limitNumber"
+              placeholder="请输入拉新个数限制"
             ></Input>
           </FormItem>
 
@@ -242,11 +249,15 @@ export default {
         memberName: "", //会员名称
         memberPrice: "", //会员原价
         promotionPrice: 0, //会员优惠价
+        limitNumber:0,//拉新个数限制
         expirationDate: "", //截止日期
         memberPeriod: "12", //会员有效期
         explain: "", //购买说明
       },
       ruleValidate: {
+          typeName: [
+          { required: true, message: "请选择会员类型名称", trigger: "blur" },
+        ],
         memberName: [
           { required: true, message: "请输入会员名称", trigger: "blur" },
         ],
@@ -284,6 +295,24 @@ export default {
               }
               if (Number(value) > Number(this.member_form.memberPrice)) {
                 return callback(new Error("会员优惠价不能大于会员原价！"));
+              }
+              callback();
+            },
+          },
+        ],
+        limitNumber:[
+           {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (
+                !/^[0-9]*$/.test(
+                  value
+                )
+              ) {
+                return callback(
+                  new Error("拉新个数由整数组成！")
+                );
               }
               callback();
             },
@@ -339,6 +368,7 @@ export default {
         this.member_form.memberName = res.get("memberName");
         this.member_form.memberPrice = res.get("memberPrice");
         this.member_form.promotionPrice = res.get("promotionPrice");
+        this.member_form.limitNumber = res.get("limitNumber");
         if (res.get("expirationDate")) {
           this.member_form.expirationDate = res.get("expirationDate");
         }
@@ -355,6 +385,7 @@ export default {
         memberName: "", //会员名称
         memberPrice: "", //会员原价
         promotionPrice: 0, //会员优惠价
+        limitNumber:0,//拉新人数限制个数
         expirationDate: "", //截止日期
         memberPeriod: "12", //会员有效期
         explain: "", //购买说明
@@ -369,6 +400,7 @@ export default {
     EditFormShow(row) {
       this.memberId = row.id;
       this.surfaceId = row.surfaceId;
+            this.limitNumber = row.limitNumber;
       this.member_form.surface = row.surface;
       this.isShowAddForm = true;
       this.window_title = "编辑会员设置";
@@ -403,7 +435,21 @@ export default {
             }, 100);
             return false;
           } else {
-            // 保存
+
+        var query = new this.ParseServer.Query("MemberType");
+        query.equalTo("typeName", this.member_form.typeName);
+        query.limit(10000);
+        query.find().then((response) => {
+          console.log(response)
+          if (response && response.length > 0) {
+            this.$Message.error("已有此会员,请去编辑会员");
+            this.modalLoading = false;
+            setTimeout(() => {
+              this.modalLoading = true;
+            }, 100);
+            return false;
+          } else {
+             // 保存
             member.set("memberName", this.member_form.memberName);
             member.set("typeName", this.member_form.typeName);
             member.set("surface", this.member_form.surface);
@@ -412,6 +458,10 @@ export default {
             member.set(
               "promotionPrice",
               Number(this.member_form.promotionPrice)
+            );
+             member.set(
+              "limitNumber",
+             Number(this.member_form.limitNumber)
             );
             member.set("expirationDate", expirationDate);
             member.set("memberPeriod", this.member_form.memberPeriod);
@@ -427,6 +477,7 @@ export default {
                 this.$Message.error("保存失败");
               }
             );
+          }})
           }
         });
       }
@@ -468,6 +519,10 @@ export default {
         item.set("surfaceId", this.surfaceId);
         item.set("memberPrice", this.member_form.memberPrice);
         item.set("promotionPrice", Number(this.member_form.promotionPrice));
+         item.set(
+              "limitNumber",
+             Number(this.member_form.limitNumber)
+            );
         item.set("expirationDate", expirationDate);
         item.set("memberPeriod", this.member_form.memberPeriod);
         item.set("explain", this.member_form.explain);
@@ -519,6 +574,7 @@ export default {
                 surfaceId: item.get("surfaceId"),
                 surface: item.get("surface"),
                 promotionPrice: item.get("promotionPrice"),
+                limitNumber: item.get("limitNumber"),
                 expirationDate: item.get("expirationDate"),
               });
             });

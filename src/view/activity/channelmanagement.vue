@@ -89,10 +89,10 @@
         :label-width="100"
         :rules="ruleValidate"
       >
-          <FormItem label="渠道名称" prop="name">
+          <FormItem label="渠道名称" prop="channelName">
           <Input
            style="width: 200px"
-            v-model="form.name"
+            v-model="form.channelName"
             placeholder="请输入渠道名称"
           ></Input>
         </FormItem>
@@ -126,10 +126,11 @@
           ></Input>
         </FormItem>
            <FormItem label="活动底图" prop="baseMap">
-          <Input
-           style="width: 200px"
-            v-model="form.baseMap"
-          ></Input>
+           <Editor
+            :value="form.baseMap"
+            placeholder="请增加活动底图"
+            @on-change="change_value"
+          ></Editor>
         </FormItem>
       </Form>
  <div class="bottom">
@@ -156,12 +157,14 @@
 </template>
 
 <script>
+import Editor from "@/components/editor";
 import QRCode from "qrcodejs2";
 import { tool } from "@/api/tool";
 import myUploadMuti from "@/components/myUploadMuti";
 export default {
   name: "coursesmanageindex",
   components: {
+    Editor,
     myUploadMuti,
   },
   data() {
@@ -174,9 +177,10 @@ export default {
       search_keyword: "",
       search_start_date: "",
       search_end_date: "",
+      isLookBill:false,
       columns: [
         { title: "ID", key: "id" },
-        { title: "渠道名称", key: "name",width:100, },
+        { title: "渠道名称", key: "channelName",width:100, },
         { title: "黑金活动价格", key: "blackActivePrice" },
         { title: "铂金活动价格", key: "platinumActivePrice" },
         { title: "白银活动价格", key: "silverActivePrice" },
@@ -188,17 +192,79 @@ export default {
       ],
       datas: [],
       form: {
-        name: "",
-        blackActivePrice: "",
-        platinumActivePrice: "",
-        silverActivePrice: "",
-        divideInto: "",
-        TotalAmountCommission:"",
-        qsCode:"",
-        baseMap: "",
+        channelName: "",
+        blackActivePrice: 0,
+        platinumActivePrice:0,
+        silverActivePrice: 0,
+        divideInto: "",//分成比例
+        TotalAmountCommission:"",//提成总金额
+        amountCommission:'',//提成金额
+        promoteRegistrationPhone:"",//推广注册手机号
+        PromotionTime:"",//推广时间
+        // qsCode:"",
+        baseMap: "",//活动底图
       },
       Id: "",
-      ruleValidate: {},
+      ruleValidate: {
+                channelName: [
+          { required: true, message: "请输入渠道名称", trigger: "blur" },
+        ],
+        blackActivePrice: [
+             {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (
+                !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
+                  value
+                )
+              ) {
+                return callback(
+                  new Error("请输入黑金活动价格,价格由整数、小数点和最多两个小数组成！")
+                );
+              }
+              callback();
+            },
+          },
+        ],
+           platinumActivePrice:[
+           {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (
+                !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
+                  value
+                )
+              ) {
+                return callback(
+                  new Error("请输入铂金活动价格,价格由整数、小数点和最多两个小数组成！")
+                );
+              }
+              callback();
+            },
+          },
+        ],
+         silverActivePrice:[
+           {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (
+                !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
+                  value
+                )
+              ) {
+                return callback(
+                  new Error("请输入白银活动价格,价格由整数、小数点和最多两个小数组成！")
+                );
+              }
+              callback();
+            },
+          },
+        ],
+        
+      },
       loading: true,
     };
   },
@@ -234,11 +300,15 @@ export default {
       this.isAddChannel = true;
       this.Id = "";
       this.form = {
-        name: "",
-        blackActivePrice: "",
-        platinumActivePrice: "",
-        silverActivePrice: "",
-        divideInto: "",
+        channelName: "",
+        blackActivePrice: 0,
+        platinumActivePrice: 0,
+        silverActivePrice: 0,
+        divideInto: "",//分成比例
+        TotalAmountCommission:"",//提成总金额
+        amountCommission:'',//提成金额
+        promoteRegistrationPhone:"",//推广注册手机号
+        PromotionTime:"",//推广时间
         baseMap: "",
       };
     },
@@ -250,29 +320,47 @@ export default {
       this.isAddChannel = true;
       console.log(row);
       this.Id = row.id;
-      this.form.name = row.name;
+      this.form.channelName = row.channelName;
       this.form.blackActivePrice = row.blackActivePrice;
       this.form.platinumActivePrice = row.platinumActivePrice;
       this.form.silverActivePrice = row.silverActivePrice;
-    //   this.form.qsCode = row.qsCode;
+      // this.form.qsCode = row.qsCode;
       this.form.divideInto = row.divideInto;
-    //   this.form.TotalAmountCommission = row.TotalAmountCommission;
+      this.form.TotalAmountCommission = row.TotalAmountCommission;
+            this.form.amountCommission = row.amountCommission;
+                  this.form.promoteRegistrationPhone = row.promoteRegistrationPhone;
+            this.form.PromotionTime = row.PromotionTime;
       this.form.baseMap = row.baseMap;
       console.log(this.form);
+    },
+
+      // 富文本说明
+    change_value(html) {
+      this.form.baseMap = html == "<p><br></p>" ? "" : html;
     },
 
     /*
      *新增渠道
      */
     add_channel() {
-      var datas = this.ParseServer.Object.extend("ChannelManagement");
+      var self = this;
+      this.$refs["form"].validate((valid) => {
+        if (!valid) {
+          self.$Message.error("请检查表单项");
+          self.couponLoading = false;
+          setTimeout(() => {
+            self.couponLoading = true;
+          }, 100);
+          return false;
+        } else {
+       var datas = this.ParseServer.Object.extend("ChannelManagement");
       var data = new datas();
       // 修改
       if (this.Id) {
         this.updated();
       } else {
         // 保存
-        data.set("name", this.form.name);
+        data.set("channelName", this.form.channelName);
         data.set("blackActivePrice", Number(this.form.blackActivePrice));
         data.set("platinumActivePrice", Number(this.form.platinumActivePrice));
         data.set("silverActivePrice", Number(this.form.silverActivePrice));
@@ -289,12 +377,14 @@ export default {
           }
         );
       }
+        }
+      });
     },
 
     updated() {
       var query = new this.ParseServer.Query("ChannelManagement");
       query.get(this.Id).then((item) => {
-        item.set("name", this.form.name);
+        item.set("channelName", this.form.channelName);
         item.set("blackActivePrice", Number(this.form.blackActivePrice));
         item.set("platinumActivePrice", Number(this.form.platinumActivePrice));
         item.set("silverActivePrice", Number(this.form.silverActivePrice));
@@ -325,7 +415,7 @@ export default {
       this.loading = true;
       let _this = this;
       let query1 = new this.ParseServer.Query("ChannelManagement");
-      query1.contains("name", this.search_keyword);
+      query1.contains("channelName", this.search_keyword);
       let query2 = new this.ParseServer.Query("ChannelManagement");
       if (this.search_start_date) {
         query2.greaterThan("createdAt", this.search_start_date);
@@ -353,13 +443,16 @@ export default {
             list.forEach((item) => {
               _this.datas.push({
                 id: item.id,
-                name: item.get("name"),
+                channelName: item.get("channelName"),
                 blackActivePrice: item.get("blackActivePrice"),
                 platinumActivePrice: item.get("platinumActivePrice"),
                 silverActivePrice: item.get("silverActivePrice"),
                 divideInto: item.get("divideInto"),
-                TotalAmountCommission: item.get("TotalAmountCommission"),
-                qsCode: item.get("qsCode"),
+                TotalAmountCommission: item.get("TotalAmountCommission"),  
+                  amountCommission: item.get("amountCommission"),
+                    promoteRegistrationPhone: item.get("promoteRegistrationPhone"),
+                        PromotionTime: item.get("PromotionTime"),
+                // qsCode: item.get("qsCode"),
                 baseMap: item.get("baseMap"),
                 updatedAt: tool.dateFormat(
                   item.get("updatedAt"),
@@ -412,7 +505,8 @@ export default {
 
     //查看账单
     ExamineBill(row){
-
+     console.log(row)
+     this.isLookBill = true;
     },
 
     //返回
@@ -422,7 +516,7 @@ export default {
     get_entity() {
       var query = new this.ParseServer.Query("ChannelManagement");
       query.get(this.Id).then((res) => {
-        this.form.name = res.get("name");
+        this.form.channelName = res.get("channelName");
         this.form.blackActivePrice = res.get("blackActivePrice");
         this.form.platinumActivePrice = res.get("platinumActivePrice");
         this.form.silverActivePrice = res.get("silverActivePrice");

@@ -578,23 +578,41 @@ const modules = [{
           "href": "activity/activity.vue",
           "level": 1
         },
+        // {
+        //   "Id": "zfdwsrf-23423-sdfs-23423",
+        //   "path": "couponindex",
+        //   "name": "couponindex",
+        //   "redirect": null,
+        //   "meta": {
+        //     "icon": "md-pricetag",
+        //     "title": "优惠券",
+        //     "hideInMenu": false,
+        //     "showAlways": true
+        //   },
+        //   "component": "activity/coupon.vue",
+        //   "permissionInfos": [],
+        //   "children": null,
+        //   "href": "activity/coupon.vue",
+        //   "level": 1
+        // },
         {
           "Id": "zfdwsrf-23423-sdfs-23423",
-          "path": "couponindex",
-          "name": "couponindex",
+          "path": "newCoupon",
+          "name": "newCoupon",
           "redirect": null,
           "meta": {
             "icon": "md-pricetag",
-            "title": "优惠券",
+            "title": "新优惠券",
             "hideInMenu": false,
             "showAlways": true
           },
-          "component": "activity/coupon.vue",
+          "component": "activity/newCoupon.vue",
           "permissionInfos": [],
           "children": null,
-          "href": "activity/coupon.vue",
+          "href": "activity/newCoupon.vue",
           "level": 1
         },
+        
         {
           "Id": "zfdwsrf-23423-sdfs-23423",
           "path": "activitymanagement",

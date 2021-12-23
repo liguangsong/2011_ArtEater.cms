@@ -41,10 +41,10 @@
       <FormItem label="消息">
           <Input
             type="textarea"
-            :rows="6"
+            :rows="10"
            v-model="message"
             placeholder="消息"
-            style="width:400px"
+            style="width:500px"
           ></Input>
         </FormItem>
       </Form>
@@ -87,6 +87,10 @@ export default {
           title: "意见反馈",
           key: "content"
         },
+               {
+          title: "消息",
+          key: "message"
+        },
         {
           title: "操作",
           key: "action",
@@ -105,7 +109,7 @@ export default {
                   },
                   on: {
                     click: () => {
-                      this.reply(params.row.id);
+                      this.reply(params.row);
                     }
                   }
                 },
@@ -189,7 +193,9 @@ export default {
                 nickName: item.get("nickName"),
                 phone: item.get("phone"),
                 createdAt: tool.dateFormat(item.get("createdAt"), 'yyyy-MM-dd HH:mm:ss'),
-                content: item.get("content")
+                content: item.get("content"),
+                 message: item.get("message")
+
               };
               return message;
             });
@@ -203,8 +209,9 @@ export default {
     },
 
     //回复消息
-    reply(id){
-      this.Id = id
+    reply(data){
+     this.Id = data.id;
+     this.message = data.message_form
      this.isReplyMessage = true;
     },
    

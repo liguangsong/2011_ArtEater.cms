@@ -133,15 +133,11 @@ export default {
 };
 </script>
 <style>
-.newsEdit .quillEditor {
-  min-height: 200px;
-}
+
 .ql-editor {
   min-height: 300px;
 }
-.ql-editor {
-  height: 300px;
-}
+
 .newsEdit .quillEditor img {
   /* height: 300px; */
   width: 400px;

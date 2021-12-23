@@ -1,54 +1,64 @@
 <template>
   <div class="container-wrap">
-    <div class="header-wrap clear-fix" style="display:flex">
-      <div class="search-wrap clear-fix" style="flex:1">
-        <div class="search-keyword" style="width:230px">
+    <div
+      class="header-wrap clear-fix"
+      style="display: flex"
+      v-if="isInformationAnnouncement == false"
+    >
+      <div class="search-wrap clear-fix" style="flex: 1">
+        <div class="search-keyword" style="width: 230px">
           <Input
             v-model="search_keyword"
             size="large"
             placeholder="公告名称关键字搜索"
-            style="width:200px"
+            style="width: 200px"
           />
         </div>
       </div>
-       <div class="search-btn" style="width:150px;margin:0">
-          <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
-        </div>
-      
+      <div
+        class="search-btn"
+        style="width: 150px; margin: 0"
+        v-if="isInformationAnnouncement == false"
+      >
+        <Button type="primary" class="search-btn" @click="search">搜索</Button>
+      </div>
     </div>
-    <Row class="table-wrap">
-        <div style="width:100px; margin-left: auto;
-    margin-bottom: 20px;">
+    <Row class="table-wrap" v-if="isInformationAnnouncement == false">
+      <div style="width: 100px; margin-left: auto; margin-bottom: 20px">
         <Button type="primary" @click="addBulletinBoard">新增公告</Button>
       </div>
       <Table :loading="loading" :columns="columns" :data="datas">
-          <template slot-scope="{ row }" slot="isUse">
-                 <i-switch v-model="row.isUse" @on-change="whetheru(row)"     size="large" />
-       </template>
+        <template slot-scope="{ row }" slot="isShow">
+          <i-switch
+            v-model="row.isShow"
+            @on-change="whetheru(row)"
+            size="large"
+          />
+        </template>
 
-          <template slot-scope="{ row }" slot="type">
-              <div v-if="row.type == 1">信息公告</div>
-             <div v-if="row.type == 2">活动公告</div>
-       </template>
+        <template slot-scope="{ row }" slot="type">
+          <div v-if="row.type == 1">信息公告</div>
+          <div v-if="row.type == 2">活动公告</div>
+        </template>
         <template slot-scope="{ row }" slot="action">
           <Button
             type="warning"
             size="small"
-            style="margin-right:5px"
+            style="margin-right: 5px"
             @click="EditFormShow(row)"
             >编辑</Button
           >
-            <Button
+          <Button
             type="warning"
             size="small"
-            style="margin-right:5px"
+            style="margin-right: 5px"
             @click="MountInformation(row)"
             >挂载信息</Button
           >
           <Button
             type="error"
             size="small"
-            style="margin-right:5px"
+            style="margin-right: 5px"
             @click="DelConfirmShow(row)"
             >删除</Button
           >
@@ -61,10 +71,10 @@
     <Modal
       v-model="isShowAddForm"
       :title="window_title"
-       width="600"
+      width="600"
       mask
       scrollable
-      :loading="loading"
+      :loading="modalLoading"
       @on-ok="add_bulletinBoard"
     >
       <Form
@@ -72,18 +82,18 @@
         ref="form"
         :model="form"
         label-position="left"
-        :label-width="70"
+        :label-width="100"
         :rules="ruleValidate"
       >
-          <FormItem label="公告名称" prop="name">
+        <FormItem label="公告名称" prop="bulletinName">
           <Input
-           style="width: 200px"
-            v-model="form.name"
+            style="width: 200px"
+            v-model="form.bulletinName"
             placeholder="请输入公告名称"
           ></Input>
         </FormItem>
-        
-         <FormItem label="公告类型:" prop="type">
+
+        <FormItem label="公告类型:" prop="type">
           <Select
             size="large"
             v-model="form.type"
@@ -98,21 +108,20 @@
           </Select>
         </FormItem>
 
-         <FormItem label="是否使用:">
-                        <i-switch v-model="form.isUse"  size="large" />
+        <FormItem label="是否使用:">
+          <i-switch v-model="form.isShow" size="large" />
         </FormItem>
       </Form>
     </Modal>
-    
-      
-      <!-- 活动公告信息挂载 -->
-        <Modal
+
+    <!-- 活动公告信息挂载 -->
+    <Modal
       v-model="isMountInformation"
       :title="window_title"
-       width="600"
+      width="600"
       mask
       scrollable
-      :loading="loading"
+      :loading="modalLoading"
       @on-ok="add_MountInformation"
     >
       <Form
@@ -120,12 +129,12 @@
         ref="form"
         :model="form"
         label-position="left"
-        :label-width="70"
+        :label-width="100"
         :rules="ruleValidate"
       >
-          <FormItem label="挂载链接" prop="link">
+        <FormItem label="挂载链接" prop="link">
           <Input
-           style="width: 200px"
+            style="width: 250px"
             v-model="form.link"
             placeholder="请输入链接"
           ></Input>
@@ -133,16 +142,57 @@
       </Form>
     </Modal>
 
-  </div>
+    <!-- 新增信息公告 -->
+    <div
+      v-if="isInformationAnnouncement"
+      style="margin-top: 50px; margin-left: 40px; width: 900px; height: 900px"
+    >
+      <Form
+        v-if="isInformationAnnouncement"
+        ref="form"
+        :model="form"
+        :loading="modalLoading"
+        label-position="left"
+        :label-width="100"
+        :rules="ruleValidate"
+      >
+        <FormItem label="信息公告">
+          <Editor
+            :value="form.informationBulletin"
+            placeholder="请输入信息公告"
+            @on-change="change_value"
+          ></Editor>
+
+        </FormItem>
+      </Form>
+      <div class="bottom">
+        <a-button
+          type="into"
+          style="margin-right: 5px; cursor: pointer"
+          @click="goback"
+          >返回</a-button
+        >
+
+        <a-button
+          type="primary"
+          style="margin-right: 5px; cursor: pointer"
+          @click="add_information"
+        >
+          保存
+        </a-button>
+      </div>
     </div>
+  </div>
 </template>
 
 <script>
+import Editor from "@/components/editor";
 import { tool } from "@/api/tool";
 import myUploadMuti from "@/components/myUploadMuti";
 export default {
   name: "coursesmanageindex",
   components: {
+    Editor,
     myUploadMuti,
   },
   data() {
@@ -155,28 +205,64 @@ export default {
       search_keyword: "",
       columns: [
         { title: "ID", key: "id" },
-        { title: "公告名称", key: "name", },
-        { title: "是否展示", key: "isUse", slot: "isUse" },
-        { title: "公告类型", key: "type" , slot: "type" },
+        { title: "公告名称", key: "bulletinName" },
+        { title: "是否展示", key: "isShow", slot: "isShow" },
+        { title: "公告类型", key: "type", slot: "type" },
         { title: "更新人", key: "updatedBy" },
         { title: "创建时间", key: "updatedAt" },
         { title: "操作", key: "action", width: 200, slot: "action" },
       ],
       datas: [],
       form: {
-          name:"",
-          type:"",
-          isUse:"",
-          updatedBy:"",
-          link:"",
+        bulletinName: "",
+        type: "",
+        isShow: "",
+        updatedBy: "",
+        link: "", //H5活动链接
+        informationBulletin: "", //信息公告
       },
-      Id:"",
-      ruleValidate: {},
+      Id: "",
+      ruleValidate: {
+        bulletinName: [{ required: true, message: "请输入公告名称", trigger: "blur" }],
+        type: [
+        //  {required: true, message: '请选择公告栏类型', trigger: 'change' },
+         {
+            trigger: "change",
+            required: true,
+            validator: (rule, value, callback) => {
+              console.log(value)
+              if (value == "" || value == undefined) {
+                return callback(new Error("请选择公告栏类型"));
+              }
+              callback();
+            },
+          },
+        ],
+        link: [
+          {
+            required: true,
+            trigger: "blur",
+            message: "请输入链接",
+          },
+        ],
+        informationBulletin: [
+          {
+            required: true,
+            message: "请填写信息公告",
+            trigger: "blur",
+          },
+        ],
+      },
+      modalLoading: true,
       isShowAddForm: false,
-      isMountInformation:false,
+      isMountInformation: false,
+      isInformationAnnouncement: false,
       loading: true,
       window_title: "新增封面图",
-      types:[{name:"信息公告",id:1},{name:"活动公告",id:2},]
+      types: [
+        { name: "信息公告", id: 1 },
+        { name: "活动公告", id: 2 },
+      ],
     };
   },
   mounted() {
@@ -185,23 +271,28 @@ export default {
     this.page_list(this.page);
   },
   methods: {
-   //挂载信息
-   MountInformation(data) {
+    //挂载信息
+    MountInformation(data) {
       this.Id = data.id;
       this.get_entity();
-      if(data.type == 1){
-       console.log("信息公告")
-        
-      }else{
-          console.log("活动公告")
-               this.isMountInformation = true;
+      if (data.type == 1) {
+        console.log("信息公告");
+        this.link = data.link;
+        this.isInformationAnnouncement = true;
+        this.isMountInformation = false;
+        console.log(this.isInformationAnnouncement);
+      } else {
+        console.log("活动公告");
+        this.window_title = "活动信息挂载";
+        this.isInformationAnnouncement = false;
+        this.isMountInformation = true;
+        this.informationBulletin = data.informationBulletinx;
       }
- 
     },
 
     //是否使用
     whetheru(data) {
-      this.form.isUse = data.isUse;
+      this.form.isShow = data.isShow;
       this.Id = data.id;
       this.updateds();
     },
@@ -210,7 +301,7 @@ export default {
     updateds() {
       var query = new this.ParseServer.Query("BulletinBoard");
       query.get(this.Id).then((item) => {
-        item.set("isUse", this.form.isUse);
+        item.set("isShow", this.form.isShow);
         item.save().then(
           () => {
             this.$Message.success("修改成功");
@@ -223,12 +314,21 @@ export default {
       });
     },
 
+    // 富文本说明
+    change_value(html) {
+      this.form.informationBulletin = html == "<p><br></p>" ? "" : html;
+
+      // this.$refs["form"].validate();
+    },
+
     addBulletinBoard() {
       this.Id = "";
       this.form = {
-        name:"",//名称
-        type:"",//类型
-        isUse: true, //是否使用
+        bulletinName: "", //名称
+        type: "", //类型
+        link: "", //H5活动链接
+        informationBulletin: "", //信息公告
+        isShow: true, //是否使用
       };
       this.window_title = "新增公告";
       this.isShowAddForm = true;
@@ -238,51 +338,65 @@ export default {
      * 弹出编辑窗口
      */
     EditFormShow(row) {
-        console.log(row)
+      console.log(row);
       this.Id = row.id;
-      this.form.name = row.name;
+      this.form.bulletinName = row.bulletinName;
       this.form.type = row.type;
-      this.form.isUse = row.isUse;
-      console.log(this.form)
+      this.form.isShow = row.isShow;
+      console.log(this.form);
       this.isShowAddForm = true;
-      this.window_title = "编辑公告拦";
+      this.window_title = "编辑公告";
     },
 
     /*
      *新增公告栏
      */
     add_bulletinBoard() {
-      this.form.updatedBy = this.ParseServer.User.current().toJSON().realname;
-      var datas = this.ParseServer.Object.extend("BulletinBoard");
-      var data = new datas();
-      // 修改
-      if (this.Id) {
-        this.updated();
-      } else {
-        // 保存
-        data.set("updatedBy", this.form.updatedBy);
-        data.set("name", this.form.name);
-        data.set("isUse", this.form.isUse);
-        data.set("type", this.form.type);
-        data.save().then(
-          (data) => {
-            this.$Message.success("保存成功");
-            this.page_list();
-          },
-          (error) => {
-            this.$Message.error("保存失败");
+      console.log(this.ParseServer.User.current().toJSON())
+             this.form.updatedBy = this.ParseServer.User.current().toJSON().realname;
+                   console.log(this.form)
+      this.$refs["form"].validate((valid) => {
+        if (!valid) {
+          this.$Message.error("请检查表单项");
+          this.modalLoading = false;
+          setTimeout(() => {
+            this.modalLoading = true;
+          }, 100);
+          return false;
+        } else {
+          // 修改
+          if (this.Id) {
+            this.updated();
+          } else {
+            console.log("rsvre");
+            // 保存
+            var datas = this.ParseServer.Object.extend("BulletinBoard");
+            var data = new datas();
+            data.set("updatedBy", this.form.updatedBy);
+            data.set("bulletinName", this.form.bulletinName);
+            data.set("isShow", this.form.isShow);
+            data.set("type", this.form.type);
+            data.save().then(
+              (data) => {
+                this.$Message.success("保存成功");
+                this.page_list();
+              },
+              (error) => {
+                this.$Message.error("保存失败");
+              }
+            );
           }
-        );
-      }
+        }
+      });
     },
-
 
     updated() {
       var query = new this.ParseServer.Query("BulletinBoard");
       query.get(this.Id).then((item) => {
-        item.set("name", this.form.name);
+         item.set("updatedBy", this.form.updatedBy);
+        item.set("bulletinName", this.form.bulletinName);
         item.set("type", this.form.type);
-        item.set("isUse", this.form.isUse);
+        item.set("isShow", this.form.isShow);
         item.save().then(
           (item) => {
             this.$Message.success("修改成功");
@@ -294,26 +408,66 @@ export default {
         );
       });
     },
-
-
-    //活动公告
-    add_MountInformation(){
-        var query = new this.ParseServer.Query("BulletinBoard");
-            query.get(this.Id).then((item) => {
-                item.set("link", this.form.link);
-                item.save().then(
-                (items) => {
-                    this.$Message.success("修改成功");
-                    this.page_list();
-                    this.isMountInformation = false;
-                },
-                (error) => {
-                    console.log(error);
-                    this.$Message.error("修改失败");
-                }
-                );
-            });
+        //活动公告保存
+    add_MountInformation() {
+      this.$refs["form"].validate((valid) => {
+        if (!valid) {
+          this.$Message.error("请检查表单项");
+          this.modalLoading = false;
+          setTimeout(() => {
+            this.modalLoading = true;
+          }, 100);
+          return false;
+        } else {
+          // 保存
+          var query = new this.ParseServer.Query("BulletinBoard");
+          query.get(this.Id).then((item) => {
+            item.set("link", this.form.link);
+            item.save().then(
+              (item) => {
+                this.isMountInformation = false;
+                this.$Message.success("保存成功");
+                this.page_list();
+              },
+              (error) => {
+                this.$Message.error("保存失败");
+              }
+            );
+          });
+        }
+      });
     },
+
+    //信息公告保存 富文本
+    add_information() {
+      // this.$refs["form"].validate((valid) => {
+      //   if (!valid) {
+      //     self.$Message.error("请检查表单项");
+      //     this.modalLoading = false;
+      //     setTimeout(() => {
+      //       this.modalLoading = true;
+      //     }, 100);
+      //     return false;
+      //   } else {
+         
+      //   }
+      // });
+       var query = new this.ParseServer.Query("BulletinBoard");
+          query.get(this.Id).then((item) => {
+            item.set("informationBulletin", this.form.informationBulletin);
+            item.save().then(
+              (item) => {
+                this.isInformationAnnouncement = false;
+                this.$Message.success("保存成功");
+                this.page_list();
+              },
+              (error) => {
+                this.$Message.error("保存失败");
+              }
+            );
+          });
+    },
+
     search() {
       this.page = 1;
       this.page_list(this.page);
@@ -326,7 +480,7 @@ export default {
     page_list(page_index) {
       let _this = this;
       let query = new this.ParseServer.Query("BulletinBoard");
-         query.contains("name", this.search_keyword);
+      query.contains("bulletinName", this.search_keyword);
       query.descending("createdAt");
       query.count().then((count) => {
         _this.total = count;
@@ -340,9 +494,9 @@ export default {
             list.forEach((item) => {
               _this.datas.push({
                 id: item.id,
-                name: item.get("name"),
-                    type: item.get("type"),
-                isUse: item.get("isUse"),
+                bulletinName: item.get("bulletinName"),
+                type: item.get("type"),
+                isShow: item.get("isShow"),
                 updatedBy: item.get("updatedBy"),
                 updatedAt: tool.dateFormat(
                   item.get("updatedAt"),
@@ -354,8 +508,7 @@ export default {
           this.isShowAddForm = false;
           this.loading = false;
         },
-        (error) => {
-        }
+        (error) => {}
       );
     },
 
@@ -393,13 +546,19 @@ export default {
         },
       });
     },
-       get_entity() {
+
+    //返回
+    goback() {
+      this.isInformationAnnouncement = false;
+    },
+
+    get_entity() {
       var query = new this.ParseServer.Query("BulletinBoard");
       query.get(this.Id).then((res) => {
-        
         this.form.link = res.get("link");
+        this.form.informationBulletin = res.get("informationBulletin");
       });
-      console.log(this.form.link)
+      console.log(this.form.informationBulletin);
     },
   },
 };
@@ -497,5 +656,9 @@ export default {
   overflow: hidden;
   // height: 30px;
   flex: 1;
+}
+.bottom {
+  display: flex;
+  justify-content: center;
 }
 </style>

@@ -21,15 +21,10 @@
                     <div style="margin:5px 0"><img v-if="row.headImg" :src="row.headImg" @click="handleShowHeadImg(row)" width="84" height="38"></div>
                 </template>
                 
-                <!-- <template slot-scope="{ row }" slot="price">
-                    <strong v-if="row.price&&row.price>0">¥{{ row.price }}元</strong>
-                    <strong v-else>免费</strong>
-                </template> -->
-                  <template label="是否vip可查看" slot-scope="{ row }" slot="vip">
-                       <strong v-if="row.vie">是</strong>
+                <template slot-scope="{ row }" slot="price">
+                    <strong v-if="row.vip&&row.vip>0">是</strong>
                     <strong v-else>否</strong>
-                     </template>
-
+                </template>
                 <template slot-scope="{ row }" slot="content">
                     <strong>{{ row.content?'已添加':'---' }}</strong>
                 </template>
@@ -57,25 +52,22 @@
                 <FormItem label="科目名称" prop='subject_name'>
                     <Input v-model="subject_form.subject_name" placeholder="请输入科目名称"></Input>
                 </FormItem>
-                <!-- <FormItem label="是否收费" prop='price'>
+                <FormItem label="是否vip可查看" prop='price'>
                     <div style="display:flex">
                         <div style="width:80px">
-                            <i-switch v-model="subject_form.free" @on-change="handleChangeFree" size="large">
-                                <span slot="open">收费</span>
-                                <span slot="close">免费</span>
+                            <i-switch v-model="subject_form.vip" @on-change="handleChangeFree" size="large">
+                                <!-- <span slot="open">收费</span>
+                                <span slot="close">免费</span> -->
                             </i-switch>
                         </div>
-                        <div style="flex:1">
+                        <!-- <div style="flex:1">
                             <Input v-if="subject_form.free" v-model="subject_form.price" placeholder="请输入收费金额">
                                 <span slot="append">元</span>
                             </Input>
-                        </div>
+                        </div> -->
                     </div>
-                </FormItem> -->
-                      <FormItem label="是否vip可查看" prop='vip'>
-                      <i-switch v-model="subject_form.vip" size="large" />
-                      </FormItem>
-
+                </FormItem>
+                
                 <FormItem label="积分抵现（元）" prop='maxScoreMoney'>
                     <InputNumber v-model="subject_form.maxScoreMoney" :min="0" :max="1000000" :precision="0" style="width:200px" placeholder="请输入积分最多可抵现金额"></InputNumber>
                     <label style="margin-left:5px;color:#808695">积分最多可抵现金额</label>
@@ -153,16 +145,14 @@ export default {
         { title: "内容添加", key: "content", slot: "content" },
         { title: "积分抵现（元）", key: "maxScoreMoney" },
         { title: "积分限制", key: "minScore" },
-        // { title: "收费状态", key: "price", slot: "price", width: 120 },
-        { title: "是否Vip可查看", key: "vip", slot: "vip", width: 120 },
+        { title: "是否Vip可查看", key: "price", slot: "price", width: 120 },
         { title: "操作", key: "action", width: 400, slot: "action" },
       ],
       columns1: [
         { title: "科目名称", key: "subject_name" },
         { title: "ID", key: "id" },
         { title: "内容添加", key: "content", slot: "content" },
-        // { title: "收费状态", key: "price", slot: "price", width: 120 },
-         { title: "是否Vip可查看", key: "vip", slot: "vip", width: 120 },
+        { title: "是否Vip可查看", key: "price", slot: "price", width: 120 },
         { title: "操作", key: "action", width: 400, slot: "action" },
       ],
       subjects_datas: [],
@@ -174,13 +164,13 @@ export default {
         free: false,
         level: 0,
         price: 0,
+        vip: false,
         maxScoreMoney: 0,
         minScore: 0,
         content: "",
         comments: "",
         has_down_level: false,
         parent_ID: "0",
-        vip:true,
       },
       ruleValidate: {
         subject_name: [
@@ -256,14 +246,13 @@ export default {
       this.currBackgroundImg = row.headImg;
     },
 
-
     /**
      * 免费，收费
      */
     handleChangeFree(e) {
-      if (!e) {
-        this.subject_form.price = 0;
-      }
+      console.log(e);
+      this.subject_form.price = e == false ? 0 : 1;
+      this.subject_form.vip = this.subject_form.price >= 0 ? true : false;
     },
     /*
      *获取科目实体
@@ -271,21 +260,28 @@ export default {
      *时间：2020-11-22 09:21:48
      */
     get_entity() {
+      console.log("serfawefwe");
       var self = this;
       var query = new this.ParseServer.Query("Subjects");
-      query.get(this.subjectid).then((res) => {
-        Object.keys(self.subject_form).forEach((key) => {
-          self.subject_form[key] = res.get(key);
+      console.log(this.subjectid);
+      if (this.subjectid) {
+        query.get(this.subjectid).then((res) => {
+          console.log(res);
+          Object.keys(self.subject_form).forEach((key) => {
+            self.subject_form[key] = res.get(key);
+          });
+          self.subject_form.free = res.get("price") > 0;
+          self.old_price = res.get("price") == 0 ? 0 : res.get("price");
+          self.subject_form.maxScoreMoney = res.get("maxScoreMoney")
+            ? res.get("maxScoreMoney")
+            : 0;
+          self.subject_form.minScore = res.get("minScore")
+            ? res.get("minScore")
+            : 0;
+          self.subject_form.vip = res.get("price") > 0 ? true : false;
+          console.log(self.subject_form);
         });
-        self.subject_form.free = res.get("price") > 0;
-        self.old_price = res.get("price") == null ? 0 : res.get("price");
-        self.subject_form.maxScoreMoney = res.get("maxScoreMoney")
-          ? res.get("maxScoreMoney")
-          : 0;
-        self.subject_form.minScore = res.get("minScore")
-          ? res.get("minScore")
-          : 0;
-      });
+      }
     },
     /** 弹出添加科目弹框 */
     addSubject() {
@@ -297,7 +293,6 @@ export default {
         headImg: "",
         free: false,
         level: this.currLevel,
-        vip:true,
         price: 0,
         content: "",
         has_down_level: false,
@@ -316,8 +311,10 @@ export default {
      * 弹出编辑窗口
      */
     EditFormShow(row) {
+      console.log(row);
       this.subjectid = row.id;
       this.isShowAddForm = true;
+      this.subject_form.vip = row.vip;
       this.window_title = "编辑科目";
       this.get_entity();
     },
@@ -353,7 +350,7 @@ export default {
       this.currLevel += 1;
       this.currParent = row;
       this.page = 1;
-      // this.old_price = row.price
+      this.old_price = row.price;
       this.page_list(1);
     },
     /** 添加下一级 */
@@ -377,14 +374,14 @@ export default {
      *时间：2020-11-21 23:41:37
      */
     add_subjects() {
-      this.get_entity()
+      this.get_entity();
       var self = this;
       var subjects = this.ParseServer.Object.extend("Subjects");
       var subject = new subjects();
       if (this.subjectid) {
         subject.set("id", this.subjectid);
       }
-      this.subject_form.parent_ID = this.currParent.id;
+      // this.subject_form.parent_ID = this.currParent.id;
       this.$refs["subjectForm"].validate((valid) => {
         if (!valid) {
           self.$Message.error("请检查表单项");
@@ -401,7 +398,6 @@ export default {
           subject.set("minScore", self.subject_form.minScore);
           // subject.set("content", '')
           subject.set("price", parseFloat(self.subject_form.price));
-                subject.set("vip",self.subject_form.vip);
           subject.set("level", self.currLevel);
           subject.set("parent_ID", self.currParent.id);
           subject.set("has_down_level", self.subject_form.has_down_level);
@@ -542,7 +538,7 @@ export default {
                 parent_ID: item.get("parent_ID"),
                 subject_ID: item.get("subject_ID"),
                 price: parseFloat(item.get("price")),
-                 vip: item.get("vip"),
+                vip: parseFloat(item.get("price")) > 0 ? true : false,
                 level: item.get("level"),
                 content: item.get("content"),
                 backgroundImg: item.get("backgroundImg"),
@@ -555,6 +551,7 @@ export default {
             });
           }
           this.loading = false;
+          console.log(this.subjects_datas);
         },
         (error) => {
           debugger;
