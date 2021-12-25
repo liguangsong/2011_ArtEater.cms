@@ -84,7 +84,7 @@ export default {
         { title: "会员昵称", key: "nickName",},
         { title: "手机号", key: "phone" },
         { title: "会员类型", key: "memberType" },
-        { title: "拉新人数", key: "recruitsNumber",},
+        { title: "拉新人数", key: "recruits",},
         { title: "是否处理", key: "isDispose", slot: "isDispose" },
         // { title: "创建时间", key: "createdAt" },
 
@@ -95,7 +95,7 @@ export default {
         nickName: "",
         phone: "",
         memberType:'',
-        recruitsNumber: "",
+        recruits: "",
         isDispose: false,
       },
       Id: "",
@@ -186,7 +186,7 @@ export default {
                 phone: item.get("phone"),
                 memberType: item.get("memberType"),
                 silverActivePrice: item.get("silverActivePrice"),
-                recruitsNumber: item.get("recruitsNumber"),
+                recruits: item.get("recruits") ? item.get("recruits").length :0,
                 isDispose: item.get("isDispose"),
                 createdAt: tool.dateFormat(
                   item.get("createdAt"),

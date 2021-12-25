@@ -515,7 +515,6 @@ export default {
     handleSendCoupon() {
       var self = this;
       var CouponRecords = self.ParseServer.Object.extend("NewCouponRecord");
-
       if (self.coupon_curr) {
         var list = [];
         if (self.sendMode == "all") {
@@ -523,7 +522,7 @@ export default {
           let query = new this.ParseServer.Query(this.ParseServer.User);
           query.equalTo("role", "student");
           query.limit(1000000);
-          query.find().then((students) => {
+          query.find().then((students) => {w3
             students.forEach((item) => {
               var couponRecord = new CouponRecords();
               couponRecord.set("couponId", self.coupon_curr.id);
@@ -537,7 +536,7 @@ export default {
                couponRecord.set("state", 0);
               // couponRecord.set("orderNo", "");
               couponRecord.set("useTime", new Date());
-              list.push(couponRecord);
+              list.push(couponRecord);3
             });
             if (list && list.length > 0) {
               self.ParseServer.Object.saveAll(list).then((resList) => {
