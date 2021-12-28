@@ -391,7 +391,9 @@ export default {
             message: "请输入基数",
             trigger: "blur",
             validator: (rule, value, callback) => {
-              if (value == "") {
+              console.log(value === 0)
+              console.log(typeof(value))
+              if (value === "") {
                 return callback(new Error("请输入基数"));
               } else if (!/^[0-9]*$/.test(value)) {
                 return callback(new Error("基数只能输入数字！"));
@@ -400,18 +402,18 @@ export default {
             },
           },
         ],
-        surface: [
-          {
-            required: true,
-            trigger: "blur",
-            validator: (rule, value, callback) => {
-              if (value.length == 0) {
-                return callback(new Error("请上传封面图"));
-              }
-              callback();
-            },
-          },
-        ],
+        // surface: [
+        //   {
+        //     required: true,
+        //     trigger: "blur",
+        //     validator: (rule, value, callback) => {
+        //       if (value.length == 0) {
+        //         return callback(new Error("请上传封面图"));
+        //       }
+        //       callback();
+        //     },
+        //   },
+        // ],
       },
     };
   },
@@ -756,7 +758,9 @@ export default {
             }, 100);
             return false;
           } else {
+            console.log('dscasdvdsvd')
             query.get(id).then((item) => {
+              console.log(item)
               var coursesClass =
                 this.ParseServer.Object.extend("CoursesModule");
               var coursesId = coursesClass.createWithoutData(this.radioData);
@@ -783,8 +787,43 @@ export default {
               );
             });
           }
+        }else{
+          console.log(id)
+            console.log('dscasdvdsvd122222222211')
+           
+            this.updated_Course(id);
         }
       });
+    },
+    updated_Course(id){
+            var query = new this.ParseServer.Query("ModuleAssociatedCourses");
+           query.get(id).then((item) => {
+              console.log(item)
+              var coursesClass =
+                this.ParseServer.Object.extend("CoursesModule");
+              var coursesId = coursesClass.createWithoutData(this.radioData);
+              // 保存
+              item.set("surface", this.course_form.surface);
+              item.set("title", this.course_form.title);
+              item.set("subTitle", this.course_form.subTitle);
+              item.set("order", Number(this.course_form.order));
+              item.set("N", Number(this.course_form.N));
+              item.set("baseNum", Number(this.course_form.baseNum));
+              item.set("course", coursesId);
+              item.set("updatedBy", this.updatedBy);
+              item.save().then(
+                (data) => {
+                  this.$Message.success("修改成功");
+                  this.isShowAddCourse = false;
+                  this.isShowAddCourse2 = false;
+                  this.page_list();
+                },
+                (error) => {
+                  console.log(error);
+                  this.$Message.error("修改失败");
+                }
+              );
+            });
     },
 
     // 模块内课程删除

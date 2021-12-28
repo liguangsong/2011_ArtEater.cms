@@ -317,7 +317,6 @@ export default {
     // 富文本说明
     change_value(html) {
       this.form.informationBulletin = html == "<p><br></p>" ? "" : html;
-
       // this.$refs["form"].validate();
     },
 

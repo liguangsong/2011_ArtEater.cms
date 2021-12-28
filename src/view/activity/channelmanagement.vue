@@ -1,6 +1,6 @@
 <template>
   <div class="container-wrap">
-    <div class="header-wrap clear-fix" style="display:flex" v-if="isAddChannel== false"> 
+    <div class="header-wrap clear-fix" style="display:flex" v-if="isAddChannel== false && isLookBill == false"> 
       <div class="search-wrap clear-fix" style="flex:1">
         <div class="search-keyword" style="width:230px">
           <Input
@@ -10,7 +10,8 @@
             style="width:200px"
           />
         </div>
-        <div class="select-choice clear-fix" style="width: 500px;    display: flex;">
+        <div class="select-choice clear-fix" style="width: 500px;
+        display: flex;">
           <span>注册时间</span>
           <div class="date-picker-wrap clear-fix" style="width: 400px;display: flex;">
             <div class="date-picker" style="width: 180px">
@@ -40,7 +41,7 @@
         </div>
       
     </div>
-    <Row class="table-wrap" v-if="isAddChannel== false">
+    <Row class="table-wrap" v-if="isAddChannel== false && isLookBill == false">
         <div style="width:100px; margin-left: auto;
     margin-bottom: 20px;">
         <Button type="primary" @click="addChannel">新增渠道</Button>
@@ -50,7 +51,6 @@
     <template slot-scope="{ row }" slot="qsCode">
      <span style="color:#0758a2;cursor: pointer;" @click="handleExamine(row)">查看</span>
        </template>
-
         <template slot-scope="{ row }" slot="action">
           <Button
             type="warning"
@@ -80,7 +80,7 @@
       </div>
     </Row>
 <!-- 新增渠道 -->
-<div v-if="isAddChannel" style="margin-top:50px;margin-left:40px">
+<div v-if="isAddChannel && isLookBill == false" style="margin-top:50px;margin-left:40px">
   <Form
         v-if="isAddChannel"
         ref="form"
@@ -135,7 +135,6 @@
       </Form>
  <div class="bottom">
    <Button
-
             style="margin-right:5px;cursor: pointer;"
             @click="goback"
             >返回</Button
@@ -148,6 +147,31 @@
           >
       </div>
 </div>
+
+
+<!-- 查看账单 -->
+<div v-if="isAddChannel==false && isLookBill" style="margin-top:50px;margin-left:40px">
+      <Row class="table-wrap" v-if="isLookBill">
+        <div style="width:100px; margin-left: auto;
+    margin-bottom: 20px;">
+     <Button type="primary" @click="exportBill">导出账单</Button>
+      </div>
+      <Table :loading="loading" :columns="columns2" :data="datas2">
+      </Table>
+      <div class="page-wrap">
+        <Page :total="total2" @on-change="pagechange2" v-if="total2 != 0" />
+      </div>
+    </Row>
+ <div class="bottom">
+   <Button
+            style="margin-right:5px;margin-top:20px;cursor: pointer;"
+            @click="goback"
+            >返回</Button
+          >
+      </div>
+</div>
+
+
   <Modal @on-visible-change="handleVChange" width="450" title="二维码" v-model="isShowImg">
           <div style="margin:5px 0;text-align:center">
               <div class="qrcode" ref="qrCodeUrl"></div>
@@ -161,6 +185,7 @@ import Editor from "@/components/editor";
 import QRCode from "qrcodejs2";
 import { tool } from "@/api/tool";
 import myUploadMuti from "@/components/myUploadMuti";
+import excelUtil from "../../utils/dealwithExcelUtil";
 export default {
   name: "coursesmanageindex",
   components: {
@@ -172,8 +197,10 @@ export default {
       isShowImg: false,
       isAddChannel: false,
       page: 1,
+      page2:1,
       pageSize: 10,
       total: 0,
+      total2:0,
       search_keyword: "",
       search_start_date: "",
       search_end_date: "",
@@ -190,7 +217,15 @@ export default {
         { title: "创建时间", key: "updatedAt" },
         { title: "操作", key: "action", width: 200, slot: "action" },
       ],
+       columns2: [
+        { title: "会员类型", key: "memberType" },
+        { title: "活动金额", key: "blackActivePrice", },
+        { title: "提成金额", key: "silverActivePrice", },
+        { title: "推广时间", key: "platinumActivePrice",},
+        { title: "创建时间", key: "updatedAt" },
+      ],
       datas: [],
+       datas2: [],
       form: {
         channelName: "",
         blackActivePrice: 0,
@@ -206,7 +241,7 @@ export default {
       },
       Id: "",
       ruleValidate: {
-                channelName: [
+        channelName: [
           { required: true, message: "请输入渠道名称", trigger: "blur" },
         ],
         blackActivePrice: [
@@ -284,7 +319,7 @@ export default {
 
     //二维码
     creatQrCode(row) {
-        console.log(row)
+      console.log(row)
       this.$refs.qrCodeUrl.innerHTML = "";
       var qrcode = new QRCode(this.$refs.qrCodeUrl, {
         text: `https://www.arteater.cn/Ji2vVK7htw.txt/?id=${row.id}`, // 需要转换为二维码的内容
@@ -410,6 +445,10 @@ export default {
       this.page = e;
       this.page_list();
     },
+    pagechange2(e) {
+      this.page2 = e;
+      this.billList(this.page2);
+    },
 
     page_list(page_index) {
       this.loading = true;
@@ -468,6 +507,44 @@ export default {
       );
     },
 
+
+
+
+      billList(page_index) {
+      this.loading = true;
+      let _this = this;
+      let query = new this.ParseServer.Query("ChannelManagement");
+      query.descending("createdAt");
+      query.count().then((count) => {
+        _this.total2 = count;
+      });
+      query.skip((this.page2 - 1) * this.pageSize);
+      query.limit(this.pageSize);
+      query.find().then(
+        (list) => {
+          _this.datas2 = [];
+          if (list && list.length > 0) {
+            list.forEach((item) => {
+              _this.datas2.push({
+                id: item.id,
+                memberType: item.get("memberType"),
+                blackActivePrice: item.get("blackActivePrice"),
+                silverActivePrice: item.get("silverActivePrice"),
+                platinumActivePrice: item.get("platinumActivePrice"),
+                updatedAt: tool.dateFormat(
+                item.get("updatedAt"),
+                "yyyy-MM-dd HH:mm:ss"
+                ),
+              });
+            });
+          }
+
+          this.loading = false;
+        },
+        (error) => {}
+      );
+    },
+
     delete(id) {
       var query_deletes = new this.ParseServer.Query("ChannelManagement");
       query_deletes.equalTo("objectId", id);
@@ -507,11 +584,14 @@ export default {
     ExamineBill(row){
      console.log(row)
      this.isLookBill = true;
+     this.isAddChannel = false;
+     this.billList()
     },
 
     //返回
     goback() {
       this.isAddChannel = false;
+      this.isLookBill = false;
     },
     get_entity() {
       var query = new this.ParseServer.Query("ChannelManagement");
@@ -524,6 +604,45 @@ export default {
         this.form.TotalAmountCommission = res.get("TotalAmountCommission");
         this.form.baseMap = res.get("baseMap");
       });
+    },
+    //导出账单
+    exportBill(){
+       console.log("导出账单")
+       console.log(this.datas2);
+      setTimeout(() => {
+        const initColumn = [
+          {
+            title: "ID",
+            dataIndex: "id",
+            key: "id",
+          },
+          {
+            title: "会员类型",
+            dataIndex: "memberType",
+            key: "memberType",
+          },
+          {
+            title: "活动金额",
+            dataIndex: "blackActivePrice",
+            key: "blackActivePrice",
+          },
+          {
+            title: "提成金额",
+            dataIndex: "blackActivePrice",
+            key: "blackActivePrice",
+          },
+          {
+            title: "推广时间",
+            dataIndex: "updatedAt",
+            key: "updatedAt",
+          },
+        ];
+        excelUtil.exportExcel(
+          initColumn,
+          this.datas2,
+          "查看账单数据.xlsx"
+        );
+      }, 1000);
     },
   },
 };

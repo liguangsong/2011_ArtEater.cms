@@ -353,7 +353,6 @@ export default {
       query.descending("createdAt");
       query.skip((this.page - 1) * 10);
       query.limit(10);
-
       query.find().then(
         (list) => {
           this.users_datas = [];
