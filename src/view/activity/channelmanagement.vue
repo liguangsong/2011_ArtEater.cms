@@ -325,7 +325,6 @@ export default {
 
     //二维码
     creatQrCode(row) {
-      console.log(row);
       this.$refs.qrCodeUrl.innerHTML = "";
       var qrcode = new QRCode(this.$refs.qrCodeUrl, {
         text: `https://www.arteater.cn/vip/Ji2vVK7htw.txt/?id=${row.id}&ids=1`, // 需要转换为二维码的内容
@@ -358,7 +357,6 @@ export default {
      */
     EditFormShow(row) {
       this.isAddChannel = true;
-      console.log(row);
       this.Id = row.id;
       this.form.channelName = row.channelName;
       this.form.blackActivePrice = row.blackActivePrice;
@@ -371,7 +369,6 @@ export default {
       this.form.promoteRegistrationPhone = row.promoteRegistrationPhone;
       this.form.PromotionTime = row.PromotionTime;
       this.form.baseMap = row.baseMap;
-      console.log(this.form);
     },
     // 富文本说明
     change_value(html) {
@@ -569,7 +566,6 @@ export default {
 
     DelConfirmShow(row) {
       var id = row.id;
-      let _this = this;
       this.$Modal.confirm({
         title: "删除提示",
         content: "<p>当前活动会被删除，确定要删除吗？</p>",
@@ -588,7 +584,6 @@ export default {
 
     //查看账单
     ExamineBill(row) {
-      console.log(row);
       this.parentId = row.id;
       this.isLookBill = true;
       this.isAddChannel = false;
@@ -614,8 +609,6 @@ export default {
     },
     //导出账单
     exportBill() {
-      console.log("导出账单");
-      console.log(this.datas2);
       for (const key in this.datas2) {
         if (this.datas2[key].memberType == 1) {
           this.datas2[key].memberTypeName = "黑金";
@@ -658,7 +651,6 @@ export default {
           },
         ];
         excelUtil.exportExcel(initColumn, this.datas2, "查看账单数据.xlsx");
-        console.log(this.datas2);
       }, 1000);
     },
   },

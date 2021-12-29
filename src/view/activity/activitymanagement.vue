@@ -245,13 +245,11 @@ export default {
 
     // 复制成功时的回调函数
     onCopy (e) {
-      console.log(e)
-      console.log('内容已复制到剪切板！')
+  
       this.$message.info('复制成功!');
     },
     // 复制失败时的回调函数
     onError (e) {
-      console.log('抱歉，复制失败！')
     },
 
 
@@ -275,7 +273,6 @@ export default {
      */
     EditFormShow(row) {
       this.isAddActivity = true;
-      console.log(row);
       this.Id = row.id;
       this.form.title = row.title;
       this.form.blackActivePrice = row.blackActivePrice;
@@ -283,7 +280,6 @@ export default {
       this.form.silverActivePrice = row.silverActivePrice;
       this.form.link = row.link;
       this.form.baseMap = row.baseMap;
-      console.log(this.form);
     },
 
     /*

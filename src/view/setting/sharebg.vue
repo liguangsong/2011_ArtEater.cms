@@ -144,7 +144,6 @@ export default {
                         self.$Message.success('保存成功')
                         self.page_list()
                     },(error)=>{
-                        console.log(error)
                         self.$Message.error('保存失败')
                     })
                 }
@@ -215,7 +214,6 @@ export default {
                             })
                             _this.loading=false
                         },error=>{
-                            console.log(error)
                         })
                     }
                 }

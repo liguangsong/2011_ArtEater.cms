@@ -228,7 +228,6 @@ export default {
                     this.isReplyMessage = false;
                 },
                 (error) => {
-                    console.log(error);
                     this.$Message.error("回复失败");
                 }
                 );

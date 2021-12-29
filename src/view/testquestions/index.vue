@@ -2059,7 +2059,6 @@ export default {
           _this.question_datas = [];
           if (list && list.length > 0) {
             list.forEach((item) => {
-              // console.log(item);
               _this.question_datas.push({
                 id: item.id,
                 // tagName: item.get("tagId").attributes.tagName,
@@ -2083,7 +2082,6 @@ export default {
                 ),
               });
             });
-            console.log(_this.question_datas);
           }
           this.loading = false;
         },
@@ -2094,7 +2092,6 @@ export default {
     },
 
     async page_list2() {
-      console.log("cQW ");
       let counts = 0;
       var self = this;
       let _this = this;
@@ -2193,10 +2190,8 @@ export default {
           _this.question_datas2 = [];
           if (list && list.length > 0) {
             list.forEach((item) => {
-              // console.log(item);
               _this.question_datas2.push({
                 id: item.id,
-                // tagName: item.get("tagId").attributes.tagName,
                 tagId: item.get("tag") ? item.get("tag").id : "",
                 tagName: item.get("tag")
                   ? item.get("tag").attributes.tagName
@@ -2217,7 +2212,6 @@ export default {
                 ),
               });
             });
-            console.log(_this.question_datas2);
           }
           this.loading = false;
         },
@@ -2280,8 +2274,6 @@ export default {
       });
     },
     async exports() {
-      console.log(this.question_datas2);
-      console.log("全部导出");
       let question_datas = this.question_datas2;
       let rightAnswer = "";
       for (const key in question_datas) {
@@ -2334,7 +2326,6 @@ export default {
             (_idx == question_datas[key].subjects.length - 1 ? "" : "；");
         });
       }
-      console.log(question_datas);
       // if (this.question_datas.length > 0) {
       setTimeout(() => {
         const initColumn = [

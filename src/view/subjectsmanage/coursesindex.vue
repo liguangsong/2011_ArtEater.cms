@@ -277,7 +277,6 @@ export default {
      *时间：2020-11-22 09:21:48
      */
     get_entity() {
-      console.log(this.course_id);
       var self = this;
       var query = new this.ParseServer.Query("Courses");
       query.get(this.courseid).then((res) => {
@@ -420,7 +419,6 @@ export default {
               }
             },
             (error) => {
-              console.log(error);
               self.$Message.error("保存失败");
             }
           );
@@ -479,7 +477,6 @@ export default {
           self.$Message.success("保存成功");
         },
         (error) => {
-          console.log(error);
           self.$Message.error("保存失败");
         }
       );
@@ -496,7 +493,6 @@ export default {
           self.$Message.success("保存成功");
         },
         (error) => {
-          console.log(error);
           self.$Message.error("保存失败");
         }
       );
@@ -548,9 +544,7 @@ export default {
         (list) => {
           _this.courses_datas = [];
           if (list && list.length > 0) {
-            console.log(list);
             list.forEach((item) => {
-              console.log(item);
               _this.courses_datas.push({
                 id: item.id,
                 courseName: item.get("courseName"),

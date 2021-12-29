@@ -193,10 +193,8 @@ export default {
     close_preview(value) {
       if (!value) {
         this.preview_form = value;
-        console.log("********************");
         this.paper_id = "";
         if (!this.add_window) {
-          console.log("----------------");
           this.exam_id = "";
         }
         this.page_list();

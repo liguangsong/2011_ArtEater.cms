@@ -230,7 +230,6 @@ export default {
             trigger: "change",
             required: true,
             validator: (rule, value, callback) => {
-              console.log(value)
               if (value == "" || value == undefined) {
                 return callback(new Error("请选择公告栏类型"));
               }
@@ -276,13 +275,10 @@ export default {
       this.Id = data.id;
       this.get_entity();
       if (data.type == 1) {
-        console.log("信息公告");
         this.link = data.link;
         this.isInformationAnnouncement = true;
         this.isMountInformation = false;
-        console.log(this.isInformationAnnouncement);
       } else {
-        console.log("活动公告");
         this.window_title = "活动信息挂载";
         this.isInformationAnnouncement = false;
         this.isMountInformation = true;
@@ -337,12 +333,10 @@ export default {
      * 弹出编辑窗口
      */
     EditFormShow(row) {
-      console.log(row);
       this.Id = row.id;
       this.form.bulletinName = row.bulletinName;
       this.form.type = row.type;
       this.form.isShow = row.isShow;
-      console.log(this.form);
       this.isShowAddForm = true;
       this.window_title = "编辑公告";
     },
@@ -351,9 +345,7 @@ export default {
      *新增公告栏
      */
     add_bulletinBoard() {
-      console.log(this.ParseServer.User.current().toJSON())
              this.form.updatedBy = this.ParseServer.User.current().toJSON().realname;
-                   console.log(this.form)
       this.$refs["form"].validate((valid) => {
         if (!valid) {
           this.$Message.error("请检查表单项");
@@ -367,7 +359,6 @@ export default {
           if (this.Id) {
             this.updated();
           } else {
-            console.log("rsvre");
             // 保存
             var datas = this.ParseServer.Object.extend("BulletinBoard");
             var data = new datas();
@@ -557,7 +548,6 @@ export default {
         this.form.link = res.get("link");
         this.form.informationBulletin = res.get("informationBulletin");
       });
-      console.log(this.form.informationBulletin);
     },
   },
 };

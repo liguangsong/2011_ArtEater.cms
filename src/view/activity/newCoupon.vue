@@ -366,7 +366,6 @@ export default {
       this.page_list();
     },
       couponTypeChange(){
-      console.log('dfc')
       },
 
     /** 添加优惠券 */
@@ -384,7 +383,6 @@ export default {
     },
     /** 编辑优惠券 */
     handleEdit(row) {
-      console.log(row)
       self.window_title = "编辑优惠券";
       this.coupon_form = {
         id: row.id,
@@ -398,7 +396,6 @@ export default {
     },
     /** 发送优惠券 */
     handleSend(row) {
-      console.log(row)
       var self = this;
       this.selectedStudent = [];
       this.coupon_curr = row;
@@ -426,11 +423,9 @@ export default {
     handleSelectStudent(selection) {
       var self = this;
       selection.forEach((t) => {
-        console.log(t)
         var item = self.selectedStudent.find((_t) => {
           return _t.id == t.id;
         });
-        console.log(item)
         if (!item) {
           self.selectedStudent.push(t);
         }
@@ -470,7 +465,6 @@ export default {
     },
   
     handleSaveCoupon() {
-      console.log(this.coupon_form)
       if(this.coupon_form.couponType == 'automaticallySend'){
         // console.log(this.coupon_form.useEndTime.getTime()+ 1000 * 60 * 60 * 24 * 365)
         // this.coupon_form.useEndTime = new Date(this.coupon_form.useEndTime.getTime()+ 1000 * 60 * 60 * 24 * 365)
@@ -638,7 +632,6 @@ export default {
           this.loading = false;
         },
         (error) => {
-          console.log(error);
           this.$Message.error("获取失败");
         }
       );

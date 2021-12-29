@@ -159,7 +159,6 @@ export default {
         let type;
         this.search_type == 1 ? (type = true) : (type = false);
         query4.equalTo("isDispose", type);
-        console.log(type)
       }
 
       var query = this.ParseServer.Query.and(

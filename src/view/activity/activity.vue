@@ -296,7 +296,6 @@ export default {
             self.page_list(self.page)
             self.$Message.success('保存成功')
         },(error)=>{
-            console.log(error)
             self.$Message.error('保存失败')
         })
     },
@@ -386,7 +385,6 @@ export default {
                 this.loading = false;
             },
             error => {
-                console.log(error);
                 this.$Message.error("获取失败");
             }
         );

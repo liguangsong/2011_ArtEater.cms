@@ -391,8 +391,6 @@ export default {
             message: "请输入基数",
             trigger: "blur",
             validator: (rule, value, callback) => {
-              console.log(value === 0)
-              console.log(typeof(value))
               if (value === "") {
                 return callback(new Error("请输入基数"));
               } else if (!/^[0-9]*$/.test(value)) {
@@ -447,7 +445,6 @@ export default {
       let _this = this;
       let query = new this.ParseServer.Query("ModuleAssociatedCourses");
       if (this.search_keyword) {
-        console.log(this.search_keyword);
         let query1 = new this.ParseServer.Query("ModuleAssociatedCourses");
         let query2 = new this.ParseServer.Query("ModuleAssociatedCourses");
         query1.contains("title", this.search_keyword);
@@ -727,7 +724,6 @@ export default {
                     this.page_list();
                   },
                   (error) => {
-                    console.log(error);
                     this.$Message.error("保存失败");
                   }
                 );
@@ -758,9 +754,7 @@ export default {
             }, 100);
             return false;
           } else {
-            console.log('dscasdvdsvd')
             query.get(id).then((item) => {
-              console.log(item)
               var coursesClass =
                 this.ParseServer.Object.extend("CoursesModule");
               var coursesId = coursesClass.createWithoutData(this.radioData);
@@ -781,16 +775,12 @@ export default {
                   this.page_list();
                 },
                 (error) => {
-                  console.log(error);
                   this.$Message.error("修改失败");
                 }
               );
             });
           }
         }else{
-          console.log(id)
-            console.log('dscasdvdsvd122222222211')
-           
             this.updated_Course(id);
         }
       });
@@ -798,7 +788,6 @@ export default {
     updated_Course(id){
             var query = new this.ParseServer.Query("ModuleAssociatedCourses");
            query.get(id).then((item) => {
-              console.log(item)
               var coursesClass =
                 this.ParseServer.Object.extend("CoursesModule");
               var coursesId = coursesClass.createWithoutData(this.radioData);
@@ -819,7 +808,6 @@ export default {
                   this.page_list();
                 },
                 (error) => {
-                  console.log(error);
                   this.$Message.error("修改失败");
                 }
               );

@@ -250,7 +250,6 @@ export default {
      * 免费，收费
      */
     handleChangeFree(e) {
-      console.log(e);
       this.subject_form.price = e == false ? 0 : 1;
       this.subject_form.vip = this.subject_form.price >= 0 ? true : false;
     },
@@ -260,13 +259,10 @@ export default {
      *时间：2020-11-22 09:21:48
      */
     get_entity() {
-      console.log("serfawefwe");
       var self = this;
       var query = new this.ParseServer.Query("Subjects");
-      console.log(this.subjectid);
       if (this.subjectid) {
         query.get(this.subjectid).then((res) => {
-          console.log(res);
           Object.keys(self.subject_form).forEach((key) => {
             self.subject_form[key] = res.get(key);
           });
@@ -279,7 +275,6 @@ export default {
             ? res.get("minScore")
             : 0;
           self.subject_form.vip = res.get("price") > 0 ? true : false;
-          console.log(self.subject_form);
         });
       }
     },
@@ -311,7 +306,6 @@ export default {
      * 弹出编辑窗口
      */
     EditFormShow(row) {
-      console.log(row);
       this.subjectid = row.id;
       this.isShowAddForm = true;
       this.subject_form.vip = row.vip;
@@ -551,7 +545,6 @@ export default {
             });
           }
           this.loading = false;
-          console.log(this.subjects_datas);
         },
         (error) => {
           debugger;

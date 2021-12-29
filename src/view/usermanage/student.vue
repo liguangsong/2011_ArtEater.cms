@@ -254,7 +254,6 @@ export default {
   },
   methods: {
     edit() {
-      console.log(this.user_forms.label);
       var query = new this.ParseServer.Query(this.ParseServer.User);
       query.get(this.user_id).then((item) => {
         item.set("label", this.user_forms.label);
@@ -270,7 +269,6 @@ export default {
           }
         );
       });
-      console.log("sdecwe");
     },
     /*
      *取消操作
@@ -384,7 +382,6 @@ export default {
     },
 
     async page_list2() {
-      console.log("sc");
       let counts = 0;
       let user1 = new this.ParseServer.Query(this.ParseServer.User);
       user1.contains("realname", this.search_keyword);
@@ -441,7 +438,6 @@ export default {
               return account;
             });
           }
-          console.log(this.users_datas2);
         },
         (error) => {
           this.$Message.error("用户列表获取失败");
@@ -487,7 +483,6 @@ export default {
 
     // 全部导出
     async exports() {
-      console.log(this.users_datas2);
       setTimeout(() => {
         const initColumn = [
           {

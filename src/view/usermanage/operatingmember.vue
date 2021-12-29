@@ -356,7 +356,6 @@ export default {
           this.users_datas2 = [];
           if (list && list.length > 0) {
             this.users_datas2 = list.map((item) => {
-              console.log(item);
               var account = {
                 id: item.id,
                 nickName: item.get("nickName"),

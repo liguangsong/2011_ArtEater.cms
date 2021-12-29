@@ -338,7 +338,6 @@ export default {
     // 下一步
     nextStep() {
       this.surfaceId == 3 ? (this.surfaceId = 1) : (this.surfaceId += 1);
-      console.log(this.surfaceId);
     },
     cancel() {},
     handleVChange(r) {
@@ -413,10 +412,7 @@ export default {
     add_member() {
       let expirationDate;
       var imgs = this.imgList.find((value) => value.id == this.surfaceId);
-      console.log(imgs);
       this.member_form.surface = imgs.src;
-      console.log(this.surfaceId);
-      console.log(this.member_form.surface);
       var members = this.ParseServer.Object.extend("MemberType");
       var member = new members();
       // 修改
@@ -440,7 +436,6 @@ export default {
         query.equalTo("typeName", this.member_form.typeName);
         query.limit(10000);
         query.find().then((response) => {
-          console.log(response)
           if (response && response.length > 0) {
             this.$Message.error("已有此会员,请去编辑会员");
             this.modalLoading = false;

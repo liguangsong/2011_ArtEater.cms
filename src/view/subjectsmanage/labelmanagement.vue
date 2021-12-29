@@ -108,7 +108,6 @@ export default {
   components: {},
   filters: {
     ellipsis(value) {
-      console.log(value.length);
       if (!value) return "";
       if (value.length > 15) {
         return value.slice(0, 15) + "...";
@@ -171,7 +170,6 @@ export default {
     get_entity() {
       var query = new this.ParseServer.Query("LabelManagement");
       query.get(this.tagId).then((res) => {
-        console.log(res);
         this.form.tagName = res.get("tagName");
         this.form.note = res.get("note");
       });
@@ -190,7 +188,6 @@ export default {
      * 弹出编辑窗口
      */
     EditFormShow(row) {
-      console.log(row);
       this.tagId = row.id;
       this.isShowAddForm = true;
       this.window_title = "编辑标签管理";
@@ -203,7 +200,6 @@ export default {
     add_tag() {
       var datas = this.ParseServer.Object.extend("LabelManagement");
       var data = new datas();
-      console.log(this.form);
       // 修改
       if (this.tagId) {
         this.updated();
@@ -227,7 +223,6 @@ export default {
                 this.page_list();
               },
               (error) => {
-                console.log(error);
                 this.$Message.error("保存失败");
               }
             );
@@ -237,10 +232,8 @@ export default {
     },
 
     updated() {
-      console.log(this.tagId);
       var query = new this.ParseServer.Query("LabelManagement");
       query.get(this.tagId).then((item) => {
-        console.log(item);
         item.set("tagName", this.form.tagName);
         item.set("note", this.form.note);
         item.save().then(
@@ -250,7 +243,6 @@ export default {
             this.page_list();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
@@ -258,7 +250,6 @@ export default {
     },
 
     search() {
-      console.log(this.search_keyword);
       this.page = 1;
       this.page_list(this.page);
     },
@@ -293,12 +284,9 @@ export default {
       query.limit(this.pageSize);
       query.find().then(
         (list) => {
-          console.log(list);
           _this.datas = [];
           if (list && list.length > 0) {
-            console.log(list);
             list.forEach((item) => {
-              console.log(item.get("note").length);
               _this.datas.push({
                 id: item.id,
                 tagName: item.get("tagName"),
@@ -311,13 +299,11 @@ export default {
                 ),
               });
             });
-            console.log(this.datas);
           }
           this.isShowAddForm = false;
           this.loading = false;
         },
         (error) => {
-          console.log(error);
         }
       );
     },
@@ -327,11 +313,11 @@ export default {
       query_deletes.equalTo("objectId", id);
       query_deletes.limit(10000);
       query_deletes.find().then((response) => {
-        console.log(response);
+
         if (response && response.length > 0) {
           response.forEach((data) => {
             data.destroy().then((result) => {
-              console.log(result);
+
               this.$Message.success("删除成功");
               this.page_list();
             });
@@ -341,29 +327,23 @@ export default {
     },
 
     async DelConfirmShow(row) {
-      console.log(row);
       this.labelId = row.id;
       var id = row.id;
       let num = 0;
       let nums = 0;
-      console.log(this.labelId);
       let _this = this;
       var query1 = new this.ParseServer.Query("CoursesModule");
       var ClassOfMyObject = this.ParseServer.Object.extend("LabelManagement");
       var queryId = ClassOfMyObject.createWithoutData(id);
-      console.log(queryId);
       query1.equalTo("tag", queryId);
       query1.find().then((response) => {
-        console.log(response.length);
         num = response.length;
       });
       var query2 = new this.ParseServer.Query("TestQuestions");
       var ClassOfMyObject = this.ParseServer.Object.extend("LabelManagement");
       var queryId = ClassOfMyObject.createWithoutData(id);
-      console.log(queryId);
       query2.equalTo("tag", queryId);
       query2.find().then((response) => {
-        console.log(response.length);
         nums = response.length;
       });
       setTimeout(() => {
@@ -372,8 +352,6 @@ export default {
     },
 
     labelDeletes(num, nums) {
-      console.log(num);
-      console.log(nums);
       if (num + nums > 0) {
         this.$Message.error("课程管理或试题管理已有添加此标签,不能删除!");
       } else {
@@ -383,7 +361,6 @@ export default {
           onOk: () => {
             var query = new this.ParseServer.Query("LabelManagement");
             query.get(this.labelId).then((response) => {
-              console.log(response.id);
               this.delete(response.id);
               // 删除当前组件
             });
@@ -396,7 +373,6 @@ export default {
     },
     checkLogin() {},
     annotationClick(data) {
-      console.log(data);
       data.flag = !data.flag;
     },
   },
