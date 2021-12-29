@@ -39,7 +39,6 @@
        <div class="search-btn" style="width:150px;margin:0">
           <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
         </div>
-      
     </div>
     <Row class="table-wrap" v-if="isAddChannel== false && isLookBill == false">
         <div style="width:100px; margin-left: auto;
@@ -117,7 +116,6 @@
             placeholder="请输入白银活动价格"
           ></Input>
         </FormItem>
-
      <FormItem label="分成比例" prop="divideInto">
           <Input
            style="width: 200px"
@@ -148,7 +146,6 @@
       </div>
 </div>
 
-
 <!-- 查看账单 -->
 <div v-if="isAddChannel==false && isLookBill" style="margin-top:50px;margin-left:40px">
       <Row class="table-wrap" v-if="isLookBill">
@@ -157,6 +154,11 @@
      <Button type="primary" @click="exportBill">导出账单</Button>
       </div>
       <Table :loading="loading" :columns="columns2" :data="datas2">
+       <template slot-scope="{ row }" slot="memberType">
+     <span v-if="row.memberType == 1">黑金</span>
+       <span v-if="row.memberType == 2">铂金</span>
+         <span v-if="row.memberType == 3">白银</span>
+       </template>
       </Table>
       <div class="page-wrap">
         <Page :total="total2" @on-change="pagechange2" v-if="total2 != 0" />
@@ -170,7 +172,6 @@
           >
       </div>
 </div>
-
 
   <Modal @on-visible-change="handleVChange" width="450" title="二维码" v-model="isShowImg">
           <div style="margin:5px 0;text-align:center">
@@ -197,47 +198,47 @@ export default {
       isShowImg: false,
       isAddChannel: false,
       page: 1,
-      page2:1,
+      page2: 1,
       pageSize: 10,
       total: 0,
-      total2:0,
+      isall: false,
+      total2: 0,
       search_keyword: "",
       search_start_date: "",
       search_end_date: "",
-      isLookBill:false,
+      isLookBill: false,
       columns: [
         { title: "ID", key: "id" },
-        { title: "渠道名称", key: "channelName",width:100, },
+        { title: "渠道名称", key: "channelName", width: 100 },
         { title: "黑金活动价格", key: "blackActivePrice" },
         { title: "铂金活动价格", key: "platinumActivePrice" },
         { title: "白银活动价格", key: "silverActivePrice" },
         { title: "分成比例", key: "divideInto" },
-        { title: "提成总金额", key: "TotalAmountCommission",width:100 },
+        { title: "提成总金额", key: "TotalAmountCommission", width: 100 },
         { title: "二维码", key: "qsCode", slot: "qsCode" },
         { title: "创建时间", key: "updatedAt" },
         { title: "操作", key: "action", width: 200, slot: "action" },
       ],
-       columns2: [
-        { title: "会员类型", key: "memberType" },
-        { title: "活动金额", key: "blackActivePrice", },
-        { title: "提成金额", key: "silverActivePrice", },
-        { title: "推广时间", key: "platinumActivePrice",},
-        { title: "创建时间", key: "updatedAt" },
+      columns2: [
+        { title: "会员类型", key: "memberType", slot: "memberType" },
+        { title: "活动金额", key: "price" },
+        { title: "提成金额", key: "commissionPrice" },
+        { title: "创建时间", key: "createdAt" },
       ],
       datas: [],
-       datas2: [],
+      datas2: [],
       form: {
         channelName: "",
         blackActivePrice: 0,
-        platinumActivePrice:0,
+        platinumActivePrice: 0,
         silverActivePrice: 0,
-        divideInto: "",//分成比例
-        TotalAmountCommission:"",//提成总金额
-        amountCommission:'',//提成金额
-        promoteRegistrationPhone:"",//推广注册手机号
-        PromotionTime:"",//推广时间
+        divideInto: "", //分成比例
+        TotalAmountCommission: "", //提成总金额
+        amountCommission: "", //提成金额
+        promoteRegistrationPhone: "", //推广注册手机号
         // qsCode:"",
-        baseMap: "",//活动底图
+        baseMap: "", //活动底图
+        parentId: "", //查看账单 渠道id
       },
       Id: "",
       ruleValidate: {
@@ -245,7 +246,7 @@ export default {
           { required: true, message: "请输入渠道名称", trigger: "blur" },
         ],
         blackActivePrice: [
-             {
+          {
             required: true,
             trigger: "blur",
             validator: (rule, value, callback) => {
@@ -255,15 +256,17 @@ export default {
                 )
               ) {
                 return callback(
-                  new Error("请输入黑金活动价格,价格由整数、小数点和最多两个小数组成！")
+                  new Error(
+                    "请输入黑金活动价格,价格由整数、小数点和最多两个小数组成！"
+                  )
                 );
               }
               callback();
             },
           },
         ],
-           platinumActivePrice:[
-           {
+        platinumActivePrice: [
+          {
             required: true,
             trigger: "blur",
             validator: (rule, value, callback) => {
@@ -273,15 +276,17 @@ export default {
                 )
               ) {
                 return callback(
-                  new Error("请输入铂金活动价格,价格由整数、小数点和最多两个小数组成！")
+                  new Error(
+                    "请输入铂金活动价格,价格由整数、小数点和最多两个小数组成！"
+                  )
                 );
               }
               callback();
             },
           },
         ],
-         silverActivePrice:[
-           {
+        silverActivePrice: [
+          {
             required: true,
             trigger: "blur",
             validator: (rule, value, callback) => {
@@ -291,14 +296,15 @@ export default {
                 )
               ) {
                 return callback(
-                  new Error("请输入白银活动价格,价格由整数、小数点和最多两个小数组成！")
+                  new Error(
+                    "请输入白银活动价格,价格由整数、小数点和最多两个小数组成！"
+                  )
                 );
               }
               callback();
             },
           },
         ],
-        
       },
       loading: true,
     };
@@ -319,10 +325,10 @@ export default {
 
     //二维码
     creatQrCode(row) {
-      console.log(row)
+      console.log(row);
       this.$refs.qrCodeUrl.innerHTML = "";
       var qrcode = new QRCode(this.$refs.qrCodeUrl, {
-        text: `https://www.arteater.cn/Ji2vVK7htw.txt/?id=${row.id}`, // 需要转换为二维码的内容
+        text: `https://www.arteater.cn/vip/Ji2vVK7htw.txt/?id=${row.id}&ids=1`, // 需要转换为二维码的内容
         width: 100,
         height: 100,
         colorDark: "#000000",
@@ -339,11 +345,10 @@ export default {
         blackActivePrice: 0,
         platinumActivePrice: 0,
         silverActivePrice: 0,
-        divideInto: "",//分成比例
-        TotalAmountCommission:"",//提成总金额
-        amountCommission:'',//提成金额
-        promoteRegistrationPhone:"",//推广注册手机号
-        PromotionTime:"",//推广时间
+        divideInto: "", //分成比例
+        TotalAmountCommission: "", //提成总金额
+        amountCommission: "", //提成金额
+        promoteRegistrationPhone: "", //推广注册手机号
         baseMap: "",
       };
     },
@@ -362,14 +367,13 @@ export default {
       // this.form.qsCode = row.qsCode;
       this.form.divideInto = row.divideInto;
       this.form.TotalAmountCommission = row.TotalAmountCommission;
-            this.form.amountCommission = row.amountCommission;
-                  this.form.promoteRegistrationPhone = row.promoteRegistrationPhone;
-            this.form.PromotionTime = row.PromotionTime;
+      this.form.amountCommission = row.amountCommission;
+      this.form.promoteRegistrationPhone = row.promoteRegistrationPhone;
+      this.form.PromotionTime = row.PromotionTime;
       this.form.baseMap = row.baseMap;
       console.log(this.form);
     },
-
-      // 富文本说明
+    // 富文本说明
     change_value(html) {
       this.form.baseMap = html == "<p><br></p>" ? "" : html;
     },
@@ -388,30 +392,33 @@ export default {
           }, 100);
           return false;
         } else {
-       var datas = this.ParseServer.Object.extend("ChannelManagement");
-      var data = new datas();
-      // 修改
-      if (this.Id) {
-        this.updated();
-      } else {
-        // 保存
-        data.set("channelName", this.form.channelName);
-        data.set("blackActivePrice", Number(this.form.blackActivePrice));
-        data.set("platinumActivePrice", Number(this.form.platinumActivePrice));
-        data.set("silverActivePrice", Number(this.form.silverActivePrice));
-        data.set("divideInto", this.form.divideInto);
-        data.set("baseMap", this.form.baseMap);
-        data.save().then(
-          (data) => {
-            this.$Message.success("保存成功");
-            this.isAddChannel = false;
-            this.page_list();
-          },
-          (error) => {
-            this.$Message.error("保存失败");
+          var datas = this.ParseServer.Object.extend("ChannelManagement");
+          var data = new datas();
+          // 修改
+          if (this.Id) {
+            this.updated();
+          } else {
+            // 保存
+            data.set("channelName", this.form.channelName);
+            data.set("blackActivePrice", Number(this.form.blackActivePrice));
+            data.set(
+              "platinumActivePrice",
+              Number(this.form.platinumActivePrice)
+            );
+            data.set("silverActivePrice", Number(this.form.silverActivePrice));
+            data.set("divideInto", this.form.divideInto);
+            data.set("baseMap", this.form.baseMap);
+            data.save().then(
+              (data) => {
+                this.$Message.success("保存成功");
+                this.isAddChannel = false;
+                this.page_list();
+              },
+              (error) => {
+                this.$Message.error("保存失败");
+              }
+            );
           }
-        );
-      }
         }
       });
     },
@@ -446,6 +453,7 @@ export default {
       this.page_list();
     },
     pagechange2(e) {
+      this.isall = false;
       this.page2 = e;
       this.billList(this.page2);
     },
@@ -468,7 +476,6 @@ export default {
         query2,
         query3
       );
-
       query.descending("createdAt");
       query.count().then((count) => {
         _this.total = count;
@@ -487,10 +494,10 @@ export default {
                 platinumActivePrice: item.get("platinumActivePrice"),
                 silverActivePrice: item.get("silverActivePrice"),
                 divideInto: item.get("divideInto"),
-                TotalAmountCommission: item.get("TotalAmountCommission"),  
-                  amountCommission: item.get("amountCommission"),
-                    promoteRegistrationPhone: item.get("promoteRegistrationPhone"),
-                        PromotionTime: item.get("PromotionTime"),
+                TotalAmountCommission: item.get("TotalAmountCommission"),
+                amountCommission: item.get("amountCommission"),
+                promoteRegistrationPhone: item.get("promoteRegistrationPhone"),
+                PromotionTime: item.get("PromotionTime"),
                 // qsCode: item.get("qsCode"),
                 baseMap: item.get("baseMap"),
                 updatedAt: tool.dateFormat(
@@ -507,19 +514,19 @@ export default {
       );
     },
 
-
-
-
-      billList(page_index) {
+    billList(page_index) {
       this.loading = true;
       let _this = this;
-      let query = new this.ParseServer.Query("ChannelManagement");
+      let query = new this.ParseServer.Query("RoyaltyBill");
+      query.equalTo("parentId", this.parentId);
       query.descending("createdAt");
       query.count().then((count) => {
         _this.total2 = count;
       });
-      query.skip((this.page2 - 1) * this.pageSize);
-      query.limit(this.pageSize);
+      if (!this.isall) {
+        query.skip((this.page2 - 1) * this.pageSize);
+        query.limit(this.pageSize);
+      }
       query.find().then(
         (list) => {
           _this.datas2 = [];
@@ -528,12 +535,11 @@ export default {
               _this.datas2.push({
                 id: item.id,
                 memberType: item.get("memberType"),
-                blackActivePrice: item.get("blackActivePrice"),
-                silverActivePrice: item.get("silverActivePrice"),
-                platinumActivePrice: item.get("platinumActivePrice"),
-                updatedAt: tool.dateFormat(
-                item.get("updatedAt"),
-                "yyyy-MM-dd HH:mm:ss"
+                price: item.get("price"),
+                commissionPrice: item.get("commissionPrice"),
+                createdAt: tool.dateFormat(
+                  item.get("createdAt"),
+                  "yyyy-MM-dd HH:mm:ss"
                 ),
               });
             });
@@ -581,11 +587,12 @@ export default {
     },
 
     //查看账单
-    ExamineBill(row){
-     console.log(row)
-     this.isLookBill = true;
-     this.isAddChannel = false;
-     this.billList()
+    ExamineBill(row) {
+      console.log(row);
+      this.parentId = row.id;
+      this.isLookBill = true;
+      this.isAddChannel = false;
+      this.billList();
     },
 
     //返回
@@ -606,10 +613,23 @@ export default {
       });
     },
     //导出账单
-    exportBill(){
-       console.log("导出账单")
-       console.log(this.datas2);
+    exportBill() {
+      console.log("导出账单");
+      console.log(this.datas2);
+      for (const key in this.datas2) {
+        if (this.datas2[key].memberType == 1) {
+          this.datas2[key].memberTypeName = "黑金";
+        }
+        if (this.datas2[key].memberType == 2) {
+          this.datas2[key].memberTypeName = "铂金";
+        }
+        if (this.datas2[key].memberType == 3) {
+          this.datas2[key].memberTypeName = "白银";
+        }
+      }
+      this.isall = true;
       setTimeout(() => {
+        this.billList();
         const initColumn = [
           {
             title: "ID",
@@ -618,30 +638,27 @@ export default {
           },
           {
             title: "会员类型",
-            dataIndex: "memberType",
-            key: "memberType",
+            dataIndex: "memberTypeName",
+            key: "memberTypeName",
           },
           {
             title: "活动金额",
-            dataIndex: "blackActivePrice",
-            key: "blackActivePrice",
+            dataIndex: "price",
+            key: "price",
           },
           {
             title: "提成金额",
-            dataIndex: "blackActivePrice",
-            key: "blackActivePrice",
+            dataIndex: "commissionPrice",
+            key: "commissionPrice",
           },
           {
-            title: "推广时间",
-            dataIndex: "updatedAt",
-            key: "updatedAt",
+            title: "创建时间",
+            dataIndex: "createdAt",
+            key: "createdAt",
           },
         ];
-        excelUtil.exportExcel(
-          initColumn,
-          this.datas2,
-          "查看账单数据.xlsx"
-        );
+        excelUtil.exportExcel(initColumn, this.datas2, "查看账单数据.xlsx");
+        console.log(this.datas2);
       }, 1000);
     },
   },

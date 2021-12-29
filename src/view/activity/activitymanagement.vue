@@ -38,7 +38,6 @@
        <div class="search-btn" style="width:150px;margin:0">
           <Button type="primary" class="search-btn" @click="search">搜索</Button>
         </div>
-      
     </div>
     <Row class="table-wrap" v-if="isAddActivity == false">
         <div style="width:100px; margin-left: auto;
@@ -107,7 +106,6 @@
             placeholder="请输入白银活动价格"
           ></Input>
         </FormItem>
-
            <FormItem label="活动底图" prop="baseMap">
              <Editor
             :value="form.baseMap"
@@ -123,7 +121,6 @@
             @click="goback"
             >返回</a-button
           >
-         
             <a-button type="primary"  style="margin-right:5px;cursor: pointer;"
             @click="add_active">
       保存
@@ -168,7 +165,7 @@ export default {
         blackActivePrice: 0,
         platinumActivePrice: 0,
         silverActivePrice: 0,
-        link: "",
+        link: "https://www.arteater.cn/vip/Ji2vVK7htw.txt/",
         baseMap: "",
       },
       Id: "",
@@ -266,7 +263,7 @@ export default {
         blackActivePrice: 0,
         platinumActivePrice: 0,
         silverActivePrice: 0,
-        link: "",
+        link: "https://www.arteater.cn/vip/Ji2vVK7htw.txt/",
         baseMap: "",
       };
       this.window_title = "新增活动";
@@ -300,7 +297,7 @@ export default {
           }, 100);
           return false;
         } else {
-         var datas = this.ParseServer.Object.extend("ActiveManagement");
+      var datas = this.ParseServer.Object.extend("ActiveManagement");
       var data = new datas();
       // 修改
       if (this.Id) {
@@ -335,8 +332,8 @@ export default {
         item.set("blackActivePrice", Number(this.form.blackActivePrice));
         item.set("platinumActivePrice", Number(this.form.platinumActivePrice));
         item.set("silverActivePrice", Number(this.form.silverActivePrice));
-        item.set("link", this.form.link);
-        item.set("baseMap", this.form.baseMap); this.isAddActivity = false;
+        // item.set("link", this.form.link);
+        item.set("baseMap", this.form.baseMap);
         item.save().then(
           (item) => {
             this.$Message.success("修改成功");
@@ -393,7 +390,7 @@ export default {
                 blackActivePrice: item.get("blackActivePrice"),
                 platinumActivePrice: item.get("platinumActivePrice"),
                 silverActivePrice: item.get("silverActivePrice"),
-                link: item.get("link"),
+                link: item.get("link")+`?id=${item.id}`,
                 baseMap: item.get("baseMap"),
                 updatedAt: tool.dateFormat(
                   item.get("updatedAt"),
