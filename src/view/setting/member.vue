@@ -10,7 +10,6 @@
             style="width:200px"
           />
         </div>
-
         <div class="search-btn" style="width:150px;margin:0">
           <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
         </div>
@@ -37,7 +36,6 @@
             >删除</Button
           >
         </template>
-
         <template slot-scope="{ row }" slot="typeName">
           <span v-if="row.typeName == 1">黑金</span>
           <span v-if="row.typeName == 2">白金</span>
@@ -80,7 +78,6 @@
               <Option value="3" :key="3">白银</Option>
             </Select>
           </FormItem>
-
           <FormItem label="会员名称" prop="memberName">
           <Input
             v-model="member_form.memberName"
@@ -99,14 +96,12 @@
               placeholder="请输入会员优惠价"
             ></Input>
           </FormItem>
-
             <FormItem label="拉新个数限制" prop="limitNumber">
             <Input
               v-model="member_form.limitNumber"
               placeholder="请输入拉新个数限制"
             ></Input>
           </FormItem>
-
           <FormItem label="优惠截止时间" prop="">
             <div class="date-picker" style="width: 400px">
               <DatePicker
@@ -117,35 +112,6 @@
               ></DatePicker>
             </div>
           </FormItem>
-
-          <!-- <FormItem label="会员有效期" prop="memberPeriod">
-            <Select
-              size="large"
-              class="choice"
-              placeholder="会员有效期"
-              :clearable="true"
-              v-model="member_form.memberPeriod"
-              style="width: 150px"
-            >
-              <Option value="perpetual" key="perpetual">永久</Option>
-              <Option value="12" :key="12">12个月</Option>
-              <Option value="11" :key="11">11个月</Option>
-              <Option value="10" :key="10">10个月</Option>
-              <Option value="9" :key="9">9个月</Option>
-              <Option value="8" :key="8">8个月</Option>
-              <Option value="7" :key="7">7个月</Option>
-              <Option value="6" :key="6">6个月</Option>
-              <Option value="5" :key="5">5个月</Option>
-              <Option value="4" :key="4">4个月</Option>
-              <Option value="3" :key="3">3个月</Option>
-              <Option value="2" :key="2">2个月</Option>
-              <Option value="1" :key="1">1个月</Option>
-              <Option value="threeWeek" key="threeWeek">3周</Option>
-              <Option value="twoWeek" key="twoWeek">2周</Option>
-              <Option value="aWeek" key="aWeek">1周</Option>
-            </Select>
-          </FormItem> -->
-
           <FormItem label="购买说明">
             <Input
               type="textarea"
@@ -156,7 +122,6 @@
             ></Input>
           </FormItem>
         </Form>
-
         <!-- 会员名片 -->
         <div class="card">
           <div
@@ -167,7 +132,6 @@
           >
             <img :src="item.src" alt="" srcset="" ref="imgs" />
           </div>
-
           <div
             style="
               margin-top: 20px;
@@ -225,6 +189,7 @@ export default {
         },
         { title: "会员价格", key: "memberPrice" },
         { title: "优惠价格", key: "promotionPrice" },
+             { title: "拉新个数限制", key: "limitNumber",},
         { title: "截止优惠日期", key: "expirationDate" },
         { title: "操作", key: "action", width: 400, slot: "action" },
       ],
@@ -399,7 +364,7 @@ export default {
     EditFormShow(row) {
       this.memberId = row.id;
       this.surfaceId = row.surfaceId;
-            this.limitNumber = row.limitNumber;
+      this.limitNumber = row.limitNumber;
       this.member_form.surface = row.surface;
       this.isShowAddForm = true;
       this.window_title = "编辑会员设置";
@@ -431,7 +396,6 @@ export default {
             }, 100);
             return false;
           } else {
-
         var query = new this.ParseServer.Query("MemberType");
         query.equalTo("typeName", this.member_form.typeName);
         query.limit(10000);

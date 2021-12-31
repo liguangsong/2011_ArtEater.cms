@@ -122,6 +122,7 @@
             v-model="form.divideInto"
             placeholder="请输入分成比例(百分比)"
           ></Input>
+          <span style="margin-left:10px">%</span>
         </FormItem>
            <FormItem label="活动底图" prop="baseMap">
            <Editor
@@ -223,6 +224,7 @@ export default {
         { title: "会员类型", key: "memberType", slot: "memberType" },
         { title: "活动金额", key: "price" },
         { title: "提成金额", key: "commissionPrice" },
+        { title: "推广注册手机号", key: "commissionPrice" },
         { title: "创建时间", key: "createdAt" },
       ],
       datas: [],

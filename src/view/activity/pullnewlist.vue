@@ -52,12 +52,13 @@
       </div>
         </div>
       </div>
-      
     </div>
     <Row class="table-wrap">
       <Table :loading="loading" :columns="columns" :data="datas">
            <template slot-scope="{ row }" slot="isDispose"> 
                      <i-switch v-model="row.isDispose"  @on-change="changeDispose(row)"   size="large" />
+                   </template>
+                     <template slot-scope="{ row }" slot="memberType"> 
                    </template>
       </Table>
       <div class="page-wrap">
@@ -83,11 +84,10 @@ export default {
         { title: "ID", key: "id",},
         { title: "会员昵称", key: "nickName",},
         { title: "手机号", key: "phone" },
-        { title: "会员类型", key: "memberType" },
+        { title: "会员类型", key: "memberType" , slot: "memberType" },
         { title: "拉新人数", key: "recruits",},
         { title: "是否处理", key: "isDispose", slot: "isDispose" },
         // { title: "创建时间", key: "createdAt" },
-
       ],
       datas: [],
           search_type: "",
@@ -160,14 +160,12 @@ export default {
         this.search_type == 1 ? (type = true) : (type = false);
         query4.equalTo("isDispose", type);
       }
-
       var query = this.ParseServer.Query.and(
        query1,
         query2,
         query3,
         query4,
       );
-
       query.descending("createdAt");
       query.count().then((count) => {
         _this.total = count;
@@ -194,7 +192,6 @@ export default {
               });
             });
           }
-
           this.loading = false;
         },
         (error) => {}

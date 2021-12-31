@@ -145,7 +145,7 @@
     <!-- 新增信息公告 -->
     <div
       v-if="isInformationAnnouncement"
-      style="margin-top: 50px; margin-left: 40px; width: 900px; height: 900px"
+      style="margin-top: 50px; margin-left: 40px; width: 900px; height: auto"
     >
       <Form
         v-if="isInformationAnnouncement"
@@ -548,6 +548,7 @@ export default {
         this.form.link = res.get("link");
         this.form.informationBulletin = res.get("informationBulletin");
       });
+
     },
   },
 };
@@ -648,6 +649,7 @@ export default {
 }
 .bottom {
   display: flex;
+  margin-bottom: 50px;
   justify-content: center;
 }
 </style>

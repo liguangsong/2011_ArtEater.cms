@@ -1,18 +1,28 @@
 <template>
   <div class="container-wrap">
-    <div class="header-wrap clear-fix" style="display:flex" v-if="isAddActivity == false"> 
-      <div class="search-wrap clear-fix" style="flex:1">
-        <div class="search-keyword" style="width:230px">
+    <div
+      class="header-wrap clear-fix"
+      style="display: flex"
+      v-if="isAddActivity == false"
+    >
+      <div class="search-wrap clear-fix" style="flex: 1">
+        <div class="search-keyword" style="width: 230px">
           <Input
             v-model="search_keyword"
             size="large"
             placeholder="活动标题关键字搜索"
-            style="width:200px"
+            style="width: 200px"
           />
         </div>
-        <div class="select-choice clear-fix" style="width: 500px;    display: flex;">
+        <div
+          class="select-choice clear-fix"
+          style="width: 600px; display: flex"
+        >
           <span>注册时间</span>
-          <div class="date-picker-wrap clear-fix" style="width: 400px;display: flex;">
+          <div
+            class="date-picker-wrap clear-fix"
+            style="width: 400px; display: flex"
+          >
             <div class="date-picker" style="width: 180px">
               <DatePicker
                 v-model="search_start_date"
@@ -35,30 +45,37 @@
           </div>
         </div>
       </div>
-       <div class="search-btn" style="width:150px;margin:0">
-          <Button type="primary" class="search-btn" @click="search">搜索</Button>
-        </div>
+      <div class="search-btn" style="width: 150px; margin: 0">
+        <Button type="primary" class="search-btn" @click="search">搜索</Button>
+      </div>
     </div>
     <Row class="table-wrap" v-if="isAddActivity == false">
-        <div style="width:100px; margin-left: auto;
-    margin-bottom: 20px;">
+      <div style="width: 100px; margin-left: auto; margin-bottom: 20px">
         <Button type="primary" @click="addActivity">新增活动</Button>
       </div>
       <Table :loading="loading" :columns="columns" :data="datas">
-   <template slot-scope="{ row }" slot="link">
-              <span>{{row.link}}</span>
-            <span v-if="row.link" style="color:#0758a2;margin-left:45px;cursor: pointer;" v-clipboard:copy="row.link" v-clipboard:success="onCopy" v-clipboard:error="onError">  复制</span>
-       </template>
+        <template slot-scope="{ row }" slot="link">
+          <span>{{ row.link }}</span>
+          <span
+            v-if="row.link"
+            style="color: #0758a2; margin-left: 45px; cursor: pointer"
+            v-clipboard:copy="row.link"
+            v-clipboard:success="onCopy"
+            v-clipboard:error="onError"
+          >
+            复制</span
+          >
+        </template>
         <template slot-scope="{ row }" slot="action">
           <Button
             type="warning"
-            style="margin-right:5px"
+            style="margin-right: 5px"
             @click="EditFormShow(row)"
             >编辑</Button
           >
           <Button
             type="error"
-            style="margin-right:5px"
+            style="margin-right: 5px"
             @click="DelConfirmShow(row)"
             >删除</Button
           >
@@ -68,9 +85,9 @@
         <Page :total="total" @on-change="pagechange" v-if="total != 0" />
       </div>
     </Row>
-<!-- 新增活动 -->
-<div v-if="isAddActivity" style="margin-top:50px;margin-left:40px">
-  <Form
+    <!-- 新增活动 -->
+    <div v-if="isAddActivity" style="margin-top: 50px; margin-left: 40px">
+      <Form
         v-if="isAddActivity"
         ref="form"
         :model="form"
@@ -78,56 +95,59 @@
         :label-width="100"
         :rules="ruleValidate"
       >
-          <FormItem label="活动名称" prop="title">
+        <FormItem label="活动名称" prop="title">
           <Input
-           style="width: 200px"
+            style="width: 200px"
             v-model="form.title"
             placeholder="请输入活动名称"
           ></Input>
         </FormItem>
-          <FormItem label="黑金活动价格" prop="blackActivePrice">
+        <FormItem label="黑金活动价格" prop="blackActivePrice">
           <Input
-           style="width: 200px"
+            style="width: 200px"
             v-model="form.blackActivePrice"
             placeholder="请输入黑金活动价格"
           ></Input>
         </FormItem>
-          <FormItem label="铂金活动价格" prop="platinumActivePrice">
+        <FormItem label="铂金活动价格" prop="platinumActivePrice">
           <Input
-           style="width: 200px"
+            style="width: 200px"
             v-model="form.platinumActivePrice"
             placeholder="请输入铂金活动价格"
           ></Input>
         </FormItem>
-          <FormItem label="白银活动价格" prop="silverActivePrice">
+        <FormItem label="白银活动价格" prop="silverActivePrice">
           <Input
-           style="width: 200px"
+            style="width: 200px"
             v-model="form.silverActivePrice"
             placeholder="请输入白银活动价格"
           ></Input>
         </FormItem>
-           <FormItem label="活动底图" prop="baseMap">
-             <Editor
+        <FormItem label="活动底图" prop="baseMap">
+          <Editor
             :value="form.baseMap"
             placeholder="请增加活动底图"
             @on-change="change_value"
           ></Editor>
         </FormItem>
       </Form>
- <div class="bottom">
-              <a-button
-            type="into"
-            style="margin-right:5px;cursor: pointer;"
-            @click="goback"
-            >返回</a-button
-          >
-            <a-button type="primary"  style="margin-right:5px;cursor: pointer;"
-            @click="add_active">
-      保存
-    </a-button>
+      <div class="bottom">
+        <a-button
+          type="into"
+          style="margin-right: 5px; cursor: pointer"
+          @click="goback"
+          >返回</a-button
+        >
+        <a-button
+          type="primary"
+          style="margin-right: 5px; cursor: pointer"
+          @click="add_active"
+        >
+          保存
+        </a-button>
       </div>
-</div>
-</div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -147,15 +167,15 @@ export default {
       pageSize: 10,
       total: 0,
       search_keyword: "",
-      search_start_date:'',
-      search_end_date:"",
+      search_start_date: "",
+      search_end_date: "",
       columns: [
         { title: "ID", key: "id" },
         { title: "活动标题", key: "title" },
         { title: "黑金活动价格", key: "blackActivePrice" },
         { title: "铂金活动价格", key: "platinumActivePrice" },
         { title: "白银活动价格", key: "silverActivePrice" },
-        { title: "链接", key: "link", slot: "link" , width: 200,},
+        { title: "链接", key: "link", slot: "link", width: 200 },
         { title: "注册时间", key: "updatedAt" },
         { title: "操作", key: "action", width: 200, slot: "action" },
       ],
@@ -170,11 +190,9 @@ export default {
       },
       Id: "",
       ruleValidate: {
-        title: [
-          { required: true, message: "请输入活动名称", trigger: "blur" },
-        ],
+        title: [{ required: true, message: "请输入活动名称", trigger: "blur" }],
         blackActivePrice: [
-             {
+          {
             required: true,
             trigger: "blur",
             validator: (rule, value, callback) => {
@@ -184,15 +202,17 @@ export default {
                 )
               ) {
                 return callback(
-                  new Error("请输入黑金活动价格,价格由整数、小数点和最多两个小数组成！")
+                  new Error(
+                    "请输入黑金活动价格,价格由整数、小数点和最多两个小数组成！"
+                  )
                 );
               }
               callback();
             },
           },
         ],
-           platinumActivePrice:[
-           {
+        platinumActivePrice: [
+          {
             required: true,
             trigger: "blur",
             validator: (rule, value, callback) => {
@@ -202,15 +222,17 @@ export default {
                 )
               ) {
                 return callback(
-                  new Error("请输入铂金活动价格,价格由整数、小数点和最多两个小数组成！")
+                  new Error(
+                    "请输入铂金活动价格,价格由整数、小数点和最多两个小数组成！"
+                  )
                 );
               }
               callback();
             },
           },
         ],
-         silverActivePrice:[
-           {
+        silverActivePrice: [
+          {
             required: true,
             trigger: "blur",
             validator: (rule, value, callback) => {
@@ -220,14 +242,15 @@ export default {
                 )
               ) {
                 return callback(
-                  new Error("请输入白银活动价格,价格由整数、小数点和最多两个小数组成！")
+                  new Error(
+                    "请输入白银活动价格,价格由整数、小数点和最多两个小数组成！"
+                  )
                 );
               }
               callback();
             },
           },
         ],
-        
       },
       isShowAddForm: false,
       loading: true,
@@ -238,20 +261,17 @@ export default {
     this.page_list(this.page);
   },
   methods: {
-   // 富文本说明
-      change_value(html) {
-        this.form.baseMap = html == "<p><br></p>" ? "" : html;
-      },
+    // 富文本说明
+    change_value(html) {
+      this.form.baseMap = html == "<p><br></p>" ? "" : html;
+    },
 
     // 复制成功时的回调函数
-    onCopy (e) {
-  
-      this.$message.info('复制成功!');
+    onCopy(e) {
+      this.$message.info("复制成功!");
     },
     // 复制失败时的回调函数
-    onError (e) {
-    },
-
+    onError(e) {},
 
     addActivity() {
       this.isAddActivity = true;
@@ -289,34 +309,36 @@ export default {
       this.$refs["form"].validate((valid) => {
         if (!valid) {
           this.$Message.error("请检查表单项");
-          setTimeout(() => {
-          }, 100);
+          setTimeout(() => {}, 100);
           return false;
         } else {
-      var datas = this.ParseServer.Object.extend("ActiveManagement");
-      var data = new datas();
-      // 修改
-      if (this.Id) {
-        this.updated();
-      } else {
-        // 保存
-        data.set("title", this.form.title);
-        data.set("blackActivePrice", Number(this.form.blackActivePrice));
-        data.set("platinumActivePrice", Number(this.form.platinumActivePrice));
-        data.set("silverActivePrice", Number(this.form.silverActivePrice));
-        data.set("link", this.form.link);
-        data.set("baseMap", this.form.baseMap);
-        data.save().then(
-          (data) => {
-            this.$Message.success("保存成功");
-            this.isAddActivity = false;
-            this.page_list();
-          },
-          (error) => {
-            this.$Message.error("保存失败");
+          var datas = this.ParseServer.Object.extend("ActiveManagement");
+          var data = new datas();
+          // 修改
+          if (this.Id) {
+            this.updated();
+          } else {
+            // 保存
+            data.set("title", this.form.title);
+            data.set("blackActivePrice", Number(this.form.blackActivePrice));
+            data.set(
+              "platinumActivePrice",
+              Number(this.form.platinumActivePrice)
+            );
+            data.set("silverActivePrice", Number(this.form.silverActivePrice));
+            data.set("link", this.form.link);
+            data.set("baseMap", this.form.baseMap);
+            data.save().then(
+              (data) => {
+                this.$Message.success("保存成功");
+                this.isAddActivity = false;
+                this.page_list();
+              },
+              (error) => {
+                this.$Message.error("保存失败");
+              }
+            );
           }
-        );
-      }
         }
       });
     },
@@ -333,7 +355,7 @@ export default {
         item.save().then(
           (item) => {
             this.$Message.success("修改成功");
-             this.isAddActivity = false;
+            this.isAddActivity = false;
             this.page_list();
           },
           (error) => {
@@ -386,7 +408,7 @@ export default {
                 blackActivePrice: item.get("blackActivePrice"),
                 platinumActivePrice: item.get("platinumActivePrice"),
                 silverActivePrice: item.get("silverActivePrice"),
-                link: item.get("link")+`?id=${item.id}`,
+                link: item.get("link") + `?id=${item.id}`,
                 baseMap: item.get("baseMap"),
                 updatedAt: tool.dateFormat(
                   item.get("updatedAt"),
@@ -555,7 +577,7 @@ export default {
   justify-content: space-between;
   margin: 0 auto;
 }
-.ql-editor{
+.ql-editor {
   height: 600px !important;
 }
 </style>

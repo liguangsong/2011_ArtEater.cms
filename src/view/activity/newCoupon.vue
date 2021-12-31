@@ -65,7 +65,10 @@
                                 <span v-if="row.couponRange =='platinumGoldNew'">铂金拉新</span>
                                     <span v-if="row.couponRange =='silverGoldNew'">白银拉新</span>
                                        <span v-if="row.couponRange =='newUser'">注册新用户</span>
-                                       <span v-if="row.couponRange =='pullNewUser'">拉新用户</span>
+                                       <!-- <span v-if="row.couponRange =='pullNewUser'">拉新用户</span> -->
+                                                <span v-if="row.couponRange =='blackGoldPullNewUser'">黑金拉新用户</span>
+                                       <span v-if="row.couponRange =='silverPullNewUser'">白银拉新用户</span>
+                                       <span v-if="row.couponRange =='platinumPullNewUser'">白银拉新用户</span>
         </template>
         <template slot-scope="{ row }" slot="action">
           <Button
@@ -120,7 +123,7 @@
           ></Input>
         </FormItem>
         <FormItem label="优惠卷类型" prop="couponType">
-          <Select v-model="coupon_form.couponType" @change="couponTypeChange">
+          <Select v-model="coupon_form.couponType" @on-change="couponTypeChange">
             <Option
               v-for="item in couponTypes"
               :value="item.type"
@@ -139,7 +142,7 @@
             >
           </Select>
         </FormItem>
-        <FormItem label="使用截止时间" prop="useEndTime">
+        <FormItem label="使用截止时间" prop="useEndTime" v-if="coupon_form.couponType=='manuallySend' ">
           <DatePicker
             type="datetime"
             v-model="coupon_form.useEndTime"
@@ -147,6 +150,16 @@
             style="width: 200px"
           ></DatePicker>
         </FormItem>
+
+        <FormItem label="有效期" prop="termValidity" v-if="coupon_form.couponType=='automaticallySend' ">
+       <Input
+           v-model="coupon_form.termValidity"
+            placeholder="请输入有效期"
+            style="width: 200px"
+            type="number"
+          ></Input>
+        </FormItem>
+        
       </Form>
     </Modal>
     <Modal
@@ -161,12 +174,21 @@
           <Radio label="all">
             <span>全部学生</span>
           </Radio>
+           <Radio label="1">
+            <span>黑金</span>
+          </Radio>
+           <Radio label="3">
+            <span>白银</span>
+          </Radio>
+           <Radio label="2">
+            <span>铂金</span>
+          </Radio>
           <Radio label="part">
-            <span>部分学生</span>
+            <span>个别学生</span>
           </Radio>
         </RadioGroup>
       </div>
-      <Card style="margin-top: 20px" v-if="sendMode == 'part'">
+      <Card style="margin-top: 20px" v-if="sendMode != 'all'">
         <div>
           <div style="display: flex; margin-bottom: 10px">
             <div class="search-keyword" style="width: 300px">
@@ -249,6 +271,9 @@ export default {
             }
           },
         },
+          {
+           title: "有效期", key: "termValidity",
+        },
         {
           title: "注册时间",
           key: "createdAt",
@@ -279,15 +304,18 @@ export default {
       couponRanges: [
         { type: "all", title: "全部通用" },
         { type: "blackGold", title: "黑金" },
-        { type: "platinum", title: "铂金" },
         { type: "silver", title: "白银" },
+        { type: "platinum", title: "铂金" },
       ],
       couponRanges2: [
         { type: "blackGoldNew", title: "黑金拉新" },
         { type: "platinumGoldNew", title: "铂金拉新" },
         { type: "silverGoldNew", title: "白银拉新" },
         { type: "newUser", title: "注册新用户" },
-        { type: "pullNewUser", title: "拉新用户" },
+        // { type: "pullNewUser", title: "拉新用户" },
+        { type: "blackGoldPullNewUser", title: "黑金拉新用户" },
+        { type: "silverPullNewUser", title: "白银拉新用户" },
+        { type: "platinumPullNewUser", title: "铂金拉新用户" },
       ],
       coupon_form: {
         id: "",
@@ -295,6 +323,7 @@ export default {
         couponType: "manuallySend",
         couponRange: "all",
         amount: 0,
+        termValidity:0,
         useEndTime: "",
       },
       coupon_curr: null,
@@ -346,6 +375,31 @@ export default {
             },
           },
         ],
+          termValidity: [
+          {
+            required: true,
+            message: "请输入正确的有效期",
+            trigger: "blur",
+            validator: verification.validateFloat2,
+          },
+        ],
+        //  termValidity: [
+        //   {
+        //     trigger: "change",
+        //     validator: (rule, value, callback) => {
+        //       if (!value) {
+        //         callback(new Error("请输入有效期"));
+        //       } else {
+        //         if (/^[0-9]*$/.test(value)) {
+        //           callback(new Error("请输入数字类型"));
+        //         } else {
+        //           callback();
+        //         }
+        //       }
+        //     },
+        //   },
+        // ],
+
       },
       init_data: "",
     };
@@ -366,6 +420,7 @@ export default {
       this.page_list();
     },
       couponTypeChange(){
+        console.log("dsfdsv ")
       },
 
     /** 添加优惠券 */
@@ -377,6 +432,7 @@ export default {
         couponType: "manuallySend",
         couponRange: "",
         amount: 0,
+        termValidity:0,
         useEndTime: "",
       };
       this.isShowCouponWindow = true;
@@ -390,13 +446,16 @@ export default {
         couponType: row.couponType,
         couponRange: row.couponRange,
         amount: row.amount,
+        termValidity: row.termValidity,
         useEndTime: row.useEndTime,
       };
       this.isShowCouponWindow = true;
     },
     /** 发送优惠券 */
     handleSend(row) {
+      console.log(row)
       var self = this;
+      self.coupon_form.useEndTime = row.useEndTime;
       this.selectedStudent = [];
       this.coupon_curr = row;
       if (self.$refs.studentTable) {
@@ -461,15 +520,19 @@ export default {
     },
     /** 选择发送模式 */
     handleChangeStuMode(mode) {
-      this.selectedStudent = [];
+      console.log(this.sendMode)
+        this.studentPageIndex = 1;
+       this.selectedStudent = [];
+       this.student_page_list();
     },
   
     handleSaveCoupon() {
       if(this.coupon_form.couponType == 'automaticallySend'){
         // console.log(this.coupon_form.useEndTime.getTime()+ 1000 * 60 * 60 * 24 * 365)
-        // this.coupon_form.useEndTime = new Date(this.coupon_form.useEndTime.getTime()+ 1000 * 60 * 60 * 24 * 365)
+        // this.coupon_form.useEndTime = new Date(new Date().getTime()+ 1000 * 60 * 60 * 24 * 365)
       }
        var self = this;
+       console.log(self.coupon_form.termValidity)
       this.$refs["form"].validate((valid) => {
         if (!valid) {
           self.$Message.error("请检查表单项");
@@ -490,7 +553,8 @@ export default {
           coupon.set("couponRange", self.coupon_form.couponRange);
           var realname = self.ParseServer.User.current().get("realname");
           coupon.set("createBy", realname);
-          coupon.set("useEndTime", self.coupon_form.useEndTime);
+          coupon.set("useEndTime", self.coupon_form.useEndTime ? self.coupon_form.useEndTime : undefined);
+          coupon.set("termValidity", Number(self.coupon_form.termValidity));
           coupon.save().then(
             (response) => {
               self.isShowCouponWindow = false;
@@ -498,7 +562,8 @@ export default {
               self.page_list();
             },
             (error) => {
-              debugger;
+              // debugger;
+              console.log(error)
               this.$Message.error("保存失败");
             }
           );
@@ -516,13 +581,13 @@ export default {
           let query = new this.ParseServer.Query(this.ParseServer.User);
           query.equalTo("role", "student");
           query.limit(1000000);
-          query.find().then((students) => {w3
+          query.find().then((students) => {
             students.forEach((item) => {
               var couponRecord = new CouponRecords();
               couponRecord.set("couponId", self.coupon_curr.id);
               couponRecord.set("couponName", self.coupon_curr.couponName);
               couponRecord.set("amount", parseFloat(self.coupon_curr.amount));
-              couponRecord.set("useEndTime", self.coupon_curr.useEndTime);
+              couponRecord.set("useEndTime", self.coupon_form.useEndTime ? self.coupon_form.useEndTime : undefined);
               couponRecord.set("openid", item.get("openid"));
               couponRecord.set("mode", self.sendMode);
               couponRecord.set("couponType", self.coupon_curr.couponType);
@@ -546,9 +611,9 @@ export default {
             couponRecord.set("couponId", self.coupon_curr.id);
             couponRecord.set("couponName", self.coupon_curr.couponName);
             couponRecord.set("amount", parseFloat(self.coupon_curr.amount));
-            couponRecord.set("useEndTime", self.coupon_curr.useEndTime);
+            couponRecord.set("useEndTime", self.coupon_form.useEndTime ? self.coupon_form.useEndTime : undefined);
             couponRecord.set("openid", item.openid);
-            couponRecord.set("mode", self.sendMode);
+            couponRecord.set("mode",self.sendMode);
             couponRecord.set("couponType", self.coupon_curr.couponType);
             couponRecord.set("couponRange", self.coupon_curr.couponRange);
             couponRecord.set("state", 0);
@@ -624,6 +689,7 @@ export default {
                    couponRange: item.get("couponRange"),
                 createBy: item.get("createBy"),
                 useEndTime: item.get("useEndTime"),
+                termValidity: item.get("termValidity"),
                 createdAt: item.get("createdAt"),
               };
               return message;
@@ -643,7 +709,9 @@ export default {
     },
     /** 分页加载学生信息 */
     student_page_list() {
+      console.log(this.sendMode)
       var self = this;
+      self.students = [];
       this.studentLoading = true;
       let query1 = new this.ParseServer.Query(this.ParseServer.User);
       query1.equalTo("role", "student");
@@ -651,8 +719,12 @@ export default {
       querya.contains("nickName", this.search_student_keyword);
       let queryc = new this.ParseServer.Query(this.ParseServer.User);
       queryc.contains("phone", this.search_student_keyword);
+      let query3 = new this.ParseServer.Query(this.ParseServer.User);
+      if(this.sendMode ==1 || this.sendMode ==2 || this.sendMode ==3){
+      query3.equalTo("memberType",Number(this.sendMode));
+      }
       let query2 = this.ParseServer.Query.or(querya, queryc);
-      let query = this.ParseServer.Query.and(query1, query2);
+      let query = this.ParseServer.Query.and(query1, query2,query3);
       query.ascending("createdAt");
       query.skip((self.studentPageIndex - 1) * 10);
       query.limit(10);

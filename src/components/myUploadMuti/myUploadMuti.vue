@@ -29,7 +29,6 @@
         </div>
       </slot>
     </div>
-
     <div style="margin-left: 10px; color: #808695" v-if="tips">{{ tips }}</div>
   </div>
 </template>
