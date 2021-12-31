@@ -10,7 +10,6 @@
             style="width:200px"
           />
         </div>
-
              <div class="select-choice clear-fix" style="width: 200px; float: left">
           <span style="width: 60px; padding: 0">是否VIP:</span>
           <Select
@@ -40,7 +39,6 @@
           </div>
         </div>
         <div class="search-btn" style="width:150px;margin:0">
-       </Col>
         </div>
       </div>
  <div class="search-btn" style="width:150px;margin:0">
@@ -124,7 +122,6 @@
             @click="transfer(row)"
             >转移</Button
           >
-        
           <Button v-if="flag == 2 || row.level >0"
             type="info"
             size="small"
@@ -211,15 +208,12 @@
                         <i-switch v-model="form.isVipLook"  size="large" />
                     </FormItem>
                   </div> -->
-
                   <div style="flex: 0.5;">
                       <FormItem label="是否隐藏课程:">
                         <i-switch v-model="form.hide"  size="large" />
                     </FormItem>
                   </div>
                 </div>
-    
-
        <FormItem label="课程类别" prop="kind" v-if="showRadio">
           <RadioGroup 
              @on-change="handleChangeRadio"
@@ -253,15 +247,12 @@
             }}</Option>
           </Select>
         </FormItem>
-
         <FormItem label="排序:" prop="order">
           <Input
             v-model="form.order"
             placeholder="请输入顺序"
           ></Input>
         </FormItem>
-        
-
     <FormItem label="负责讲师头像:" prop="portrait">
           <myUploadMuti
             :images="form.portrait"
@@ -270,8 +261,6 @@
             accept=".*"
           ></myUploadMuti>
         </FormItem>
-
-        
     <FormItem label="负责讲师姓名:" prop='lecturerName'>
        <Input
             v-model="form.lecturerName"
@@ -307,7 +296,6 @@
             placeholder="请输入课程链接"
        ></Input>
        </FormItem>
-
           <FormItem label="课程说明"  prop="explain" 
            :rules="[{required:requiredExplain,message:'请填写课程内容',trigger:'blur'}]"
           >
@@ -321,7 +309,6 @@
         </FormItem>
       </Form>
     </Modal>
-    
 
     <!-- 系列课程介绍 -->
         <Modal
@@ -351,8 +338,6 @@
         </FormItem>
       </Form>
     </Modal>
-
-    
 
     <!-- 新增系列课程-子课程 -->
         <Modal
@@ -418,8 +403,6 @@
            </span>
           </RadioGroup>
         </FormItem>
-        
-    
          <FormItem label="标签:">
           <Select
             size="large"
@@ -434,8 +417,6 @@
             }}</Option>
           </Select>
         </FormItem>
-
-
    <FormItem label="排序:" prop="innerOrder">
           <Input
             v-model="form.innerOrder"
@@ -445,9 +426,6 @@
  
       </Form>
     </Modal>
-
-
-  
   <!-- 推荐课程-list -->
     <Modal
       v-model="isShowRecommendCourse"
@@ -497,7 +475,6 @@
                   <div style="margin-top: 20px;">
                     <Page :total="totals" @on-change="pagechanges" v-if="totals != 0" />
                   </div>
-                </Row>   
         </Modal>
 
        <Modal @on-visible-change="handleVChange" width="450" title="二维码" v-model="isShowImg">
@@ -505,9 +482,6 @@
               <div class="qrcode" ref="qrCodeUrl"></div>
           </div>
         </Modal>
-
-
-
 
     <!-- 转移 - 课程 -->
         <Modal
@@ -824,9 +798,8 @@ export default {
         let parentLevel = "";
         var query = new this.ParseServer.Query("CoursesModule");
         //获取父级
-        query.get(this.search_courses).then((item) => {
+          query.get(this.search_courses).then((item) => {
           parentLevel = item.get("level");
-
           //转移课程
           query.get(this.transferCoursesId).then((item) => {
             item.set("flag", 1);
@@ -879,7 +852,6 @@ export default {
       this.route.push(row);
       this.currLevel += 1;
       this.currParent = row;
-
       if (row.level == 0) {
         this.rootId = row.id; //根节点Id
       }
@@ -929,12 +901,11 @@ export default {
 
     //左侧tab按钮
     courseList(data) {
+      this.page = 1;
       if (data == 1) {
         this.flag = 1;
         this.isActive = 1;
-        this.page = 1;
       } else {
-        this.page = 1;
         this.flag = 2;
         this.isActive = 2;
       }
@@ -1013,7 +984,7 @@ export default {
       query.find().then((response) => {
         if (response && response.length > 0) {
           response.forEach((data) => {
-            item.set("putaway", this.form.putaway);
+            data.set("putaway", this.form.putaway);
             this.updatedChildPutaway(data.id);
           });
         }
@@ -1907,13 +1878,11 @@ export default {
 
     DelConfirmShow(row) {
       var id = row.id;
-
       this.courseIds = [];
       let _this = this;
       var query1 = new this.ParseServer.Query("ModuleAssociatedCourses");
       var ClassOfMyObject = this.ParseServer.Object.extend("CoursesModule");
       var queryId = ClassOfMyObject.createWithoutData(id);
-
       query1.equalTo("course", queryId);
       query1.find().then((response) => {
         if (response.length > 0) {

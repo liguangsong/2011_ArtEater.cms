@@ -72,7 +72,7 @@
             </div>
           </FormItem>
         </div>
-        <div class="formItem">
+        <!-- <div class="formItem">
           <FormItem label="科目是否合并购买">
             <div class="inputDiv">
               <div class="input">
@@ -81,7 +81,7 @@
               <div class="comment"></div>
             </div>
           </FormItem>
-        </div>
+        </div> -->
         <div class="formItem">
           <FormItem label="正确率中" prop="percentM">
             <div class="inputDiv">
@@ -218,7 +218,7 @@ export default {
         shopScore: 0, // 购物送积分
         scoreMoneyPercent: 0, // 积分兑换人民币比例
         allErrorPercent: 0, // 全局错误率
-        isSubjectAllBuy: false, // 科目是否合并购买
+        // isSubjectAllBuy: false, // 科目是否合并购买
         isShowVideo: false, // 推荐是否展示视频
         isCoursesAllBuy: false, // 套课是否合并购买
         percentH: "", // 正确率高
@@ -305,7 +305,7 @@ export default {
   mounted() {
     var self = this;
     this.ParseServer.Config.get().then((config) => {
-      self.form.isSubjectAllBuy = config.get("isSubjectAllBuy");
+      // self.form.isSubjectAllBuy = config.get("isSubjectAllBuy");
       self.form.isShowVideo = config.get("isShowVideo");
       self.form.isCoursesAllBuy = config.get("isCoursesAllBuy");
       self.form.signUpScore = parseInt(config.get("signUpScore"));
@@ -334,7 +334,7 @@ export default {
           return false;
         } else {
           this.ParseServer.Config.save({
-            isSubjectAllBuy: self.form.isSubjectAllBuy,
+            // isSubjectAllBuy: self.form.isSubjectAllBuy,
             isShowVideo: self.form.isShowVideo,
             isCoursesAllBuy: self.form.isCoursesAllBuy,
             signUpScore: parseInt(self.form.signUpScore),
@@ -348,7 +348,7 @@ export default {
             percentM: parseFloat(self.form.percentM),
             version: self.form.version,
           }).then(function (config) {
-            self.form.isSubjectAllBuy = config.get("isSubjectAllBuy");
+            // self.form.isSubjectAllBuy = config.get("isSubjectAllBuy");
             self.form.isShowVideo = config.get("isShowVideo");
             self.form.isCoursesAllBuy = config.get("isCoursesAllBuy");
             self.form.signUpScore = parseInt(config.get("signUpScore"));

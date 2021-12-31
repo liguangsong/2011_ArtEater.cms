@@ -82,6 +82,7 @@ export default {
       search_end_date: "",
       columns: [
         { title: "ID", key: "id",},
+            { title: "姓名", key: "name",},
         { title: "会员昵称", key: "nickName",},
         { title: "手机号", key: "phone" },
         { title: "会员类型", key: "memberType" , slot: "memberType" },
@@ -179,6 +180,7 @@ export default {
             list.forEach((item) => {
               _this.datas.push({
                 id: item.id,
+                name: item.get("name"),
                 nickName: item.get("nickName"),
                 phone: item.get("phone"),
                 memberType: item.get("memberType"),

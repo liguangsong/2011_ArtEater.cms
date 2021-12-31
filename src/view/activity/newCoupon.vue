@@ -158,6 +158,7 @@
             style="width: 200px"
             type="number"
           ></Input>
+           <span style="margin-left:10px">天</span>
         </FormItem>
         
       </Form>
@@ -182,6 +183,9 @@
           </Radio>
            <Radio label="2">
             <span>铂金</span>
+          </Radio>
+           <Radio label="ordinary">
+            <span>普通</span>
           </Radio>
           <Radio label="part">
             <span>个别学生</span>
@@ -722,6 +726,9 @@ export default {
       let query3 = new this.ParseServer.Query(this.ParseServer.User);
       if(this.sendMode ==1 || this.sendMode ==2 || this.sendMode ==3){
       query3.equalTo("memberType",Number(this.sendMode));
+      }
+      if(this.sendMode == 'ordinary'){
+         query3.equalTo("memberType",undefined);
       }
       let query2 = this.ParseServer.Query.or(querya, queryc);
       let query = this.ParseServer.Query.and(query1, query2,query3);
