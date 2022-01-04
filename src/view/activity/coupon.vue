@@ -505,7 +505,6 @@ export default {
               let student = _students[i]
               self.students.push(student)
             }
-            console.log(self.students)
             self.$nextTick(() => {
               if(self.$refs.studentTable){
                 var objData = self.$refs.studentTable.$refs.tbody.objData
