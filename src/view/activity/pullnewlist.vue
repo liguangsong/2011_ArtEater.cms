@@ -221,7 +221,6 @@ export default {
   float: left;
   width: 60%;
   .label-split {
-    // margin: 0 10px;
     padding: 0 10px;
     width: 10%;
     box-sizing: border-box;
@@ -300,7 +299,6 @@ export default {
   white-space: nowrap;
   margin-bottom: 20px;
 }
-
 .overflow {
   display: -webkit-box;
   -webkit-box-orient: vertical;

@@ -715,7 +715,15 @@ export default {
     student_page_list() {
       console.log(this.sendMode)
       var self = this;
-      self.students = [];
+      if(self.studentPageIndex<=1){
+        self.students = []
+      }
+      // const sendModes = ['all','1','2','3','ordinary','part'];
+      // let isSendMode =  sendModes.includes(this.sendMode);
+      // console.log(isSendMode)
+      // if(isSendMode){
+      //    self.students = [];
+      // }
       this.studentLoading = true;
       let query1 = new this.ParseServer.Query(this.ParseServer.User);
       query1.equalTo("role", "student");
@@ -770,6 +778,7 @@ export default {
               }
             });
           }
+          console.log(self.students)
           self.studentLoading = false;
         },
         (error) => {
