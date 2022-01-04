@@ -322,11 +322,9 @@ export default {
             }
             coupon.set("tipName", self.coupon_form.tipName);
             coupon.set("tipContent", self.coupon_form.tipContent);
-
             coupon.set("couponName", self.coupon_form.couponName);
             coupon.set("amount", parseFloat(self.coupon_form.amount));
             coupon.set("productType", self.coupon_form.productType);
-            
             var realname = self.ParseServer.User.current().get('realname')
             coupon.set("createBy", realname);
             coupon.set("useEndTime", self.coupon_form.useEndTime);

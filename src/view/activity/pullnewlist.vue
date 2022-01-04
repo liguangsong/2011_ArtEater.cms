@@ -6,7 +6,7 @@
           <Input
             v-model="search_keyword"
             size="large"
-            placeholder="渠道名称关键字搜索"
+            placeholder="会员昵称/手机号关键字搜索"
             style="width: 200px"
           />
         </div>
@@ -14,31 +14,6 @@
           class="select-choice clear-fix"
           style="display: flex; align-items: center"
         >
-          <span>注册时间</span>
-          <div
-            class="date-picker-wrap clear-fix"
-            style="width: 400px; display: flex"
-          >
-            <div class="date-picker" style="width: 180px">
-              <DatePicker
-                v-model="search_start_date"
-                size="large"
-                type="date"
-                placeholder="请输入开始时间"
-              ></DatePicker>
-            </div>
-            <div class="label-split" style="height: 36px; line-height: 36px">
-              -
-            </div>
-            <div class="date-picker" style="width: 180px">
-              <DatePicker
-                v-model="search_end_date"
-                size="large"
-                type="date"
-                placeholder="请输入结束时间"
-              ></DatePicker>
-            </div>
-          </div>
           <div style="display: flex">
             <span style="width: 100px; padding: 0">是否处理:</span>
             <Select
@@ -162,20 +137,16 @@ export default {
       let query1 = new this.ParseServer.Query("PullNew");
       query1.contains("nickName", this.search_keyword);
       let query2 = new this.ParseServer.Query("PullNew");
-      if (this.search_start_date) {
-        query2.greaterThan("createdAt", this.search_start_date);
-      }
+      query2.contains("phone", this.search_keyword);
       let query3 = new this.ParseServer.Query("PullNew");
-      if (this.search_end_date) {
-        query3.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
-      }
-      let query4 = new this.ParseServer.Query("PullNew");
       if (this.search_type) {
         let type;
         this.search_type == 1 ? (type = true) : (type = false);
-        query4.equalTo("isDispose", type);
+        query3.equalTo("isDispose", type);
       }
-      var query = this.ParseServer.Query.and(query1, query2, query3, query4);
+      var query = this.ParseServer.Query.and(
+      this.ParseServer.Query.or(query1,query2,),
+      query3);
       query.descending("createdAt");
       query.count().then((count) => {
         _this.total = count;

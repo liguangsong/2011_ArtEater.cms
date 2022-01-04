@@ -329,7 +329,7 @@ export default {
     creatQrCode(row) {
       this.$refs.qrCodeUrl.innerHTML = "";
       var qrcode = new QRCode(this.$refs.qrCodeUrl, {
-        text: `https://www.arteater.cn/vip/Ji2vVK7htw.txt/?id=${row.id}&ids=1`, // 需要转换为二维码的内容
+        text: `https://www.arteater.cn/channel/Ji2vVK7htw.txt/?id=${row.id}`, // 需要转换为二维码的内容
         width: 100,
         height: 100,
         colorDark: "#000000",
