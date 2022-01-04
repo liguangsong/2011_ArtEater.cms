@@ -1,18 +1,24 @@
 <template>
   <div class="container-wrap">
-    <div class="header-wrap clear-fix" style="display:flex"> 
-      <div class="search-wrap clear-fix" style="flex:1">
-        <div class="search-keyword" style="width:230px">
+    <div class="header-wrap clear-fix" style="display: flex">
+      <div class="search-wrap clear-fix" style="flex: 1">
+        <div class="search-keyword" style="width: 230px">
           <Input
             v-model="search_keyword"
             size="large"
             placeholder="渠道名称关键字搜索"
-            style="width:200px"
+            style="width: 200px"
           />
         </div>
-        <div class="select-choice clear-fix" style="display: flex;align-items: center;">
+        <div
+          class="select-choice clear-fix"
+          style="display: flex; align-items: center"
+        >
           <span>注册时间</span>
-          <div class="date-picker-wrap clear-fix" style="width: 400px;display: flex;">
+          <div
+            class="date-picker-wrap clear-fix"
+            style="width: 400px; display: flex"
+          >
             <div class="date-picker" style="width: 180px">
               <DatePicker
                 v-model="search_start_date"
@@ -33,39 +39,48 @@
               ></DatePicker>
             </div>
           </div>
-          <div style="display:flex">
-                 <span style="width: 100px; padding: 0">是否处理:</span>
-          <Select
-            size="large"
-            v-model="search_type"
-            class="choice"
-            placeholder="全部"
-            :clearable="true"
-            style="width: 80px;margin-left:20px"
-          >
-            <Option :value="1" :key="1">是</Option>
-             <Option :value="2" :key="2">否</Option>
-          </Select>
+          <div style="display: flex">
+            <span style="width: 100px; padding: 0">是否处理:</span>
+            <Select
+              size="large"
+              v-model="search_type"
+              class="choice"
+              placeholder="全部"
+              :clearable="true"
+              style="width: 80px; margin-left: 20px"
+            >
+              <Option :value="1" :key="1">是</Option>
+              <Option :value="2" :key="2">否</Option>
+            </Select>
           </div>
-           <div class="search-btn" style="width:150px;">
-            <Button type="primary" class="search-btn" @click="search">搜索</Button>
-      </div>
+          <div class="search-btn" style="width: 150px">
+            <Button type="primary" class="search-btn" @click="search"
+              >搜索</Button
+            >
+          </div>
         </div>
       </div>
     </div>
     <Row class="table-wrap">
       <Table :loading="loading" :columns="columns" :data="datas">
-           <template slot-scope="{ row }" slot="isDispose"> 
-                     <i-switch v-model="row.isDispose"  @on-change="changeDispose(row)"   size="large" />
-                   </template>
-                     <template slot-scope="{ row }" slot="memberType"> 
-                   </template>
+        <template slot-scope="{ row }" slot="isDispose">
+          <i-switch
+            v-model="row.isDispose"
+            @on-change="changeDispose(row)"
+            size="large"
+          />
+        </template>
+        <template slot-scope="{ row }" slot="memberType">
+          <span v-if="row.memberType == '1'">黑金</span>
+          <span v-if="row.memberType == '3'">铂金</span>
+          <span v-if="row.memberType == '2'">白银</span>
+        </template>
       </Table>
       <div class="page-wrap">
         <Page :total="total" @on-change="pagechange" v-if="total != 0" />
       </div>
     </Row>
-</div>
+  </div>
 </template>
 
 <script>
@@ -81,22 +96,22 @@ export default {
       search_start_date: "",
       search_end_date: "",
       columns: [
-        { title: "ID", key: "id",},
-            { title: "姓名", key: "name",},
-        { title: "会员昵称", key: "nickName",},
+        { title: "ID", key: "id" },
+        { title: "姓名", key: "name" },
+        { title: "会员昵称", key: "nickName" },
         { title: "手机号", key: "phone" },
-        { title: "会员类型", key: "memberType" , slot: "memberType" },
-        { title: "拉新人数", key: "recruits",},
+        { title: "会员类型", key: "memberType", slot: "memberType" },
+        { title: "拉新人数", key: "buyUser" },
+        { title: "升级黑金拉新", key: "upgradeBuyArr" },
         { title: "是否处理", key: "isDispose", slot: "isDispose" },
         // { title: "创建时间", key: "createdAt" },
       ],
       datas: [],
-          search_type: "",
+      search_type: "",
       form: {
         nickName: "",
         phone: "",
-        memberType:'',
-        recruits: "",
+        memberType: "",
         isDispose: false,
       },
       Id: "",
@@ -109,8 +124,7 @@ export default {
     this.page_list(this.page);
   },
   methods: {
-
-     //是否处理
+    //是否处理
     changeDispose(data) {
       this.form.isDispose = data.isDispose;
       this.Id = data.id;
@@ -155,18 +169,13 @@ export default {
       if (this.search_end_date) {
         query3.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
-          let query4 = new this.ParseServer.Query("PullNew");
+      let query4 = new this.ParseServer.Query("PullNew");
       if (this.search_type) {
         let type;
         this.search_type == 1 ? (type = true) : (type = false);
         query4.equalTo("isDispose", type);
       }
-      var query = this.ParseServer.Query.and(
-       query1,
-        query2,
-        query3,
-        query4,
-      );
+      var query = this.ParseServer.Query.and(query1, query2, query3, query4);
       query.descending("createdAt");
       query.count().then((count) => {
         _this.total = count;
@@ -184,8 +193,12 @@ export default {
                 nickName: item.get("nickName"),
                 phone: item.get("phone"),
                 memberType: item.get("memberType"),
+                // buyNum: item.get("buyNum"),
+                buyUser: item.get("buyUser") ? item.get("buyUser").length : 0,
                 silverActivePrice: item.get("silverActivePrice"),
-                recruits: item.get("recruits") ? item.get("recruits").length :0,
+                upgradeBuyArr: item.get("upgradeBuyArr")
+                  ? item.get("upgradeBuyArr").length
+                  : 0,
                 isDispose: item.get("isDispose"),
                 createdAt: tool.dateFormat(
                   item.get("createdAt"),

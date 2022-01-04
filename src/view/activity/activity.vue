@@ -71,7 +71,7 @@
         </FormItem>
         <FormItem label="选择产品" prop="products">
           <div>
-            <div v-for="item in allProducts">
+            <div v-for="(item, index) in allProducts" :key="index">
               <span v-if="form.products.indexOf(item.id)!=-1">
               {{ item.title }}
               </span>
@@ -162,7 +162,6 @@ export default {
     };
   },
   mounted () {
-    var self = this
     this.bindProducts()
     this.page_list();
   },

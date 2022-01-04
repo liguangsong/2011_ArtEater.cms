@@ -72,16 +72,16 @@
             </div>
           </FormItem>
         </div>
-        <!-- <div class="formItem">
-          <FormItem label="科目是否合并购买">
+        <div class="formItem">
+          <!-- <FormItem label="科目是否合并购买">
             <div class="inputDiv">
               <div class="input">
                 <i-switch v-model="form.isSubjectAllBuy" size="large" />
               </div>
               <div class="comment"></div>
             </div>
-          </FormItem>
-        </div> -->
+          </FormItem> -->
+        </div>
         <div class="formItem">
           <FormItem label="正确率中" prop="percentM">
             <div class="inputDiv">

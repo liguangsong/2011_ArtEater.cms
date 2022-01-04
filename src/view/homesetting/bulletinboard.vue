@@ -430,18 +430,6 @@ export default {
 
     //信息公告保存 富文本
     add_information() {
-      // this.$refs["form"].validate((valid) => {
-      //   if (!valid) {
-      //     self.$Message.error("请检查表单项");
-      //     this.modalLoading = false;
-      //     setTimeout(() => {
-      //       this.modalLoading = true;
-      //     }, 100);
-      //     return false;
-      //   } else {
-         
-      //   }
-      // });
        var query = new this.ParseServer.Query("BulletinBoard");
           query.get(this.Id).then((item) => {
             item.set("informationBulletin", this.form.informationBulletin);
