@@ -102,7 +102,7 @@
             placeholder="请输入黑金活动价格"
           ></Input>
         </FormItem>
-          <FormItem label="铂金活动价格" prop="platinumActivePrice">
+          <!-- <FormItem label="铂金活动价格" prop="platinumActivePrice">
           <Input
            style="width: 200px"
             v-model="form.platinumActivePrice"
@@ -115,7 +115,7 @@
             v-model="form.silverActivePrice"
             placeholder="请输入白银活动价格"
           ></Input>
-        </FormItem>
+        </FormItem> -->
      <FormItem label="分成比例" prop="divideInto">
           <Input
            style="width: 200px"
@@ -212,8 +212,8 @@ export default {
         { title: "ID", key: "id" },
         { title: "渠道名称", key: "channelName", width: 100 },
         { title: "黑金活动价格", key: "blackActivePrice" },
-        { title: "铂金活动价格", key: "platinumActivePrice" },
-        { title: "白银活动价格", key: "silverActivePrice" },
+        // { title: "铂金活动价格", key: "platinumActivePrice" },
+        // { title: "白银活动价格", key: "silverActivePrice" },
         { title: "分成比例", key: "divideInto" },
         { title: "提成总金额", key: "TotalAmountCommission", width: 100 },
         { title: "二维码", key: "qsCode", slot: "qsCode" },
@@ -232,8 +232,8 @@ export default {
       form: {
         channelName: "",
         blackActivePrice: 0,
-        platinumActivePrice: 0,
-        silverActivePrice: 0,
+        // platinumActivePrice: 0,
+        // silverActivePrice: 0,
         divideInto: "", //分成比例
         TotalAmountCommission: "", //提成总金额
         amountCommission: "", //提成金额
@@ -267,46 +267,46 @@ export default {
             },
           },
         ],
-        platinumActivePrice: [
-          {
-            required: true,
-            trigger: "blur",
-            validator: (rule, value, callback) => {
-              if (
-                !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
-                  value
-                )
-              ) {
-                return callback(
-                  new Error(
-                    "请输入铂金活动价格,价格由整数、小数点和最多两个小数组成！"
-                  )
-                );
-              }
-              callback();
-            },
-          },
-        ],
-        silverActivePrice: [
-          {
-            required: true,
-            trigger: "blur",
-            validator: (rule, value, callback) => {
-              if (
-                !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
-                  value
-                )
-              ) {
-                return callback(
-                  new Error(
-                    "请输入白银活动价格,价格由整数、小数点和最多两个小数组成！"
-                  )
-                );
-              }
-              callback();
-            },
-          },
-        ],
+        // platinumActivePrice: [
+        //   {
+        //     required: true,
+        //     trigger: "blur",
+        //     validator: (rule, value, callback) => {
+        //       if (
+        //         !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
+        //           value
+        //         )
+        //       ) {
+        //         return callback(
+        //           new Error(
+        //             "请输入铂金活动价格,价格由整数、小数点和最多两个小数组成！"
+        //           )
+        //         );
+        //       }
+        //       callback();
+        //     },
+        //   },
+        // ],
+        // silverActivePrice: [
+        //   {
+        //     required: true,
+        //     trigger: "blur",
+        //     validator: (rule, value, callback) => {
+        //       if (
+        //         !/(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/.test(
+        //           value
+        //         )
+        //       ) {
+        //         return callback(
+        //           new Error(
+        //             "请输入白银活动价格,价格由整数、小数点和最多两个小数组成！"
+        //           )
+        //         );
+        //       }
+        //       callback();
+        //     },
+        //   },
+        // ],
       },
       loading: true,
     };
@@ -344,8 +344,8 @@ export default {
       this.form = {
         channelName: "",
         blackActivePrice: 0,
-        platinumActivePrice: 0,
-        silverActivePrice: 0,
+        // platinumActivePrice: 0,
+        // silverActivePrice: 0,
         divideInto: "", //分成比例
         TotalAmountCommission: "", //提成总金额
         amountCommission: "", //提成金额
@@ -362,8 +362,8 @@ export default {
       this.Id = row.id;
       this.form.channelName = row.channelName;
       this.form.blackActivePrice = row.blackActivePrice;
-      this.form.platinumActivePrice = row.platinumActivePrice;
-      this.form.silverActivePrice = row.silverActivePrice;
+      // this.form.platinumActivePrice = row.platinumActivePrice;
+      // this.form.silverActivePrice = row.silverActivePrice;
       // this.form.qsCode = row.qsCode;
       this.form.divideInto = row.divideInto;
       this.form.TotalAmountCommission = row.TotalAmountCommission;
@@ -400,11 +400,11 @@ export default {
             // 保存
             data.set("channelName", this.form.channelName);
             data.set("blackActivePrice", Number(this.form.blackActivePrice));
-            data.set(
-              "platinumActivePrice",
-              Number(this.form.platinumActivePrice)
-            );
-            data.set("silverActivePrice", Number(this.form.silverActivePrice));
+            // data.set(
+            //   "platinumActivePrice",
+            //   Number(this.form.platinumActivePrice)
+            // );
+            // data.set("silverActivePrice", Number(this.form.silverActivePrice));
             data.set("divideInto", this.form.divideInto);
             data.set("baseMap", this.form.baseMap);
             data.save().then(
@@ -427,8 +427,8 @@ export default {
       query.get(this.Id).then((item) => {
         item.set("channelName", this.form.channelName);
         item.set("blackActivePrice", Number(this.form.blackActivePrice));
-        item.set("platinumActivePrice", Number(this.form.platinumActivePrice));
-        item.set("silverActivePrice", Number(this.form.silverActivePrice));
+        // item.set("platinumActivePrice", Number(this.form.platinumActivePrice));
+        // item.set("silverActivePrice", Number(this.form.silverActivePrice));
         item.set("divideInto", this.form.divideInto);
         item.set("baseMap", this.form.baseMap);
         item.save().then(
@@ -490,8 +490,8 @@ export default {
                 id: item.id,
                 channelName: item.get("channelName"),
                 blackActivePrice: item.get("blackActivePrice"),
-                platinumActivePrice: item.get("platinumActivePrice"),
-                silverActivePrice: item.get("silverActivePrice"),
+                // platinumActivePrice: item.get("platinumActivePrice"),
+                // silverActivePrice: item.get("silverActivePrice"),
                 divideInto: item.get("divideInto"),
                 TotalAmountCommission: item.get("TotalAmountCommission"),
                 amountCommission: item.get("amountCommission"),
@@ -603,8 +603,8 @@ export default {
       query.get(this.Id).then((res) => {
         this.form.channelName = res.get("channelName");
         this.form.blackActivePrice = res.get("blackActivePrice");
-        this.form.platinumActivePrice = res.get("platinumActivePrice");
-        this.form.silverActivePrice = res.get("silverActivePrice");
+        // this.form.platinumActivePrice = res.get("platinumActivePrice");
+        // this.form.silverActivePrice = res.get("silverActivePrice");
         this.form.divideInto = res.get("divideInto");
         this.form.TotalAmountCommission = res.get("TotalAmountCommission");
         this.form.baseMap = res.get("baseMap");
