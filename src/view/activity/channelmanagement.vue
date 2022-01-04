@@ -173,7 +173,6 @@
           >
       </div>
 </div>
-
   <Modal @on-visible-change="handleVChange" width="450" title="二维码" v-model="isShowImg">
           <div style="margin:5px 0;text-align:center">
               <div class="qrcode" ref="qrCodeUrl"></div>
