@@ -459,7 +459,7 @@ export default {
       let _this = this;
       let query = new this.ParseServer.Query("BulletinBoard");
       query.contains("bulletinName", this.search_keyword);
-      query.descending("createdAt");
+      query.descending("updatedAt");
       query.count().then((count) => {
         _this.total = count;
       });
