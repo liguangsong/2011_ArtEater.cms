@@ -223,7 +223,7 @@ export default {
         { title: "会员类型", key: "memberType", slot: "memberType" },
         { title: "活动金额", key: "price" },
         { title: "提成金额", key: "commissionPrice" },
-        { title: "推广注册手机号", key: "commissionPrice" },
+        { title: "推广注册手机号", key: "phone" },
         { title: "创建时间", key: "createdAt" },
       ],
       datas: [],
@@ -535,6 +535,7 @@ export default {
                 memberType: item.get("memberType"),
                 price: item.get("price"),
                 commissionPrice: item.get("commissionPrice"),
+                phone: item.get("phone")? item.get("phone") :'',
                 createdAt: tool.dateFormat(
                   item.get("createdAt"),
                   "yyyy-MM-dd HH:mm:ss"
@@ -645,6 +646,11 @@ export default {
             title: "提成金额",
             dataIndex: "commissionPrice",
             key: "commissionPrice",
+          },
+            {
+            title: "推广注册手机号",
+            dataIndex: "phone",
+            key: "phone",
           },
           {
             title: "创建时间",
