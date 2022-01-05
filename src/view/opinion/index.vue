@@ -16,6 +16,14 @@
     </div>
     <Row class="table-wrap">
       <Table :loading="loading" :columns="columns" :data="message_datas">
+              <template slot-scope="{ row }" slot="message">
+             <div v-if="row.message">
+                    <div
+                    @mouseover="mouseOver(row)"
+                    @mouseleave="mouseLeave(row)"
+                     style="display: flex;align-items: center;"><span :class="{'overflow':row.messageLen}" >{{row.message}}</span></div>
+             </div>
+       </template>
       </Table>
       <div class="page-wrap">
         <Page :total="total" @on-change="pagechange" v-if="total != 0" />
@@ -42,7 +50,7 @@
           <Input
             type="textarea"
             :rows="10"
-           v-model="message"
+            v-model="message"
             placeholder="消息"
             style="width:500px"
           ></Input>
@@ -87,9 +95,10 @@ export default {
           title: "意见反馈",
           key: "content"
         },
-               {
+          {
           title: "消息",
-          key: "message"
+          key: "message",
+          slot: "message"
         },
         {
           title: "操作",
@@ -146,6 +155,22 @@ export default {
     this.page_list(this.page);
   },
   methods: {
+
+ // 移入
+    mouseOver(data) {
+      console.log(data)
+      if(data.message.length>=36){
+      data.messageLen = false
+      }
+    },
+    // 移出
+      mouseLeave(data) {
+     console.log(data)
+      if(data.message.length>=36){
+        data.messageLen = true
+        }
+    },
+
     /*
      *搜索数据
      *作者：gzt
@@ -194,8 +219,8 @@ export default {
                 phone: item.get("phone"),
                 createdAt: tool.dateFormat(item.get("createdAt"), 'yyyy-MM-dd HH:mm:ss'),
                 content: item.get("content"),
-                 message: item.get("message")
-
+                message: item.get("message"),
+                messageLen: item.get("message") && item.get("message").length>=36 ? true :false,
               };
               return message;
             });
@@ -300,5 +325,12 @@ export default {
     width: 18%;
     margin: 0 20px;
   }
+
 }
+.overflow{
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
 </style>

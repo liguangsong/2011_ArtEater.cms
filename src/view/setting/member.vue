@@ -38,7 +38,7 @@
         </template>
         <template slot-scope="{ row }" slot="typeName">
           <span v-if="row.typeName == 1">黑金</span>
-          <span v-if="row.typeName == 2">白金</span>
+          <span v-if="row.typeName == 2">铂金</span>
           <span v-if="row.typeName == 3">白银</span>
         </template>
       </Table>
@@ -74,7 +74,7 @@
               style="width: 150px"
             >
               <Option value="1" :key="1">黑金</Option>
-              <Option value="2" :key="2">白金</Option>
+              <Option value="2" :key="2">铂金</Option>
               <Option value="3" :key="3">白银</Option>
             </Select>
           </FormItem>

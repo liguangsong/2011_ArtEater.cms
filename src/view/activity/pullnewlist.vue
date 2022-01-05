@@ -47,8 +47,8 @@
         </template>
         <template slot-scope="{ row }" slot="memberType">
           <span v-if="row.memberType == '1'">黑金</span>
-          <span v-if="row.memberType == '3'">铂金</span>
-          <span v-if="row.memberType == '2'">白银</span>
+          <span v-if="row.memberType == '2'">铂金</span>
+          <span v-if="row.memberType == '3'">白银</span>
         </template>
       </Table>
       <div class="page-wrap">

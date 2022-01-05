@@ -9,7 +9,6 @@
           <Button type="primary" @click="search" size="large">查询</Button>
         </div>
       </div> -->
-
       <div class="operation-wrap clear-fix">
         <Button class="func" type="primary" @click="handleAdd">添加优惠券</Button>
       </div>
@@ -432,7 +431,6 @@ export default {
      */
     page_list () {
       this.loading = true;
-
       let query = new this.ParseServer.Query("CouponInfo");
       query.descending("createdAt");
       query.count().then(count => {
