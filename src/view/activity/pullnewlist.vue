@@ -144,8 +144,9 @@ export default {
         this.search_type == 1 ? (type = true) : (type = false);
         query3.equalTo("isDispose", type);
       }
+      let q = this.ParseServer.Query.or(query1,query2);
       var query = this.ParseServer.Query.and(
-      this.ParseServer.Query.or(query1,query2,),
+      q,
       query3);
       query.descending("createdAt");
       query.count().then((count) => {
