@@ -1,19 +1,28 @@
 <template>
   <div class="container-wrap">
-    <div class="header-wrap clear-fix" style="display:flex" v-if="isAddChannel== false && isLookBill == false"> 
-      <div class="search-wrap clear-fix" style="flex:1">
-        <div class="search-keyword" style="width:230px">
+    <div
+      class="header-wrap clear-fix"
+      style="display: flex"
+      v-if="isAddChannel == false && isLookBill == false"
+    >
+      <div class="search-wrap clear-fix" style="flex: 1">
+        <div class="search-keyword" style="width: 230px">
           <Input
             v-model="search_keyword"
             size="large"
             placeholder="渠道名称关键字搜索"
-            style="width:200px"
+            style="width: 200px"
           />
         </div>
-        <div class="select-choice clear-fix" style="width: 500px;
-        display: flex;">
+        <div
+          class="select-choice clear-fix"
+          style="width: 500px; display: flex"
+        >
           <span>注册时间</span>
-          <div class="date-picker-wrap clear-fix" style="width: 400px;display: flex;">
+          <div
+            class="date-picker-wrap clear-fix"
+            style="width: 400px; display: flex"
+          >
             <div class="date-picker" style="width: 180px">
               <DatePicker
                 v-model="search_start_date"
@@ -36,39 +45,42 @@
           </div>
         </div>
       </div>
-       <div class="search-btn" style="width:150px;margin:0">
-          <Button type="primary" class="search-btn" @click="search">搜索</Button>
-        </div>
+      <div class="search-btn" style="width: 150px; margin: 0">
+        <Button type="primary" class="search-btn" @click="search">搜索</Button>
+      </div>
     </div>
-    <Row class="table-wrap" v-if="isAddChannel== false && isLookBill == false">
-        <div style="width:100px; margin-left: auto;
-    margin-bottom: 20px;">
+
+    <Row class="table-wrap" v-if="isAddChannel == false && isLookBill == false">
+      <div style="width: 100px; margin-left: auto; margin-bottom: 20px">
         <Button type="primary" @click="addChannel">新增渠道</Button>
       </div>
       <Table :loading="loading" :columns="columns" :data="datas">
-
-    <template slot-scope="{ row }" slot="qsCode">
-     <span style="color:#0758a2;cursor: pointer;" @click="handleExamine(row)">查看</span>
-       </template>
+        <template slot-scope="{ row }" slot="qsCode">
+          <span
+            style="color: #0758a2; cursor: pointer"
+            @click="handleExamine(row)"
+            >查看</span
+          >
+        </template>
         <template slot-scope="{ row }" slot="action">
           <Button
             type="warning"
             size="small"
-            style="margin-right:5px"
+            style="margin-right: 5px"
             @click="EditFormShow(row)"
             >编辑</Button
           >
-            <Button
+          <Button
             type="warning"
             size="small"
-            style="margin-right:5px"
+            style="margin-right: 5px"
             @click="ExamineBill(row)"
             >查看账单</Button
           >
           <Button
             type="error"
             size="small"
-            style="margin-right:5px"
+            style="margin-right: 5px"
             @click="DelConfirmShow(row)"
             >删除</Button
           >
@@ -78,9 +90,13 @@
         <Page :total="total" @on-change="pagechange" v-if="total != 0" />
       </div>
     </Row>
-<!-- 新增渠道 -->
-<div v-if="isAddChannel && isLookBill == false" style="margin-top:50px;margin-left:40px">
-  <Form
+    
+    <!-- 新增渠道 -->
+    <div
+      v-if="isAddChannel && isLookBill == false"
+      style="margin-top: 50px; margin-left: 40px"
+    >
+      <Form
         v-if="isAddChannel"
         ref="form"
         :model="form"
@@ -88,21 +104,21 @@
         :label-width="100"
         :rules="ruleValidate"
       >
-          <FormItem label="渠道名称" prop="channelName">
+        <FormItem label="渠道名称" prop="channelName">
           <Input
-           style="width: 200px"
+            style="width: 200px"
             v-model="form.channelName"
             placeholder="请输入渠道名称"
           ></Input>
         </FormItem>
-          <FormItem label="黑金活动价格" prop="blackActivePrice">
+        <FormItem label="黑金活动价格" prop="blackActivePrice">
           <Input
-           style="width: 200px"
+            style="width: 200px"
             v-model="form.blackActivePrice"
             placeholder="请输入黑金活动价格"
           ></Input>
         </FormItem>
-          <!-- <FormItem label="铂金活动价格" prop="platinumActivePrice">
+        <!-- <FormItem label="铂金活动价格" prop="platinumActivePrice">
           <Input
            style="width: 200px"
             v-model="form.platinumActivePrice"
@@ -116,69 +132,74 @@
             placeholder="请输入白银活动价格"
           ></Input>
         </FormItem> -->
-     <FormItem label="分成比例" prop="divideInto">
+        <FormItem label="分成比例" prop="divideInto">
           <Input
-           style="width: 200px"
+            style="width: 200px"
             v-model="form.divideInto"
             placeholder="请输入分成比例(百分比)"
           ></Input>
-          <span style="margin-left:10px">%</span>
+          <span style="margin-left: 10px">%</span>
         </FormItem>
-           <FormItem label="活动底图" prop="baseMap">
-           <Editor
+        <FormItem label="活动底图" prop="baseMap">
+          <Editor
             :value="form.baseMap"
             placeholder="请增加活动底图"
             @on-change="change_value"
           ></Editor>
         </FormItem>
       </Form>
- <div class="bottom">
-   <Button
-            style="margin-right:5px;cursor: pointer;"
-            @click="goback"
-            >返回</Button
-          >
-           <Button
-            type="primary"
-            style="margin-right:5px;cursor: pointer;"
-            @click="add_channel"
-            >保存</Button
-          >
+      <div class="bottom">
+        <Button style="margin-right: 5px; cursor: pointer" @click="goback"
+          >返回</Button
+        >
+        <Button
+          type="primary"
+          style="margin-right: 5px; cursor: pointer"
+          @click="add_channel"
+          >保存</Button
+        >
       </div>
-</div>
+    </div>
 
-<!-- 查看账单 -->
-<div v-if="isAddChannel==false && isLookBill" style="margin-top:50px;margin-left:40px">
+    <!-- 查看账单 -->
+    <div
+      v-if="isAddChannel == false && isLookBill"
+      style="margin-top: 50px; margin-left: 40px"
+    >
       <Row class="table-wrap" v-if="isLookBill">
-        <div style="width:100px; margin-left: auto;
-    margin-bottom: 20px;">
-     <Button type="primary" @click="exportBill">导出账单</Button>
+        <div style="width: 100px; margin-left: auto; margin-bottom: 20px">
+          <Button type="primary" @click="exportBill">导出账单</Button>
+        </div>
+        <Table :loading="loading" :columns="columns2" :data="datas2">
+          <template slot-scope="{ row }" slot="memberType">
+            <span v-if="row.memberType == 1">黑金</span>
+            <span v-if="row.memberType == 2">铂金</span>
+            <span v-if="row.memberType == 3">白银</span>
+          </template>
+        </Table>
+        <div class="page-wrap">
+          <Page :total="total2" @on-change="pagechange2" v-if="total2 != 0" />
+        </div>
+      </Row>
+      <div class="bottom">
+        <Button
+          style="margin-right: 5px; margin-top: 20px; cursor: pointer"
+          @click="goback"
+          >返回</Button
+        >
       </div>
-      <Table :loading="loading" :columns="columns2" :data="datas2">
-       <template slot-scope="{ row }" slot="memberType">
-     <span v-if="row.memberType == 1">黑金</span>
-       <span v-if="row.memberType == 2">铂金</span>
-         <span v-if="row.memberType == 3">白银</span>
-       </template>
-      </Table>
-      <div class="page-wrap">
-        <Page :total="total2" @on-change="pagechange2" v-if="total2 != 0" />
+    </div>
+    <Modal
+      @on-visible-change="handleVChange"
+      width="450"
+      title="二维码"
+      v-model="isShowImg"
+    >
+      <div style="margin: 5px 0; text-align: center">
+        <div class="qrcode" ref="qrCodeUrl"></div>
       </div>
-    </Row>
- <div class="bottom">
-   <Button
-            style="margin-right:5px;margin-top:20px;cursor: pointer;"
-            @click="goback"
-            >返回</Button
-          >
-      </div>
-</div>
-  <Modal @on-visible-change="handleVChange" width="450" title="二维码" v-model="isShowImg">
-          <div style="margin:5px 0;text-align:center">
-              <div class="qrcode" ref="qrCodeUrl"></div>
-          </div>
-        </Modal>
-</div>
+    </Modal>
+  </div>
 </template>
 
 <script>
@@ -228,6 +249,7 @@ export default {
       ],
       datas: [],
       datas2: [],
+      loading: true,
       form: {
         channelName: "",
         blackActivePrice: 0,
@@ -307,13 +329,14 @@ export default {
         //   },
         // ],
       },
-      loading: true,
     };
   },
+  
   mounted() {
     this.init_data = JSON.stringify(this.form);
     this.page_list(this.page);
   },
+
   methods: {
     handleVChange(r) {
       this.isShowImg = r;
@@ -442,14 +465,17 @@ export default {
         );
       });
     },
+
     search() {
       this.page = 1;
       this.page_list(this.page);
     },
+
     pagechange(e) {
       this.page = e;
       this.page_list();
     },
+
     pagechange2(e) {
       this.isall = false;
       this.page2 = e;
@@ -505,7 +531,6 @@ export default {
               });
             });
           }
-
           this.loading = false;
         },
         (error) => {}
@@ -535,7 +560,7 @@ export default {
                 memberType: item.get("memberType"),
                 price: item.get("price"),
                 commissionPrice: item.get("commissionPrice"),
-                phone: item.get("phone")? item.get("phone") :'',
+                phone: item.get("phone") ? item.get("phone") : "",
                 createdAt: tool.dateFormat(
                   item.get("createdAt"),
                   "yyyy-MM-dd HH:mm:ss"
@@ -610,6 +635,8 @@ export default {
     },
     //导出账单
     exportBill() {
+      console.log(this.datas2)
+      if(this.datas2.length<=0) return
       for (const key in this.datas2) {
         if (this.datas2[key].memberType == 1) {
           this.datas2[key].memberTypeName = "黑金";
@@ -645,7 +672,7 @@ export default {
             dataIndex: "commissionPrice",
             key: "commissionPrice",
           },
-            {
+          {
             title: "推广注册手机号",
             dataIndex: "phone",
             key: "phone",

@@ -531,11 +531,14 @@ export default {
     },
   
     handleSaveCoupon() {
+       var self = this;
       if(this.coupon_form.couponType == 'automaticallySend'){
         // console.log(this.coupon_form.useEndTime.getTime()+ 1000 * 60 * 60 * 24 * 365)
         // this.coupon_form.useEndTime = new Date(new Date().getTime()+ 1000 * 60 * 60 * 24 * 365)
       }
-       var self = this;
+      if(this.coupon_form.couponType == 'manuallySend'){
+        this.coupon_form.termValidity = 0;
+      }
        console.log(self.coupon_form.termValidity)
       this.$refs["form"].validate((valid) => {
         if (!valid) {
@@ -690,7 +693,7 @@ export default {
                 couponName: item.get("couponName"),
                 amount: item.get("amount"),
                 couponType: item.get("couponType"),
-                   couponRange: item.get("couponRange"),
+                couponRange: item.get("couponRange"),
                 createBy: item.get("createBy"),
                 useEndTime: item.get("useEndTime"),
                 termValidity: item.get("termValidity"),
