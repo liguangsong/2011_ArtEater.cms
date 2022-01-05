@@ -37,7 +37,7 @@
         </div>
       </div>
        <div class="search-btn" style="width:150px;margin:0">
-          <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
+          <Button type="primary" class="search-btn" @click="search">搜索</Button>
         </div>
     </div>
     <Row class="table-wrap" v-if="isAddChannel== false && isLookBill == false">
@@ -539,12 +539,10 @@ export default {
                 createdAt: tool.dateFormat(
                   item.get("createdAt"),
                   "yyyy-MM-dd HH:mm:ss"
-                    
                 ),
               });
             });
           }
-
           this.loading = false;
         },
         (error) => {}
