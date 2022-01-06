@@ -93,6 +93,14 @@
           ></Input>
         </FormItem>
 
+          <FormItem label="公告标题" prop="title">
+          <Input
+            style="width: 200px"
+            v-model="form.title"
+            placeholder="请输入公告标题"
+          ></Input>
+        </FormItem>
+
         <FormItem label="公告类型:" prop="type">
           <Select
             size="large"
@@ -206,6 +214,7 @@ export default {
       columns: [
         { title: "ID", key: "id" },
         { title: "公告名称", key: "bulletinName" },
+          { title: "公告标题", key: "title" },
         { title: "是否展示", key: "isShow", slot: "isShow" },
         { title: "公告类型", key: "type", slot: "type" },
         { title: "更新人", key: "updatedBy" },
@@ -215,6 +224,7 @@ export default {
       datas: [],
       form: {
         bulletinName: "",
+        title:"",
         type: "",
         isShow: "",
         updatedBy: "",
@@ -224,6 +234,7 @@ export default {
       Id: "",
       ruleValidate: {
         bulletinName: [{ required: true, message: "请输入公告名称", trigger: "blur" }],
+        title: [{ required: true, message: "请输入公告标题", trigger: "blur" }],
         type: [
         //  {required: true, message: '请选择公告栏类型', trigger: 'change' },
          {
@@ -320,6 +331,7 @@ export default {
       this.Id = "";
       this.form = {
         bulletinName: "", //名称
+          title: "", //标题
         type: "", //类型
         link: "", //H5活动链接
         informationBulletin: "", //信息公告
@@ -335,6 +347,7 @@ export default {
     EditFormShow(row) {
       this.Id = row.id;
       this.form.bulletinName = row.bulletinName;
+         this.form.title = row.title;
       this.form.type = row.type;
       this.form.isShow = row.isShow;
       this.isShowAddForm = true;
@@ -364,6 +377,7 @@ export default {
             var data = new datas();
             data.set("updatedBy", this.form.updatedBy);
             data.set("bulletinName", this.form.bulletinName);
+                   data.set("title", this.form.title);
             data.set("isShow", this.form.isShow);
             data.set("type", this.form.type);
             data.save().then(
@@ -385,6 +399,7 @@ export default {
       query.get(this.Id).then((item) => {
          item.set("updatedBy", this.form.updatedBy);
         item.set("bulletinName", this.form.bulletinName);
+                  item.set("title", this.form.title);
         item.set("type", this.form.type);
         item.set("isShow", this.form.isShow);
         item.save().then(
@@ -473,6 +488,7 @@ export default {
               _this.datas.push({
                 id: item.id,
                 bulletinName: item.get("bulletinName"),
+                title: item.get("title"),
                 type: item.get("type"),
                 isShow: item.get("isShow"),
                 updatedBy: item.get("updatedBy"),

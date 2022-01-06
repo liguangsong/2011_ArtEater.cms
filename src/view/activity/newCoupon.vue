@@ -6,7 +6,7 @@
           <Input
             v-model="search_keyword"
             size="large"
-            placeholder="渠道名称关键字搜索"
+            placeholder="优惠卷名称关键字搜索"
             style="width: 200px"
           />
         </div>
@@ -50,29 +50,34 @@
         <Button type="primary" @click="handleAdd">添加优惠券</Button>
       </div>
       <Table :loading="loading" :columns="columns" :data="couponData">
-
-   <template slot-scope="{ row }" slot="couponType">
-            <span v-if="row.couponType =='manuallySend'">手动发送</span>
-                <span v-if="row.couponType =='automaticallySend'">自动发送</span>
+        <template slot-scope="{ row }" slot="couponType">
+          <span v-if="row.couponType == 'manuallySend'">手动发送</span>
+          <span v-if="row.couponType == 'automaticallySend'">自动发送</span>
         </template>
 
-          <template slot-scope="{ row }" slot="couponRange">
-            <span v-if="row.couponRange =='all'">全部通用</span>
-                <span v-if="row.couponRange =='blackGold'">黑金</span>
-                    <span v-if="row.couponRange =='platinum'">铂金</span>
-                        <span v-if="row.couponRange =='silver'">白银</span>
-                            <span v-if="row.couponRange =='blackGoldNew'">黑金拉新</span>
-                                <span v-if="row.couponRange =='platinumGoldNew'">铂金拉新</span>
-                                    <span v-if="row.couponRange =='silverGoldNew'">白银拉新</span>
-                                       <span v-if="row.couponRange =='newUser'">注册新用户</span>
-                                       <!-- <span v-if="row.couponRange =='pullNewUser'">拉新用户</span> -->
-                                                <span v-if="row.couponRange =='blackGoldPullNewUser'">黑金拉新用户</span>
-                                       <span v-if="row.couponRange =='silverPullNewUser'">白银拉新用户</span>
-                                       <span v-if="row.couponRange =='platinumPullNewUser'">白银拉新用户</span>
+        <template slot-scope="{ row }" slot="couponRange">
+          <span v-if="row.couponRange == 'all'">全部通用</span>
+          <span v-if="row.couponRange == 'blackGold'">黑金</span>
+          <span v-if="row.couponRange == 'platinum'">铂金</span>
+          <span v-if="row.couponRange == 'silver'">白银</span>
+          <span v-if="row.couponRange == 'blackGoldNew'">黑金拉新</span>
+          <span v-if="row.couponRange == 'platinumGoldNew'">铂金拉新</span>
+          <span v-if="row.couponRange == 'silverGoldNew'">白银拉新</span>
+          <span v-if="row.couponRange == 'newUser'">注册新用户</span>
+          <!-- <span v-if="row.couponRange =='pullNewUser'">拉新用户</span> -->
+          <span v-if="row.couponRange == 'blackGoldPullNewUser'"
+            >黑金拉新用户</span
+          >
+          <span v-if="row.couponRange == 'silverPullNewUser'"
+            >白银拉新用户</span
+          >
+          <span v-if="row.couponRange == 'platinumPullNewUser'"
+            >铂金拉新用户</span
+          >
         </template>
         <template slot-scope="{ row }" slot="action">
           <Button
-          v-if="row.couponType =='manuallySend'"
+            v-if="row.couponType == 'manuallySend'"
             type="primary"
             size="small"
             style="margin-right: 5px"
@@ -115,15 +120,18 @@
             placeholder="请输入优惠券名称"
           ></Input>
         </FormItem>
-        <FormItem label="优惠卷金额" prop="amount">
+        <FormItem label="优惠券金额" prop="amount">
           <Input
             v-model="coupon_form.amount"
             type="number"
             placeholder="请输入优惠金额"
           ></Input>
         </FormItem>
-        <FormItem label="优惠卷类型" prop="couponType">
-          <Select v-model="coupon_form.couponType" @on-change="couponTypeChange">
+        <FormItem label="优惠券类型" prop="couponType">
+          <Select
+            v-model="coupon_form.couponType"
+            @on-change="couponTypeChange"
+          >
             <Option
               v-for="item in couponTypes"
               :value="item.type"
@@ -132,17 +140,23 @@
             >
           </Select>
         </FormItem>
-        <FormItem label="优惠卷使用范围" prop="couponRange">
+        <FormItem label="优惠券使用范围" prop="couponRange">
           <Select v-model="coupon_form.couponRange">
             <Option
-              v-for="item in coupon_form.couponType == 'manuallySend' ? couponRanges : couponRanges2 "
+              v-for="item in coupon_form.couponType == 'manuallySend'
+                ? couponRanges
+                : couponRanges2"
               :value="item.type"
               :key="item.type"
               >{{ item.title }}</Option
             >
           </Select>
         </FormItem>
-        <FormItem label="使用截止时间" prop="useEndTime" v-if="coupon_form.couponType=='manuallySend' ">
+        <FormItem
+          label="使用截止时间"
+          prop="useEndTime"
+          v-if="coupon_form.couponType == 'manuallySend'"
+        >
           <DatePicker
             type="datetime"
             v-model="coupon_form.useEndTime"
@@ -151,16 +165,19 @@
           ></DatePicker>
         </FormItem>
 
-        <FormItem label="有效期" prop="termValidity" v-if="coupon_form.couponType=='automaticallySend' ">
-       <Input
-           v-model="coupon_form.termValidity"
+        <FormItem
+          label="有效期"
+          prop="termValidity"
+          v-if="coupon_form.couponType == 'automaticallySend'"
+        >
+          <Input
+            v-model="coupon_form.termValidity"
             placeholder="请输入有效期"
             style="width: 200px"
             type="number"
           ></Input>
-           <span style="margin-left:10px">天</span>
+          <span style="margin-left: 10px">天</span>
         </FormItem>
-        
       </Form>
     </Modal>
     <Modal
@@ -175,16 +192,16 @@
           <Radio label="all">
             <span>全部学生</span>
           </Radio>
-           <Radio label="1">
+          <Radio label="0">
             <span>黑金</span>
           </Radio>
-           <Radio label="3">
-            <span>白银</span>
-          </Radio>
-           <Radio label="2">
+          <Radio label="1">
             <span>铂金</span>
           </Radio>
-           <Radio label="ordinary">
+          <Radio label="2">
+            <span>白银</span>
+          </Radio>
+          <Radio label="ordinary">
             <span>普通</span>
           </Radio>
           <Radio label="part">
@@ -216,12 +233,32 @@
             @on-selection-change="handleSelectStudent"
           ></Table>
         </div>
-            <div>
-              <div v-if="!studentLoading" @click="handleLoadMore" style="cursor: pointer;text-align:center;height:50px;line-height:50px">点击加载更多</div>
-              <div v-else  style="cursor: pointer;text-align:center;height:50px;line-height:50px;position:relative">
-                <Spin fix>加载中...</Spin>
-              </div>
-            </div>
+        <div>
+          <div
+            v-if="!studentLoading"
+            @click="handleLoadMore"
+            style="
+              cursor: pointer;
+              text-align: center;
+              height: 50px;
+              line-height: 50px;
+            "
+          >
+            点击加载更多
+          </div>
+          <div
+            v-else
+            style="
+              cursor: pointer;
+              text-align: center;
+              height: 50px;
+              line-height: 50px;
+              position: relative;
+            "
+          >
+            <Spin fix>加载中...</Spin>
+          </div>
+        </div>
       </Card>
     </Modal>
   </div>
@@ -254,8 +291,8 @@ export default {
         { title: "序号", type: "index", width: 60, align: "center" },
         { title: "优惠券名称", key: "couponName" },
         { title: "优惠卷金额", key: "amount" },
-         { title: "优惠卷类型", key: "couponType",slot:"couponType", },
-           { title: "使用范围", key: "couponRange",slot:"couponRange", },
+        { title: "优惠卷类型", key: "couponType", slot: "couponType" },
+        { title: "使用范围", key: "couponRange", slot: "couponRange" },
         {
           title: "使用截止时间",
           key: "useEndTime",
@@ -275,8 +312,9 @@ export default {
             }
           },
         },
-          {
-           title: "有效期", key: "termValidity",
+        {
+          title: "有效期",
+          key: "termValidity",
         },
         {
           title: "注册时间",
@@ -290,14 +328,20 @@ export default {
           },
         },
         { title: "添加人", key: "createBy" },
-        { title: "操作", key: "action", align: "center", slot: "action" ,width: 190, },
+        {
+          title: "操作",
+          key: "action",
+          align: "center",
+          slot: "action",
+          width: 190,
+        },
       ],
       studentColmns: [
         { title: "序号", type: "index", width: 60, align: "center" },
         { title: "昵称", key: "nickName" },
         { title: "学生姓名", key: "realname" },
         { title: "手机号", key: "phone" },
-                { type: "selection", width: 60, align: "center", title: "全选" },
+        { type: "selection", width: 60, align: "center", title: "全选" },
       ],
       couponData: [],
       students: [],
@@ -318,8 +362,8 @@ export default {
         { type: "newUser", title: "注册新用户" },
         // { type: "pullNewUser", title: "拉新用户" },
         { type: "blackGoldPullNewUser", title: "黑金拉新用户" },
-        { type: "silverPullNewUser", title: "白银拉新用户" },
         { type: "platinumPullNewUser", title: "铂金拉新用户" },
+        { type: "silverPullNewUser", title: "白银拉新用户" },
       ],
       coupon_form: {
         id: "",
@@ -327,7 +371,7 @@ export default {
         couponType: "manuallySend",
         couponRange: "all",
         amount: 0,
-        termValidity:0,
+        termValidity: 0,
         useEndTime: "",
       },
       coupon_curr: null,
@@ -343,23 +387,25 @@ export default {
             validator: verification.validateFloat2,
           },
         ],
-           couponTypes:[
+        couponTypes: [
           {
             trigger: "change",
             validator: (rule, value, callback) => {
               if (!value) {
                 callback(new Error("优惠卷类型不能为空"));
-              }  callback();
+              }
+              callback();
             },
           },
         ],
-         couponRange:[
+        couponRange: [
           {
             trigger: "change",
             validator: (rule, value, callback) => {
               if (!value) {
                 callback(new Error("优惠卷使用范围不能为空"));
-              }  callback();
+              }
+              callback();
             },
           },
         ],
@@ -379,7 +425,7 @@ export default {
             },
           },
         ],
-          termValidity: [
+        termValidity: [
           {
             required: true,
             message: "请输入正确的有效期",
@@ -403,7 +449,6 @@ export default {
         //     },
         //   },
         // ],
-
       },
       init_data: "",
     };
@@ -423,9 +468,9 @@ export default {
       this.page = e;
       this.page_list();
     },
-      couponTypeChange(){
-        console.log("dsfdsv ")
-      },
+    couponTypeChange() {
+      console.log("dsfdsv ");
+    },
 
     /** 添加优惠券 */
     handleAdd() {
@@ -436,7 +481,7 @@ export default {
         couponType: "manuallySend",
         couponRange: "",
         amount: 0,
-        termValidity:0,
+        termValidity: 0,
         useEndTime: "",
       };
       this.isShowCouponWindow = true;
@@ -457,7 +502,7 @@ export default {
     },
     /** 发送优惠券 */
     handleSend(row) {
-      console.log(row)
+      console.log(row);
       var self = this;
       self.coupon_form.useEndTime = row.useEndTime;
       this.selectedStudent = [];
@@ -524,22 +569,22 @@ export default {
     },
     /** 选择发送模式 */
     handleChangeStuMode(mode) {
-      console.log(this.sendMode)
-        this.studentPageIndex = 1;
-       this.selectedStudent = [];
-       this.student_page_list();
+      console.log(this.sendMode);
+      this.studentPageIndex = 1;
+      this.selectedStudent = [];
+      this.student_page_list();
     },
-  
+
     handleSaveCoupon() {
-       var self = this;
-      if(this.coupon_form.couponType == 'automaticallySend'){
+      var self = this;
+      if (this.coupon_form.couponType == "automaticallySend") {
         // console.log(this.coupon_form.useEndTime.getTime()+ 1000 * 60 * 60 * 24 * 365)
         // this.coupon_form.useEndTime = new Date(new Date().getTime()+ 1000 * 60 * 60 * 24 * 365)
       }
-      if(this.coupon_form.couponType == 'manuallySend'){
+      if (this.coupon_form.couponType == "manuallySend") {
         this.coupon_form.termValidity = 0;
       }
-       console.log(self.coupon_form.termValidity)
+      console.log(self.coupon_form.termValidity);
       this.$refs["form"].validate((valid) => {
         if (!valid) {
           self.$Message.error("请检查表单项");
@@ -560,7 +605,12 @@ export default {
           coupon.set("couponRange", self.coupon_form.couponRange);
           var realname = self.ParseServer.User.current().get("realname");
           coupon.set("createBy", realname);
-          coupon.set("useEndTime", self.coupon_form.useEndTime ? self.coupon_form.useEndTime : undefined);
+          coupon.set(
+            "useEndTime",
+            self.coupon_form.useEndTime
+              ? self.coupon_form.useEndTime
+              : undefined
+          );
           coupon.set("termValidity", Number(self.coupon_form.termValidity));
           coupon.save().then(
             (response) => {
@@ -570,7 +620,7 @@ export default {
             },
             (error) => {
               // debugger;
-              console.log(error)
+              console.log(error);
               this.$Message.error("保存失败");
             }
           );
@@ -579,6 +629,7 @@ export default {
     },
     /** 发送优惠券 */
     handleSendCoupon() {
+      let sendMode = 1;
       var self = this;
       var CouponRecords = self.ParseServer.Object.extend("NewCouponRecord");
       if (self.coupon_curr) {
@@ -594,15 +645,26 @@ export default {
               couponRecord.set("couponId", self.coupon_curr.id);
               couponRecord.set("couponName", self.coupon_curr.couponName);
               couponRecord.set("amount", parseFloat(self.coupon_curr.amount));
-              couponRecord.set("useEndTime", self.coupon_form.useEndTime ? self.coupon_form.useEndTime : undefined);
+              couponRecord.set(
+                "useEndTime",
+                self.coupon_form.useEndTime
+                  ? self.coupon_form.useEndTime
+                  : undefined
+              );
               couponRecord.set("openid", item.get("openid"));
-              couponRecord.set("mode", self.sendMode);
+              couponRecord.set(
+                "mode",
+                this.sendMode == 0 || this.sendMode == 1 || this.sendMode == 2
+                  ? (sendMode = String(self.sendMode + 1))
+                  : self.sendMode
+              );
               couponRecord.set("couponType", self.coupon_curr.couponType);
               couponRecord.set("couponRange", self.coupon_curr.couponRange);
-               couponRecord.set("state", 0);
+              couponRecord.set("state", 0);
               // couponRecord.set("orderNo", "");
               couponRecord.set("useTime", new Date());
-              list.push(couponRecord);3
+              list.push(couponRecord);
+              3;
             });
             if (list && list.length > 0) {
               self.ParseServer.Object.saveAll(list).then((resList) => {
@@ -618,9 +680,19 @@ export default {
             couponRecord.set("couponId", self.coupon_curr.id);
             couponRecord.set("couponName", self.coupon_curr.couponName);
             couponRecord.set("amount", parseFloat(self.coupon_curr.amount));
-            couponRecord.set("useEndTime", self.coupon_form.useEndTime ? self.coupon_form.useEndTime : undefined);
+            couponRecord.set(
+              "useEndTime",
+              self.coupon_form.useEndTime
+                ? self.coupon_form.useEndTime
+                : undefined
+            );
             couponRecord.set("openid", item.openid);
-            couponRecord.set("mode",self.sendMode);
+            couponRecord.set(
+              "mode",
+              this.sendMode == 0 || this.sendMode == 1 || this.sendMode == 2
+                ? (sendMode = String(self.sendMode + 1))
+                : self.sendMode
+            );
             couponRecord.set("couponType", self.coupon_curr.couponType);
             couponRecord.set("couponRange", self.coupon_curr.couponRange);
             couponRecord.set("state", 0);
@@ -644,7 +716,7 @@ export default {
         }
       }
     },
-  
+
     get_entity() {
       var query = new this.ParseServer.Query("NewCouponInfo");
       query.get(this.message_id).then((response) => {
@@ -658,7 +730,7 @@ export default {
       this.page = e;
       this.page_list();
     },
-    
+
     page_list() {
       this.loading = true;
       let query1 = new this.ParseServer.Query("NewCouponInfo");
@@ -682,7 +754,7 @@ export default {
       });
       query.skip((this.page - 1) * 10);
       query.limit(10);
-      
+
       query.find().then(
         (list) => {
           this.couponData = [];
@@ -716,27 +788,68 @@ export default {
     },
     /** 分页加载学生信息 */
     student_page_list() {
-      console.log(this.sendMode)
+      console.log(this.sendMode);
+      let query1;
+      let querya;
+      let queryc;
+      let openIds = [];
+      if (this.sendMode == "all" || this.sendMode == "part") {
+        query1 = new this.ParseServer.Query(this.ParseServer.User);
+        query1.equalTo("role", "student");
+        querya = new this.ParseServer.Query(this.ParseServer.User);
+        queryc = new this.ParseServer.Query(this.ParseServer.User);
+        this.generalUser(query1, querya, queryc);
+      }
+
+      if (this.sendMode == 0 || this.sendMode == 1 || this.sendMode == 2) {
+        query1 = new this.ParseServer.Query("MemberList");
+        query1.equalTo("memberType", this.sendMode);
+        querya = new this.ParseServer.Query("MemberList");
+        queryc = new this.ParseServer.Query("MemberList");
+        this.generalUser(query1, querya, queryc);
+      }
+      
+      //个别学生
+      if (this.sendMode == "ordinary") {
+        let query = new this.ParseServer.Query("MemberList");
+        query1 = new this.ParseServer.Query(this.ParseServer.User);
+        querya = new this.ParseServer.Query(this.ParseServer.User);
+        queryc = new this.ParseServer.Query(this.ParseServer.User);
+        // query.count().then((count) => {});
+        query.limit(10000);
+        query.find().then(
+          (list) => {
+            if (list && list.length > 0) {
+              list.forEach((item) => {
+                openIds.push(item.get("openId"));
+              });
+              console.log(openIds);
+              query1.notContainedIn("openid", openIds);
+              query1.equalTo("role", "student");
+              this.generalUser(query1, querya, queryc);
+            } else {
+              this.generalUser(query1, querya, queryc);
+            }
+          },
+          (error) => {}
+        );
+      }
+    },
+
+    //查询普通学生
+    generalUser(query1, querya, queryc) {
       var self = this;
-      if(self.studentPageIndex<=1){
-        self.students = []
+      if (self.studentPageIndex <= 1) {
+        self.students = [];
       }
+      let query2;
+      if(this.search_keyword){
+        querya.contains("nickName", this.search_student_keyword);
+        queryc.contains("phone", this.search_student_keyword);
+      }
+      query2 = this.ParseServer.Query.or(querya, queryc);
+      let query = this.ParseServer.Query.and(query1, query2);
       this.studentLoading = true;
-      let query1 = new this.ParseServer.Query(this.ParseServer.User);
-      query1.equalTo("role", "student");
-      let querya = new this.ParseServer.Query(this.ParseServer.User);
-      querya.contains("nickName", this.search_student_keyword);
-      let queryc = new this.ParseServer.Query(this.ParseServer.User);
-      queryc.contains("phone", this.search_student_keyword);
-      let query3 = new this.ParseServer.Query(this.ParseServer.User);
-      if(this.sendMode ==1 || this.sendMode ==2 || this.sendMode ==3){
-      query3.equalTo("memberType",Number(this.sendMode));
-      }
-      if(this.sendMode == 'ordinary'){
-         query3.equalTo("memberType",undefined);
-      }
-      let query2 = this.ParseServer.Query.or(querya, queryc);
-      let query = this.ParseServer.Query.and(query1, query2,query3);
       query.ascending("createdAt");
       query.skip((self.studentPageIndex - 1) * 10);
       query.limit(10);
@@ -775,7 +888,7 @@ export default {
               }
             });
           }
-          console.log(self.students)
+          console.log(self.students);
           self.studentLoading = false;
         },
         (error) => {
@@ -784,6 +897,7 @@ export default {
         }
       );
     },
+
     /** 加载更多学生 */
     handleLoadMore() {
       var self = this;
@@ -828,7 +942,7 @@ export default {
 .search-wrap {
   float: left;
   width: 60%;
-   .label-split {
+  .label-split {
     // margin: 0 10px;
     padding: 0 10px;
     width: 10%;
@@ -871,3 +985,4 @@ export default {
   }
 }
 </style>
+

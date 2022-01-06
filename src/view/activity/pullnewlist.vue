@@ -77,7 +77,7 @@ export default {
         { title: "手机号", key: "phone" },
         { title: "会员类型", key: "memberType", slot: "memberType" },
         { title: "拉新人数", key: "buyUser" },
-        { title: "升级黑金拉新", key: "upgradeBuyArr" },
+        { title: "黑金后拉新", key: "upgradeBuyArr" },
         { title: "是否处理", key: "isDispose", slot: "isDispose" },
         // { title: "创建时间", key: "createdAt" },
       ],
@@ -144,10 +144,8 @@ export default {
         this.search_type == 1 ? (type = true) : (type = false);
         query3.equalTo("isDispose", type);
       }
-      let q = this.ParseServer.Query.or(query1,query2);
-      var query = this.ParseServer.Query.and(
-      q,
-      query3);
+      let q = this.ParseServer.Query.or(query1,query2)
+      var query = this.ParseServer.Query.and(q, query3);
       query.descending("createdAt");
       query.count().then((count) => {
         _this.total = count;
