@@ -843,10 +843,8 @@ export default {
         self.students = [];
       }
       let query2;
-      if(this.search_keyword){
-        querya.contains("nickName", this.search_student_keyword);
-        queryc.contains("phone", this.search_student_keyword);
-      }
+      querya.contains("nickName", this.search_student_keyword);
+      queryc.contains("phone", this.search_student_keyword);
       query2 = this.ParseServer.Query.or(querya, queryc);
       let query = this.ParseServer.Query.and(query1, query2);
       this.studentLoading = true;
