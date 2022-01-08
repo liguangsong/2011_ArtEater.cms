@@ -28,13 +28,13 @@ export default {
 
   // parse-server服务相关链接配置
   parse_server: {
-    PARSE_PUBLIC_SERVER_URL: "http://101.200.34.189:1402/api/1",
-    PARSE_SERVER_APPLICATION_ID: "8IXBcjIkgHNQ2v9k",
-    PARSE_SERVER_MASTER_KEY: "1uGXsOnrM70ElEuwWaxm1lp1zsE6nxJj",
-    Master_Key: "LoOjxcEQS35Sr9QnAV3bOUaassBzScwM" // ParseConfig使用的
-    // PARSE_PUBLIC_SERVER_URL: "https://www.arteater.cn/api/1",
+    // PARSE_PUBLIC_SERVER_URL: "http://101.200.34.189:1402/api/1",
     // PARSE_SERVER_APPLICATION_ID: "8IXBcjIkgHNQ2v9k",
     // PARSE_SERVER_MASTER_KEY: "1uGXsOnrM70ElEuwWaxm1lp1zsE6nxJj",
     // Master_Key: "LoOjxcEQS35Sr9QnAV3bOUaassBzScwM" // ParseConfig使用的
+    PARSE_PUBLIC_SERVER_URL: "https://www.arteater.cn/api/1",
+    PARSE_SERVER_APPLICATION_ID: "8IXBcjIkgHNQ2v9k",
+    PARSE_SERVER_MASTER_KEY: "1uGXsOnrM70ElEuwWaxm1lp1zsE6nxJj",
+    Master_Key: "LoOjxcEQS35Sr9QnAV3bOUaassBzScwM" // ParseConfig使用的
   }
 }

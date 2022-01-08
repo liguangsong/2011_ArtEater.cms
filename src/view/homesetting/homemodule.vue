@@ -10,12 +10,10 @@
             style="width:200px"
           />
         </div>
-      
       </div>
        <div class="search-btn" style="width:150px;margin:0">
-          <Button type="primary" class="search-btn" @click="search">搜索</Button></Col>
+          <Button type="primary" class="search-btn" @click="search">搜索</Button>
         </div>
-      
     </div>
     <Row class="table-wrap">
         <div style="width:100px; margin-left: auto;
@@ -58,8 +56,6 @@
         <Page :total="total" @on-change="pagechange" v-if="total != 0" />
       </div>
     </Row>
-
-
     <!-- 新增模块 -->
     <Modal
       v-model="isShowAddForm"
@@ -100,8 +96,6 @@
         </FormItem>
       </Form>
     </Modal>
-
-
 
      <!-- 添加课程 -->
     <Modal

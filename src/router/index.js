@@ -103,6 +103,25 @@ const modules = [{
           "children": null,
           "href": "usermanage/operatingmember.vue",
           "level": 1
+        },
+        {
+          "Id": "1231231-1231zcsa-124dzcsdfvs-q342zxfczy",
+          "path": "customerorders",
+          "name": "customerorders",
+          "redirect": null,
+          "meta": {
+            "icon": "ios-list-box-outline",
+            "title": "用户订单",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "usermanage/customerorders.vue",
+          "permissionInfos": [
+
+          ],
+          "children": null,
+          "href": "usermanage/customerorders.vue",
+          "level": 1
         }
       ],
       "href": null,
