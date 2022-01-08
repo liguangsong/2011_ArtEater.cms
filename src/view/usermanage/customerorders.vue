@@ -89,6 +89,7 @@ export default {
         { title: "手机号", key: "phone" },
         { title: "订单内容", key: "subjectName" },
         { title: "消费金额", key: "cash" },
+           { title: "原价", key: "price" },
         // { title: "课程内容", key: "subjectName" },
         {
           title: "购买时间",
@@ -218,6 +219,7 @@ export default {
                 orderNo: item.get("orderNo"),
                 subjectName: item.get("subjectName"),
                 cash: item.get("cash"),
+                price: item.get("price"),
                 createdAt: tool.dateFormat(
                   item.get("createdAt"),
                   "yyyy-MM-dd HH:mm:ss"
@@ -275,6 +277,11 @@ export default {
             title: "消费金额",
             dataIndex: "cash",
             key: "cash",
+          },
+          {
+            title: "原价",
+            dataIndex: "price",
+            key: "price",
           },
           {
             title: "订单号",
