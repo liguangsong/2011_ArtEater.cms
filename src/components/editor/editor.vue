@@ -138,6 +138,11 @@ export default {
   min-height: 300px;
 }
 
+.ql-container {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
 .newsEdit .quillEditor img {
   /* height: 300px; */
   width: 400px;
@@ -149,4 +154,5 @@ strong {
 em {
   font-style: oblique;
 }
+
 </style>

@@ -218,6 +218,7 @@ export default {
                     click: () => {
                       this.window_title = "用户信息";
                       this.user_id = params.row.id;
+                      this.user_forms.amount = params.row.amount;
                       this.show_window = true;
                       this.get_entity();
                     },
@@ -289,7 +290,9 @@ export default {
       var query = new this.ParseServer.Query(this.ParseServer.User);
       query.get(self.user_id).then((response) => {
         Object.keys(self.user_forms).forEach((key) => {
-          self.user_forms[key] = response.get(key);
+          if (key!="amount") {
+            self.user_forms[key] = response.get(key);
+          }
         });
       });
     },
@@ -326,7 +329,7 @@ export default {
         user6.equalTo("role", "student");
       }
       let user2 = new this.ParseServer.Query(this.ParseServer.User);
-      user2.contains("phone", this.search_keyword);
+      user2.contains("objectId", this.search_keyword);
       user2.equalTo("role", "student");
       let user3 = new this.ParseServer.Query(this.ParseServer.User);
       user3.contains("nickName", this.search_keyword);
@@ -358,6 +361,7 @@ export default {
             this.users_datas = list.map((item) => {
               var account = {
                 id: item.id,
+                openid: item.get("openid"),
                 label: item.get("label"),
                 nickName: item.get("nickName"),
                 realname: item.get("realname"),
@@ -374,11 +378,44 @@ export default {
             });
           }
           this.loading = false;
+          this.customerOrders();
         },
         (error) => {
           this.$Message.error("用户列表获取失败");
         }
       );
+    },
+
+    //查询用户消费订单
+    async customerOrders() {
+      let query = new this.ParseServer.Query("Order");
+      let list = await query.find()
+      list = list.map(item=>item.toJSON())
+      let formatdata = this.delSameObjValue(list, 'openId', 'price')
+      formatdata.map(formats=>{
+        this.users_datas.map(item=>{
+          if (item.openid==formats.openId) {
+          item.amount=formats.price
+        }})
+        this.users_datas2.map(item=>{
+          if (item.openid==formats.openId) {
+          item.amount=formats.price
+        }
+        })
+      })
+    },
+    
+    delSameObjValue(arr, keyName, keyValue) {
+        let baseArr = [], newArr = [];
+        for (let key in arr) {
+            if (baseArr.includes(arr[key][keyName])) {
+                newArr[baseArr.indexOf(arr[key][keyName])][keyValue] += arr[key][keyValue];
+            } else {
+                baseArr.push(arr[key][keyName]);
+                newArr.push(arr[key]);
+            }
+        }
+        return newArr;
     },
 
     async page_list2() {
@@ -423,6 +460,7 @@ export default {
             this.users_datas2 = list.map((item) => {
               var account = {
                 id: item.id,
+                openid: item.get("openid"),
                 label: item.get("label"),
                 nickName: item.get("nickName"),
                 realname: item.get("realname"),
@@ -437,6 +475,7 @@ export default {
               };
               return account;
             });
+            this.customerOrders();
           }
         },
         (error) => {
