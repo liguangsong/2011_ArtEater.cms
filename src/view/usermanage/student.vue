@@ -357,6 +357,7 @@ export default {
       query.find().then(
         (list) => {
           this.users_datas = [];
+          let openIds = [];
           if (list && list.length > 0) {
             this.users_datas = list.map((item) => {
               var account = {
@@ -374,11 +375,12 @@ export default {
                   "yyyy-MM-dd HH:mm:ss"
                 ),
               };
+              openIds.push(item.get("openid"))
               return account;
             });
+            this.customerOrders(openIds);
           }
           this.loading = false;
-          this.customerOrders();
         },
         (error) => {
           this.$Message.error("用户列表获取失败");
@@ -387,33 +389,42 @@ export default {
     },
 
     //查询用户消费订单
-    async customerOrders() {
+    async customerOrders(openIdList) {
       let query = new this.ParseServer.Query("Order");
+      query.containedIn("openId",openIdList)
       let list = await query.find()
-      list = list.map(item=>item.toJSON())
-      let formatdata = this.delSameObjValue(list, 'openId', 'price')
+      list = await list.map(item=>item.toJSON())
+      let formatdata = this.delSameObjValue(list, 'openId', 'cash')
       formatdata.map(formats=>{
         this.users_datas.map(item=>{
           if (item.openid==formats.openId) {
-          item.amount=formats.price
+          item.amount=formats.cash;
         }})
         this.users_datas2.map(item=>{
           if (item.openid==formats.openId) {
-          item.amount=formats.price
+          item.amount=formats.cash
         }
         })
       })
     },
     
     delSameObjValue(arr, keyName, keyValue) {
-        let baseArr = [], newArr = [];
-        for (let key in arr) {
-            if (baseArr.includes(arr[key][keyName])) {
-                newArr[baseArr.indexOf(arr[key][keyName])][keyValue] += arr[key][keyValue];
-            } else {
-                baseArr.push(arr[key][keyName]);
-                newArr.push(arr[key]);
+        let newArr = [];
+        for (let i = 0; i < arr.length; i ++){
+          let orderInfo = arr[i]
+          orderInfo.cash = orderInfo.cash?orderInfo.cash:0
+          if (i == 0){
+            newArr.push(orderInfo)
+          }else {
+            let index = newArr.findIndex(item=>{
+              return item.openId == orderInfo.openId
+            })
+            if (index == -1){
+              newArr.push(orderInfo)
+            }else {
+              newArr[index].cash += orderInfo.cash
             }
+          }
         }
         return newArr;
     },
@@ -456,6 +467,7 @@ export default {
       query.find().then(
         (list) => {
           this.users_datas2 = [];
+          let openIds = [];
           if (list && list.length > 0) {
             this.users_datas2 = list.map((item) => {
               var account = {
@@ -473,9 +485,10 @@ export default {
                   "yyyy-MM-dd HH:mm:ss"
                 ),
               };
+              openIds.push(item.get("openid"))
               return account;
             });
-            this.customerOrders();
+            this.customerOrders(openIds);
           }
         },
         (error) => {
