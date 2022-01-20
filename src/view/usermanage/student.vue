@@ -392,8 +392,11 @@ export default {
     async customerOrders(openIdList) {
       let query = new this.ParseServer.Query("Order");
       query.containedIn("openId",openIdList)
-      let list = await query.find()
-      list = await list.map(item=>item.toJSON())
+      let list = []
+      await query.each((item)=>{
+        item = item.toJSON()
+        list.push(item)
+      })
       let formatdata = this.delSameObjValue(list, 'openId', 'cash')
       formatdata.map(formats=>{
         this.users_datas.map(item=>{
