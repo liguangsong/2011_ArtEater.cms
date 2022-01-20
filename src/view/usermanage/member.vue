@@ -10,17 +10,6 @@
             placeholder="请输入ID/昵称/姓名"
           />
         </div>
-        <div class="select-choice clear-fix" style="width: 300px">
-          <span>标签</span>
-          <div class="search-keyword" style="width: 200px">
-            <Input
-              v-model="label"
-              size="large"
-              style="width: 200px"
-              placeholder="请输入标签"
-            />
-          </div>
-        </div>
         <div class="select-choice clear-fix" style="width: 500px">
           <span>注册时间</span>
           <div class="date-picker-wrap clear-fix" style="width: 400px">
@@ -32,18 +21,24 @@
                 placeholder="请输入开始时间"
               ></DatePicker>
             </div>
-            <div class="label-split" style="height: 36px; line-height: 36px">
-              -
-            </div>
+            <div class="label-split" style="height: 36px; line-height: 36px">-</div>
             <div class="date-picker" style="width: 180px">
-              <DatePicker
-                v-model="search_end_date"
-                size="large"
-                type="date"
-                placeholder="请输入结束时间"
-              ></DatePicker>
+              <DatePicker v-model="search_end_date" size="large" type="date" placeholder="请输入结束时间"></DatePicker>
             </div>
           </div>
+        </div>
+        <div class="select-choice clear-fix" style="width:300px">
+          <span style="width:100px">会员类型</span>
+          <Select
+            size="large"
+            v-model="search_type"
+            class="choice"
+            :clearable="true"
+            placeholder="全部类型"
+            style="width:200px"
+          >
+            <Option v-for="item in roles" :value="item.value" :key="item.value">{{ item.label }}</Option>
+          </Select>
         </div>
         <div class="search-btn">
           <Button type="primary" @click="search" size="large">查询</Button>
@@ -52,65 +47,35 @@
       </div>
     </div>
     <Row class="table-wrap">
-      <Table :loading="loading" :columns="columns" :data="users_datas"></Table>
+      <Table :loading="loading" :columns="columns" :data="users_datas">
+        <template slot-scope="{ row }" slot="memberType">
+          <span v-if="row.memberType == '0'">黑金</span>
+          <span v-if="row.memberType == '1'">铂金</span>
+          <span v-if="row.memberType == '2'">白银</span>
+        </template>
+      </Table>
       <div class="page-wrap">
         <Page :total="total" @on-change="pagechange" v-if="total > 0" />
       </div>
     </Row>
 
-    <Modal
-      v-model="isShowEdit"
-      :title="window_title"
-      mask
-      width="450"
-      scrollable
-      @on-ok="edit"
-    >
-      <Form label-position="left" :label-width="45">
-        <FormItem label="标签:">
-          <Input v-model="user_forms.label" placeholder="请输入标签"></Input>
-        </FormItem>
-      </Form>
-    </Modal>
-
     <Modal v-model="show_window" :title="window_title" @on-ok="cancel">
-      <div
-        class="form"
-        :model="user_forms"
-        label-position="right"
-        :label-width="120"
-      >
-        <div class="myFormShow">
-          <div class="head">头像</div>
-          <div class="cont">
-            <Avatar
-              shape="circle"
-              icon="ios-person"
-              size="large"
-              v-if="user_forms.avatarUrl == ''"
-            />
-            <img
-              v-else
-              :src="user_forms.avatarUrl"
-              style="width: 50px; height: 50px; border-radius: 50%"
-            />
-          </div>
-        </div>
+      <div class="form" :model="user_forms" label-position="right" :label-width="120">
         <div class="myFormShow">
           <div class="head">昵称</div>
           <div class="cont">{{ user_forms.nickName }}</div>
         </div>
         <div class="myFormShow">
           <div class="head">姓名</div>
-          <div class="cont">{{ user_forms.realname }}</div>
-        </div>
-        <div class="myFormShow">
-          <div class="head">标签</div>
-          <div class="cont">{{ user_forms.label }}</div>
+          <div class="cont">{{ user_forms.realName }}</div>
         </div>
         <div class="myFormShow">
           <div class="head">手机号</div>
           <div class="cont">{{ user_forms.phone }}</div>
+        </div>
+        <div class="myFormShow">
+          <div class="head">会员类型</div>
+          <div class="cont">{{ user_forms.memberType }}</div>
         </div>
         <div class="myFormShow">
           <div class="head">报考专业</div>
@@ -122,17 +87,7 @@
         </div>
         <div class="myFormShow">
           <div class="head">所在地区</div>
-          <div class="cont">
-            {{ user_forms.proviceName + "-" + user_forms.cityName }}
-          </div>
-        </div>
-        <div class="myFormShow">
-          <div class="head">消费金额(元)</div>
-          <div class="cont">{{ user_forms.amount }}</div>
-        </div>
-        <div class="myFormShow">
-          <div class="head">积分</div>
-          <div class="cont">{{ user_forms.score }}</div>
+          <div class="cont">{{ user_forms.proviceName + "-" + user_forms.cityName }}</div>
         </div>
       </div>
     </Modal>
@@ -157,16 +112,23 @@ export default {
       search_start_date: "",
       search_end_date: "",
       label: "",
+      roles: [
+        { value: "", label: "全部类型" },
+        { value: "0", label: "黑金" },
+        { value: "1", label: "铂金" },
+        { value: "2", label: "白银" }
+      ],
+      search_type: "",
       columns: [
         { title: "ID", key: "id" },
         { title: "昵称", key: "nickName" },
-        { title: "标签", key: "label" },
-        { title: "姓名", key: "realname" },
+        { title: "姓名", key: "realName" },
         { title: "手机号", key: "phone" },
+        { title: "会员类型", key: "memberType" ,slot: "memberType",},
         {
           title: "注册时间",
           key: "createdAt",
-          sortable: true,
+          sortable: true
           // render: (h, params) => {
           //   var txt = tool.dateFormat(
           //     params.row.createdAt,
@@ -175,8 +137,6 @@ export default {
           //   return h("div", txt);
           // },
         },
-        { title: "消费金额", key: "amount" },
-        { title: "积分", key: "score", sortable: true },
         {
           title: "操作",
           key: "action",
@@ -187,66 +147,38 @@ export default {
                 "Button",
                 {
                   props: {
-                    type: "warning",
-                    size: "small",
+                    type: "error",
+                    size: "small"
                   },
                   style: {
-                    marginRight: "5px",
+                    marginRight: "5px"
                   },
                   on: {
                     click: () => {
-                      this.isShowEdit = true;
-                      this.user_forms.label = params.row.label;
-                      this.user_id = params.row.id;
-                      this.window_title = "标签编辑";
-                    },
-                  },
+                      this.delete(params.row.id);
+                    }
+                  }
                 },
-                "编辑"
-              ),
-              h(
-                "Button",
-                {
-                  props: {
-                    type: "info",
-                    size: "small",
-                  },
-                  style: {
-                    marginRight: "5px",
-                  },
-                  on: {
-                    click: () => {
-                      this.window_title = "用户信息";
-                      this.user_id = params.row.id;
-                      this.user_forms.amount = params.row.amount;
-                      this.show_window = true;
-                      this.get_entity();
-                    },
-                  },
-                },
-                "用户信息"
-              ),
+                "删除"
+              )
             ];
             return h("div", button);
-          },
-        },
+          }
+        }
       ],
       users_datas: [],
       users_datas2: [],
       user_forms: {
         nickName: "",
-        label: "",
-        realname: "",
+        realName: "",
         phone: "",
-        amount: "",
-        score: "",
+        memberType: "",
         speciality: "",
         university: "",
         cityName: "",
         proviceName: "",
-        registration_time: "",
-        avatarUrl: "",
-      },
+        registration_time: ""
+      }
     };
   },
   mounted() {
@@ -255,8 +187,8 @@ export default {
   },
   methods: {
     edit() {
-      var query = new this.ParseServer.Query(this.ParseServer.User);
-      query.get(this.user_id).then((item) => {
+      var query = new this.ParseServer.Query("MemberList");
+      query.get(this.user_id).then(item => {
         item.set("label", this.user_forms.label);
         item.save().then(
           () => {
@@ -265,7 +197,7 @@ export default {
             this.isShowEdit = false;
             // this.cancel();
           },
-          (error) => {
+          error => {
             this.$Message.error("编辑失败");
           }
         );
@@ -287,12 +219,10 @@ export default {
      */
     get_entity() {
       var self = this;
-      var query = new this.ParseServer.Query(this.ParseServer.User);
-      query.get(self.user_id).then((response) => {
-        Object.keys(self.user_forms).forEach((key) => {
-          if (key!="amount") {
-            self.user_forms[key] = response.get(key);
-          }
+      var query = new this.ParseServer.Query("MemberList");
+      query.get(self.user_id).then(response => {
+        Object.keys(self.user_forms).forEach(key => {
+          self.user_forms[key] = response.get(key);
         });
       });
     },
@@ -320,27 +250,23 @@ export default {
     page_list(page_index) {
       this.loading = true;
 
-      let user1 = new this.ParseServer.Query(this.ParseServer.User);
-      user1.contains("realname", this.search_keyword);
-      user1.equalTo("role", "student");
-      let user6 = new this.ParseServer.Query(this.ParseServer.User);
-      if (this.label) {
-        user6.contains("label", this.label);
-        user6.equalTo("role", "student");
-      }
-      let user2 = new this.ParseServer.Query(this.ParseServer.User);
+      let user1 = new this.ParseServer.Query("MemberList");
+      user1.contains("realName", this.search_keyword);
+      let user2 = new this.ParseServer.Query("MemberList");
       user2.contains("objectId", this.search_keyword);
-      user2.equalTo("role", "student");
-      let user3 = new this.ParseServer.Query(this.ParseServer.User);
+      let user3 = new this.ParseServer.Query("MemberList");
       user3.contains("nickName", this.search_keyword);
-      user3.equalTo("role", "student");
-      let user4 = new this.ParseServer.Query(this.ParseServer.User);
+      let user4 = new this.ParseServer.Query("MemberList");
       if (this.search_start_date) {
         user4.greaterThan("createdAt", this.search_start_date);
       }
-      let user5 = new this.ParseServer.Query(this.ParseServer.User);
+      let user5 = new this.ParseServer.Query("MemberList");
       if (this.search_end_date) {
         user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+      }
+      let user6 = new this.ParseServer.Query("MemberList");
+      if (this.search_type) {
+        user6.equalTo("memberType", this.search_type);
       }
       var query = this.ParseServer.Query.and(
         this.ParseServer.Query.or(user1, user2, user3),
@@ -348,113 +274,59 @@ export default {
         user5,
         user6
       );
-      query.count().then((count) => {
+      query.count().then(count => {
         this.total = count;
       });
       query.descending("createdAt");
       query.skip((this.page - 1) * 10);
       query.limit(10);
       query.find().then(
-        (list) => {
+        list => {
           this.users_datas = [];
-          let openIds = [];
           if (list && list.length > 0) {
-            this.users_datas = list.map((item) => {
+            this.users_datas = list.map(item => {
               var account = {
                 id: item.id,
-                openid: item.get("openid"),
-                label: item.get("label"),
                 nickName: item.get("nickName"),
-                realname: item.get("realname"),
+                realName: item.get("realName"),
                 phone: item.get("phone"),
-                amount: item.get("amount"),
-                score: item.get("score"),
-                avatarUrl: item.get("avatarUrl"),
+                memberType: item.get("memberType"),
                 createdAt: tool.dateFormat(
                   item.createdAt,
                   "yyyy-MM-dd HH:mm:ss"
-                ),
+                )
               };
-              openIds.push(item.get("openid"))
               return account;
             });
-            this.customerOrders(openIds);
+            console.log(this.users_datas, "this.users_datas");
           }
           this.loading = false;
         },
-        (error) => {
+        error => {
           this.$Message.error("用户列表获取失败");
         }
       );
     },
 
-    //查询用户消费订单
-    async customerOrders(openIdList) {
-      let query = new this.ParseServer.Query("Order");
-      query.containedIn("openId",openIdList)
-      let list = []
-      await query.each((item)=>{
-        item = item.toJSON()
-        list.push(item)
-      })
-      let formatdata = this.delSameObjValue(list, 'openId', 'cash')
-      formatdata.map(formats=>{
-        this.users_datas.map(item=>{
-          if (item.openid==formats.openId) {
-          item.amount=formats.cash;
-        }})
-        this.users_datas2.map(item=>{
-          if (item.openid==formats.openId) {
-          item.amount=formats.cash
-        }
-        })
-      })
-    },
-    
-    delSameObjValue(arr, keyName, keyValue) {
-        let newArr = [];
-        for (let i = 0; i < arr.length; i ++){
-          let orderInfo = arr[i]
-          orderInfo.cash = orderInfo.cash?orderInfo.cash:0
-          if (i == 0){
-            newArr.push(orderInfo)
-          }else {
-            let index = newArr.findIndex(item=>{
-              return item.openId == orderInfo.openId
-            })
-            if (index == -1){
-              newArr.push(orderInfo)
-            }else {
-              newArr[index].cash += orderInfo.cash
-            }
-          }
-        }
-        return newArr;
-    },
-
     async page_list2() {
       let counts = 0;
-      let user1 = new this.ParseServer.Query(this.ParseServer.User);
-      user1.contains("realname", this.search_keyword);
-      user1.equalTo("role", "student");
-      let user6 = new this.ParseServer.Query(this.ParseServer.User);
-      if (this.label) {
-        user6.contains("label", this.label);
-        user6.equalTo("role", "student");
-      }
-      let user2 = new this.ParseServer.Query(this.ParseServer.User);
-      user2.contains("phone", this.search_keyword);
-      user2.equalTo("role", "student");
-      let user3 = new this.ParseServer.Query(this.ParseServer.User);
+      let user1 = new this.ParseServer.Query("MemberList");
+      user1.contains("realName", this.search_keyword);
+      let user2 = new this.ParseServer.Query("MemberList");
+      user2.contains("objectId", this.search_keyword);
+      let user3 = new this.ParseServer.Query("MemberList");
       user3.contains("nickName", this.search_keyword);
-      user3.equalTo("role", "student");
-      let user4 = new this.ParseServer.Query(this.ParseServer.User);
+      let user4 = new this.ParseServer.Query("MemberList");
       if (this.search_start_date) {
         user4.greaterThan("createdAt", this.search_start_date);
       }
-      let user5 = new this.ParseServer.Query(this.ParseServer.User);
+      let user5 = new this.ParseServer.Query("MemberList");
       if (this.search_end_date) {
         user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+      }
+      let user6 = new this.ParseServer.Query("MemberList");
+      if (this.search_type) {
+        user6.equalTo("memberType", this.search_type);
       }
       var query = this.ParseServer.Query.and(
         this.ParseServer.Query.or(user1, user2, user3),
@@ -462,39 +334,32 @@ export default {
         user5,
         user6
       );
-      await query.count().then((count) => {
+      await query.count().then(count => {
         counts = count;
       });
       query.limit(counts);
       query.descending("createdAt");
       query.find().then(
-        (list) => {
+        list => {
           this.users_datas2 = [];
-          let openIds = [];
           if (list && list.length > 0) {
-            this.users_datas2 = list.map((item) => {
+            this.users_datas2 = list.map(item => {
               var account = {
                 id: item.id,
-                openid: item.get("openid"),
-                label: item.get("label"),
                 nickName: item.get("nickName"),
-                realname: item.get("realname"),
+                realName: item.get("realName"),
                 phone: item.get("phone"),
-                amount: item.get("amount"),
-                score: item.get("score"),
-                avatarUrl: item.get("avatarUrl"),
+                memberType: item.get("memberType"),
                 createdAt: tool.dateFormat(
                   item.createdAt,
                   "yyyy-MM-dd HH:mm:ss"
-                ),
+                )
               };
-              openIds.push(item.get("openid"))
               return account;
             });
-            this.customerOrders(openIds);
           }
         },
-        (error) => {
+        error => {
           this.$Message.error("用户列表获取失败");
         }
       );
@@ -510,86 +375,79 @@ export default {
         title: "删除提示",
         content: "<p>删除用户后，用户将无法使用系统，确定要删除吗？</p>",
         onOk: () => {
-          var query = new this.ParseServer.Query(this.ParseServer.User);
+          var query = new this.ParseServer.Query("MemberList");
           query.get(user_id).then(
-            (response) => {
+            response => {
               // 删除用户
               response.destroy().then(
-                (delete_result) => {
+                delete_result => {
                   this.$Message.success("删除成功");
                   this.page = 1;
                   this.page_list(this.page);
                 },
-                (error) => {
+                error => {
                   this.$Message.error("删除失败");
                 }
               );
             },
-            (error) => {
+            error => {
               this.$Message.error("删除的用户不存在");
             }
           );
         },
         onCancel: () => {
           this.$Message.info("取消了操作");
-        },
+        }
       });
     },
 
     // 全部导出
     async exports() {
+      var format_data = this.users_datas2;
+      format_data.forEach(item=>{
+        item.memberType=item.memberType=='0'?'黑金':(item.memberType=='0'?'铂金':'白银')
+      })
       setTimeout(() => {
         const initColumn = [
           {
             title: "ID",
             dataIndex: "id",
-            key: "id",
+            key: "id"
           },
           {
             title: "昵称",
             dataIndex: "nickName",
-            key: "nickName",
+            key: "nickName"
           },
           {
             title: "姓名",
-            dataIndex: "realname",
-            key: "realname",
-          },
-          {
-            title: "标签",
-            dataIndex: "label",
-            key: "label",
+            dataIndex: "realName",
+            key: "realName"
           },
           {
             title: "手机号",
             dataIndex: "phone",
-            key: "phone",
+            key: "phone"
+          },
+          {
+            title: "会员类型",
+            dataIndex: "memberType",
+            key: "memberType"
           },
           {
             title: "注册时间",
             dataIndex: "createdAt",
-            key: "createdAt",
-          },
-          {
-            title: "消费金额",
-            dataIndex: "amount",
-            key: "amount",
-          },
-
-          {
-            title: "积分",
-            dataIndex: "score",
-            key: "score",
-          },
+            key: "createdAt"
+          }
         ];
         excelUtil.exportExcel(
           initColumn,
-          this.users_datas2,
+          format_data,
           "学生管理数据记录.xlsx"
         );
       }, 3000);
-    },
-  },
+    }
+  }
 };
 </script>
 
@@ -664,5 +522,8 @@ export default {
 }
 .form .myFormShow:first-child .head {
   line-height: 50px;
+}
+.search-wrap .search-btn{
+  width: unset;
 }
 </style>
