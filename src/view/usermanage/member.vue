@@ -356,70 +356,51 @@ export default {
     delete(rowDate) {
       let user_id = rowDate.id;
       let openId = rowDate.openId;
-
-      let query = new this.ParseServer.Query(this.ParseServer.User);
-      // query.get("mIre98w2yb").then(item => {
-      //   // item.set("memberType", 2);
-        
-      //   item.save().then(
-      //     item => {
-      //       this.$Message.success("删除成功");
-      //       this.page = 1;
-      //       this.page_list(this.page);
-      //     },
-      //     error => {
-      //       this.$Message.error("修改失败");
-      //     }
-      //   );
-      //   console.log(item);
-      // });
-      query.equalTo("openid", openId);
-      query.find().then(items => {
-        let userId = items[0].id;
-        query.get(userId).then(item => {
-          item.set("memberType", 0);
-          item.set("nickName", "ceshi2");
-          console.log(item);
-          item.save().then(
-            item => {
-              this.$Message.success("删除成功");
-              this.page = 1;
-              this.page_list(this.page);
+      this.$Modal.confirm({
+        title: "删除提示",
+        content: "<p>删除用户后，用户将取消会员身份，确定要删除吗？</p>",
+        onOk: () => {
+          var query = new this.ParseServer.Query("MemberList");
+          query.get(user_id).then(
+            response => {
+              // 删除用户
+              response.destroy().then(
+                delete_result => {
+                  // 刪除成功后，user表里相应的id memberType改为空
+                  this.removeMember(openId);
+                },
+                error => {
+                  this.$Message.error("删除失败");
+                }
+              );
             },
             error => {
-              this.$Message.error("修改失败");
+              this.$Message.error("删除的用户不存在");
             }
           );
-        });
+        },
+        onCancel: () => {
+          this.$Message.info("取消了操作");
+        }
       });
-
-      // this.$Modal.confirm({
-      //   title: "删除提示",
-      //   content: "<p>删除用户后，用户将取消会员身份，确定要删除吗？</p>",
-      //   onOk: () => {
-      //     var query = new this.ParseServer.Query("MemberList");
-      //     query.get(user_id).then(
-      //       response => {
-      //         // 删除用户
-      //         response.destroy().then(
-      //           delete_result => {
-      //             // 刪除成功后，user表里相应的id memberType改为空
-
-      //           },
-      //           error => {
-      //             this.$Message.error("删除失败");
-      //           }
-      //         );
-      //       },
-      //       error => {
-      //         this.$Message.error("删除的用户不存在");
-      //       }
-      //     );
-      //   },
-      //   onCancel: () => {
-      //     this.$Message.info("取消了操作");
-      //   }
-      // });
+    },
+    removeMember(openId) {
+      var query = new this.ParseServer.Query(this.ParseServer.User);
+      query.equalTo("openid", openId);
+      query.find().then(items => {
+        let item = items[0];
+        item.set("memberType", -1);
+        item.save().then(
+          item => {
+            this.$Message.success("删除成功");
+            this.page = 1;
+            this.page_list(this.page);
+          },
+          error => {
+            this.$Message.error("修改失败");
+          }
+        );
+      });
     },
 
     // 全部导出
