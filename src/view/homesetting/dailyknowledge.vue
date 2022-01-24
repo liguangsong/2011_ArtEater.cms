@@ -4,9 +4,17 @@
       <div class="search-wrap clear-fix" style="flex:1">
         <div class="search-keyword" style="width:230px">
           <Input
+            v-show="isActive==1"
             v-model="search_keyword"
             size="large"
             placeholder="ID或标题名称关键字搜索"
+            style="width:200px"
+          />
+          <Input
+            v-show="isActive==2"
+            v-model="search_keywordtch"
+            size="large"
+            placeholder="ID或名字关键字搜索"
             style="width:200px"
           />
         </div>
@@ -22,7 +30,7 @@
           <Button :class="{'active':isActive==2}" @click="courseList(2)">教师头像</Button>
         </div>
         <Button v-if="isActive==1" type="primary" @click="addCourseClick">新增课程</Button>
-        <Button v-if="isActive==2" type="primary" @click="addCover">新增头像</Button>
+        <Button v-if="isActive==2" type="primary" @click="addCover">新增教师</Button>
       </div>
       <!-- 课程表格 -->
       <div v-show="isActive==1">
@@ -50,9 +58,9 @@
       <!-- 教师头像表格 -->
       <div v-show="isActive==2">
         <Table :loading="loading" :columns="tchcolumns" :data="tchdatas">
-          <template slot-scope="{ row }" slot="surface">
-            <div v-if="row.surface.length>0" style="margin:5px 0">
-              <img :src="row.surface" @click="handleShowImg(row)" width="84" height="58" />
+          <template slot-scope="{ row }" slot="portrait">
+            <div v-if="row.portrait.length>0" style="margin:5px 0">
+              <img :src="row.portrait" @click="handleShowImg(row)" width="60" height="60" />
             </div>
           </template>
           <template slot-scope="{ row }" slot="action">
@@ -62,12 +70,7 @@
               style="margin-right:5px"
               @click="EditFormShow(row)"
             >编辑</Button>
-            <Button
-              type="error"
-              size="small"
-              style="margin-right:5px"
-              @click="DelConfirmShow(row)"
-            >删除</Button>
+            <Button type="error" size="small" style="margin-right:5px" @click="DeltchShow(row)">删除</Button>
           </template>
         </Table>
         <div class="page-wrap">
@@ -234,21 +237,12 @@
     >
       <Form
         v-if="isShowAddCourse2"
-        ref="form"
+        ref="forms"
         :model="course_form"
         label-position="left"
         :label-width="90"
-        :rules="ruleValidate"
+        :rules="ruleValidates"
       >
-        <!-- <FormItem label="封面图:">
-                  <myUploadMuti
-                    :images="course_form.surface"
-                    @complate="handleUploadComplate"
-                    :multiple="false"
-                    :onethis='true'
-                    accept=".*"
-                  ></myUploadMuti>
-        </FormItem>-->
         <FormItem label="封面图" prop="surface">
           <div>
             <img
@@ -274,10 +268,6 @@
         <FormItem label="N值:" prop="N">
           <Input v-model="course_form.N" placeholder="请输入N值"></Input>
         </FormItem>
-
-        <FormItem label="展示顺序:" prop="order">
-          <Input v-model="course_form.order" placeholder="请输入展示顺序"></Input>
-        </FormItem>
       </Form>
     </Modal>
 
@@ -288,7 +278,7 @@
       width="600"
       mask
       scrollable
-      :loading="loading"
+      :loading="courseLoading"
       @on-ok="add_cover"
     >
       <Form
@@ -299,25 +289,28 @@
         :label-width="120"
         :rules="ruleValidate"
       >
-        <FormItem label="封面图:">
-          <myUploadMuti
-            :images="form.surface"
-            @complate="handleUploadComplate"
-            :multiple="false"
-            :onethis="true"
-            accept=".*"
-          ></myUploadMuti>
+        <FormItem label="头像:" prop="portrait">
+          <div>
+            <img v-if="form.portrait[0]" :src="form.portrait[0]" width="60" height="60" />
+          </div>
+          <myUpload @complate="tchUploadComplate" tips accept="image/*"></myUpload>
         </FormItem>
-        <FormItem label="姓名:" prop="title">
-          <Input v-model="course_form.title" placeholder="请输入教师姓名"></Input>
+        <FormItem label="姓名:" prop="name">
+          <Input v-model="form.name" placeholder="请输入教师姓名"></Input>
         </FormItem>
       </Form>
+    </Modal>
+    <Modal @on-visible-change="handleVChange" width="450" title="查看大图" v-model="isShowImg">
+      <div style="margin:5px 0;text-align:center">
+        <img :src="currBackgroundImg" width="336" height="222" />
+      </div>
     </Modal>
   </div>
 </template>
 
 <script>
 import { tool } from "@/api/tool";
+import { verification } from "@/api/verification";
 import myUpload from "@/components/myUpload";
 import itemMixin from "../../components/main/components/side-menu/item-mixin";
 import myUploadMuti from "@/components/myUploadMuti";
@@ -329,6 +322,8 @@ export default {
   },
   data() {
     return {
+      isShowImg: false,
+      currBackgroundImg: "",
       isActive: 1,
       updatedBy: "",
       loading: true,
@@ -360,6 +355,7 @@ export default {
       annotation: true,
       search_keyword: "",
       search_keywords: "",
+      search_keywordtch: "",
       // 模块
       columns: [
         { title: "ID", key: "id" },
@@ -367,7 +363,6 @@ export default {
         { title: "副标题", key: "subTitle" },
         { title: "基数", key: "baseNum" },
         { title: "N值", key: "N" },
-        { title: "展示顺序", key: "order" },
         { title: "更新时间", key: "updatedAt" },
         { title: "更新人", key: "updatedBy" },
         { title: "操作", key: "action", width: 200, slot: "action" }
@@ -375,12 +370,18 @@ export default {
       // 教师头像
       tchcolumns: [
         { title: "ID", key: "id" },
-        { title: "头像", key: "surface", slot: "surface" },
-        { title: "姓名", key: "name", slot: "name" },
+        { title: "头像", key: "portrait", slot: "portrait" },
+        { title: "姓名", key: "name" },
         { title: "更新时间", key: "updatedAt" },
         { title: "更新人", key: "updatedBy" },
         { title: "操作", key: "action", width: 200, slot: "action" }
       ],
+      isShowAddForm: false,
+      window_title: "新增封面图",
+      form: {
+        portrait: [], //新增教师头像
+        name: "" //教师名称
+      },
 
       // 添加课程
       courses_columns: [
@@ -419,11 +420,24 @@ export default {
         surface: [], //封面图
         title: "", //标题
         subTitle: "", //副标题
-        order: "", //展示顺序
         N: "",
         baseNum: "" //基数
       },
       ruleValidate: {
+        portrait: [
+          {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (value.length == 0) {
+                return callback(new Error("请上传图片"));
+              }
+              callback();
+            }
+          }
+        ]
+      },
+      ruleValidates: {
         moduleName: [
           { required: true, message: "请输入模块名称", trigger: "blur" }
         ],
@@ -437,36 +451,6 @@ export default {
                 return callback(new Error("请输入展示数量"));
               } else if (!/^[0-9]*$/.test(value)) {
                 return callback(new Error("首页展示数量只能输入数字！"));
-              }
-              callback();
-            }
-          }
-        ],
-
-        order: [
-          {
-            required: true,
-            trigger: "blur",
-            validator: (rule, value, callback) => {
-              if (value == "") {
-                return callback(new Error("请输入展示顺序"));
-              } else if (!/^[0-9]*$/.test(value)) {
-                return callback(new Error("展示顺序只能输入数字！"));
-              }
-              callback();
-            }
-          }
-        ],
-
-        showOrder: [
-          {
-            required: true,
-            trigger: "blur",
-            validator: (rule, value, callback) => {
-              if (value == "") {
-                return callback(new Error("请输入展示顺序"));
-              } else if (!/^[0-9]*$/.test(value)) {
-                return callback(new Error("首页展示顺序只能输入数字！"));
               }
               callback();
             }
@@ -502,18 +486,6 @@ export default {
             }
           }
         ]
-        // surface: [
-        //   {
-        //     required: true,
-        //     trigger: "blur",
-        //     validator: (rule, value, callback) => {
-        //       if (value.length == 0) {
-        //         return callback(new Error("请上传封面图"));
-        //       }
-        //       callback();
-        //     },
-        //   },
-        // ],
       }
     };
   },
@@ -529,6 +501,10 @@ export default {
      */
     handleUploadComplate(urls) {
       this.course_form.surface = [urls];
+    },
+    tchUploadComplate(urls) {
+
+      this.form.portrait = [urls];
     },
 
     search() {
@@ -549,16 +525,16 @@ export default {
     page_list(page_index) {
       let _this = this;
       let query = new this.ParseServer.Query("DailyCourse");
-      console.log(query)
       if (this.search_keyword) {
         let query1 = new this.ParseServer.Query("DailyCourse");
         let query2 = new this.ParseServer.Query("DailyCourse");
+        let query3 = new this.ParseServer.Query("DailyCourse");
         query1.contains("title", this.search_keyword);
         query2.contains("objectId", this.search_keyword);
-        query = new this.ParseServer.Query.or(query1, query2);
+        query3.contains("subTitle", this.search_keyword);
+        query = new this.ParseServer.Query.or(query1, query2, query3);
       }
-      // query.equalTo("courseListening", 1);
-      query.descending("createdAt");
+      query.descending("updatedAt");
       query.count().then(count => {
         _this.total = count;
       });
@@ -567,7 +543,6 @@ export default {
       query.include("course");
       query.find().then(
         list => {
-      console.log(list)
           _this.datas = [];
           if (list && list.length > 0) {
             list.forEach(item => {
@@ -575,8 +550,7 @@ export default {
                 id: item.id,
                 title: item.get("title"),
                 surface: item.get("surface"),
-                subTitle: item.get("subtitle"),
-                order: item.get("order"),
+                subTitle: item.get("subTitle"),
                 updatedBy: item.get("updatedBy"),
                 N: item.get("N"),
                 rawCourseId: item.get("course").id,
@@ -595,9 +569,15 @@ export default {
     },
     page_tchlist(page_index) {
       let _this = this;
-      let query = new this.ParseServer.Query("DefaultCover");
-      //   query.contains("tagName", this.search_keyword);
-      query.descending("createdAt");
+      let query = new this.ParseServer.Query("DailyTeacher");
+      if (this.search_keywordtch) {
+        let query1 = new this.ParseServer.Query("DailyTeacher");
+        let query2 = new this.ParseServer.Query("DailyTeacher");
+        query1.contains("name", this.search_keywordtch);
+        query2.contains("objectId", this.search_keywordtch);
+        query = new this.ParseServer.Query.or(query1, query2);
+      }
+      query.descending("updatedAt");
       query.count().then(count => {
         _this.tchtotal = count;
       });
@@ -610,7 +590,7 @@ export default {
             list.forEach(item => {
               _this.tchdatas.push({
                 id: item.id,
-                surface: item.get("surface"),
+                portrait: item.get("portrait"),
                 name: item.get("name"),
                 updatedBy: item.get("updatedBy"),
                 updatedAt: tool.dateFormat(
@@ -632,9 +612,9 @@ export default {
       let _this = this;
       this.$Modal.confirm({
         title: "删除提示",
-        content: "<p>当前课程试听会被删除，确定要删除吗？</p>",
+        content: "<p>当前课程会被删除，确定要删除吗？</p>",
         onOk: () => {
-          var query = new this.ParseServer.Query("ModuleAssociatedCourses");
+          var query = new this.ParseServer.Query("DailyCourse");
           query.get(id).then(response => {
             this.deletes(id);
             // 删除当前组件
@@ -645,7 +625,24 @@ export default {
         }
       });
     },
-
+    DeltchShow(row) {
+      var id = row.id;
+      let _this = this;
+      this.$Modal.confirm({
+        title: "删除提示",
+        content: "<p>当前教师会被删除，确定要删除吗？</p>",
+        onOk: () => {
+          var query = new this.ParseServer.Query("DailyTeacher");
+          query.get(id).then(response => {
+            this.tchdeletes(id);
+            // 删除当前组件
+          });
+        },
+        onCancel: () => {
+          this.$Message.info("取消了操作");
+        }
+      });
+    },
     /** 查看上一级 */
     ShowParents(row) {
       this.route.pop();
@@ -674,7 +671,6 @@ export default {
         surface: [], //封面图
         title: "", //标题
         subTitle: "", //副标题
-        order: "", //展示顺序
         N: "",
         baseNum: "" //基数
       }),
@@ -702,7 +698,6 @@ export default {
       this.course_form.title = row.title;
       this.course_form.subTitle = row.subTitle;
       this.course_form.surface = row.surface;
-      this.course_form.order = row.order;
       this.course_form.N = row.N;
       this.course_form.baseNum = row.baseNum;
       this.moduleId = row.moduleId; //模块id
@@ -769,7 +764,6 @@ export default {
                 updatedBy: item.get("updatedBy"),
                 subTitle1: item.get("subTitle1"),
                 subTitle2: item.get("subTitle2"),
-                order: item.get("order"),
                 lecturerName: item.get("lecturerName"),
                 isVipCourse: item.get("isVipCourse"),
                 kind: item.get("kind"),
@@ -778,7 +772,6 @@ export default {
                 putaway: item.get("putaway"),
                 has_down_level: item.get("has_down_level"),
                 level: item.get("level"),
-                // isVipLook: item.get("isVipLook"),
                 updatedAt: tool.dateFormat(
                   item.get("updatedAt"),
                   "yyyy-MM-dd HH:mm:ss"
@@ -812,9 +805,9 @@ export default {
 
     add_Course2() {
       this.updatedBy = this.ParseServer.User.current().toJSON().realname;
-      var datas = this.ParseServer.Object.extend("ModuleAssociatedCourses");
+      var datas = this.ParseServer.Object.extend("DailyCourse");
       var data = new datas();
-      this.$refs["form"].validate(valid => {
+      this.$refs["forms"].validate(valid => {
         if (!valid) {
           this.$Message.error("请检查表单项");
           this.courseLoading = false;
@@ -825,47 +818,34 @@ export default {
         } else {
           // 保存
           if (this.isCourseCompileAdd == 1) {
-            var query = new this.ParseServer.Query("ModuleAssociatedCourses");
-            query.equalTo("courseListening", Number(1));
-            query.equalTo("order", Number(this.course_form.order));
+            var query = new this.ParseServer.Query("DailyCourse");
             query.limit(10000);
             query.find().then(response => {
-              if (response && response.length > 0) {
-                this.$Message.error("排序已存在");
-                this.courseLoading = false;
-                setTimeout(() => {
-                  this.courseLoading = true;
-                }, 100);
-                return false;
-              } else {
-                // 课程id
-                var coursesClass = this.ParseServer.Object.extend(
-                  "CoursesModule"
-                );
-                var coursesId = coursesClass.createWithoutData(this.radioData);
+              // 课程id
+              var coursesClass = this.ParseServer.Object.extend(
+                "CoursesModule"
+              );
+              var coursesId = coursesClass.createWithoutData(this.radioData);
 
-                // 保存
-                data.set("surface", this.course_form.surface);
-                data.set("title", this.course_form.title);
-                data.set("subTitle", this.course_form.subTitle);
-                data.set("order", Number(this.course_form.order));
-                data.set("N", Number(this.course_form.N));
-                data.set("baseNum", Number(this.course_form.baseNum));
-                data.set("course", coursesId);
-                data.set("courseListening", 1);
-                data.set("updatedBy", this.updatedBy);
-                data.save().then(
-                  data => {
-                    this.$Message.success("保存成功");
-                    this.isShowAddCourse = false;
-                    this.isShowAddCourse2 = false;
-                    this.page_list();
-                  },
-                  error => {
-                    this.$Message.error("保存失败");
-                  }
-                );
-              }
+              // 保存
+              data.set("surface", this.course_form.surface);
+              data.set("title", this.course_form.title);
+              data.set("subTitle", this.course_form.subTitle);
+              data.set("N", Number(this.course_form.N));
+              data.set("baseNum", Number(this.course_form.baseNum));
+              data.set("course", coursesId);
+              data.set("updatedBy", this.updatedBy);
+              data.save().then(
+                data => {
+                  this.$Message.success("保存成功");
+                  this.isShowAddCourse = false;
+                  this.isShowAddCourse2 = false;
+                  this.page_list();
+                },
+                error => {
+                  this.$Message.error("保存失败");
+                }
+              );
             });
           } else {
             //修改
@@ -878,83 +858,40 @@ export default {
     //  修改课程
     isUpdateCourse(id) {
       this.updatedBy = this.ParseServer.User.current().toJSON().realname;
-      var query = new this.ParseServer.Query("ModuleAssociatedCourses");
-      query.equalTo("courseListening", Number(1));
-      query.equalTo("order", Number(this.course_form.order));
+      var query = new this.ParseServer.Query("DailyCourse");
       query.limit(10000);
       query.find().then(response => {
         if (response && response.length > 0) {
-          if (id != response[0].id) {
-            this.$Message.error("排序已存在");
-            this.courseLoading = false;
-            setTimeout(() => {
-              this.courseLoading = true;
-            }, 100);
-            return false;
-          } else {
-            query.get(id).then(item => {
-              var coursesClass = this.ParseServer.Object.extend(
-                "CoursesModule"
-              );
-              var coursesId = coursesClass.createWithoutData(this.radioData);
-              // 保存
-              item.set("surface", this.course_form.surface);
-              item.set("title", this.course_form.title);
-              item.set("subTitle", this.course_form.subTitle);
-              item.set("order", Number(this.course_form.order));
-              item.set("N", Number(this.course_form.N));
-              item.set("baseNum", Number(this.course_form.baseNum));
-              item.set("course", coursesId);
-              item.set("updatedBy", this.updatedBy);
-              item.save().then(
-                data => {
-                  this.$Message.success("修改成功");
-                  this.isShowAddCourse = false;
-                  this.isShowAddCourse2 = false;
-                  this.page_list();
-                },
-                error => {
-                  this.$Message.error("修改失败");
-                }
-              );
-            });
-          }
-        } else {
-          this.updated_Course(id);
+          query.get(id).then(item => {
+            var coursesClass = this.ParseServer.Object.extend("CoursesModule");
+            var coursesId = coursesClass.createWithoutData(this.radioData);
+            // 保存
+            item.set("surface", this.course_form.surface);
+            item.set("title", this.course_form.title);
+            item.set("subTitle", this.course_form.subTitle);
+            item.set("N", Number(this.course_form.N));
+            item.set("baseNum", Number(this.course_form.baseNum));
+            item.set("course", coursesId);
+            item.set("updatedBy", this.updatedBy);
+            item.save().then(
+              data => {
+                this.$Message.success("修改成功");
+                this.isShowAddCourse = false;
+                this.isShowAddCourse2 = false;
+                this.page_list();
+              },
+              error => {
+                this.$Message.error("修改失败");
+              }
+            );
+          });
         }
-      });
-    },
-    updated_Course(id) {
-      var query = new this.ParseServer.Query("ModuleAssociatedCourses");
-      query.get(id).then(item => {
-        var coursesClass = this.ParseServer.Object.extend("CoursesModule");
-        var coursesId = coursesClass.createWithoutData(this.radioData);
-        // 保存
-        item.set("surface", this.course_form.surface);
-        item.set("title", this.course_form.title);
-        item.set("subTitle", this.course_form.subTitle);
-        item.set("order", Number(this.course_form.order));
-        item.set("N", Number(this.course_form.N));
-        item.set("baseNum", Number(this.course_form.baseNum));
-        item.set("course", coursesId);
-        item.set("updatedBy", this.updatedBy);
-        item.save().then(
-          data => {
-            this.$Message.success("修改成功");
-            this.isShowAddCourse = false;
-            this.isShowAddCourse2 = false;
-            this.page_list();
-          },
-          error => {
-            this.$Message.error("修改失败");
-          }
-        );
       });
     },
 
     // 模块内课程删除
     deletes(id) {
-      var query_deletes = new this.ParseServer.Query("ModuleAssociatedCourses");
+      var query_deletes = new this.ParseServer.Query("DailyCourse");
       query_deletes.equalTo("objectId", id);
       query_deletes.limit(10000);
       query_deletes.find().then(response => {
@@ -963,6 +900,22 @@ export default {
             data.destroy().then(result => {
               this.$Message.success("删除成功");
               this.page_list();
+            });
+          });
+        }
+      });
+    },
+    // 教师删除
+    tchdeletes(id) {
+      var query_deletes = new this.ParseServer.Query("DailyTeacher");
+      query_deletes.equalTo("objectId", id);
+      query_deletes.limit(10000);
+      query_deletes.find().then(response => {
+        if (response && response.length > 0) {
+          response.forEach(data => {
+            data.destroy().then(result => {
+              this.$Message.success("删除成功");
+              this.page_tchlist();
             });
           });
         }
@@ -985,10 +938,79 @@ export default {
     addCover() {
       this.Id = "";
       this.form = {
-        surface: [] //新增教师头像
+        portrait: [], //新增教师头像
+        name: ""
       };
       this.window_title = "新增教师头像";
       this.isShowAddForm = true;
+    },
+
+    // 弹出编辑窗口
+    EditFormShow(row) {
+      this.Id = row.id;
+      this.form.portrait = row.portrait;
+      this.form.name = row.name;
+      this.isShowAddForm = true;
+      this.window_title = "编辑教师头像";
+    },
+    // 新增教师管理
+    add_cover() {
+      this.updatedBy = this.ParseServer.User.current().toJSON().realname;
+      var datas = this.ParseServer.Object.extend("DailyTeacher");
+      var data = new datas();
+      this.$refs["form"].validate(valid => {
+        if (!valid) {
+          this.$Message.error("请检查表单项");
+          this.courseLoading = false;
+          setTimeout(() => {
+            this.courseLoading = true;
+          }, 100);
+          return false;
+        } else {
+          // 修改
+          if (this.Id) {
+            this.updated();
+          } else {
+            // 保存
+            data.set("updatedBy", this.updatedBy);
+            data.set("portrait", this.form.portrait);
+            data.set("name", this.form.name);
+            data.save().then(
+              data => {
+                this.$Message.success("保存成功");
+                this.page_tchlist();
+              },
+              error => {
+                this.$Message.error("保存失败");
+              }
+            );
+          }
+        }
+      });
+    },
+    updated() {
+      var query = new this.ParseServer.Query("DailyTeacher");
+      query.get(this.Id).then(item => {
+        item.set("updatedBy", this.updatedBy);
+        item.set("portrait", this.form.portrait);
+        item.set("name", this.form.name);
+        item.save().then(
+          item => {
+            this.$Message.success("修改成功");
+            this.page_tchlist();
+          },
+          error => {
+            this.$Message.error("修改失败");
+          }
+        );
+      });
+    },
+    handleVChange(r) {
+      this.isShowImg = r;
+    },
+    handleShowImg(row) {
+      this.isShowImg = true;
+      this.currBackgroundImg = row.portrait;
     }
   }
 };
