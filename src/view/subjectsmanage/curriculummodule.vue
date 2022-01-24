@@ -158,6 +158,7 @@
       scrollable
       :loading="modalLoading"
       @on-ok="add_course"
+      @on-cancel="cancel"
     >
       <Form
         v-if="isShowAddForm"
@@ -167,6 +168,14 @@
         :label-width="100"
         :rules="ruleValidate"
       >
+        <FormItem label="列表图:" v-if="!showRadio">
+          <myUploadMuti
+            :images="form.listImg"
+            @complate="listUploadComplate"
+            :multiple="false"
+            accept=".*"
+          ></myUploadMuti>
+        </FormItem>
         <FormItem label="头图:" v-if="!showRadio">
           <myUploadMuti
             :images="form.headImg"
@@ -354,7 +363,7 @@
         ref="seriesCourseForm"
         :model="form"
         label-position="right"
-        :label-width="90"
+        :label-width="100"
         :rules="ruleValidate"
       >
       <FormItem label="课程名称:" prop="subjectName">
@@ -380,7 +389,7 @@
           <RadioGroup @on-change="handleChangeRadio"
             v-model="form.kind"
           >
-          {{this.form.kind}}
+          <!-- {{this.form.kind}} -->
             <span v-if="this.currLevel>1">
                <Radio
               :label="1"
@@ -423,7 +432,18 @@
             placeholder="请输入排序"
           ></Input>
         </FormItem>
- 
+        <FormItem v-if="this.currLevel>1 && form.kind<4" label="负责讲师头像:" prop="portrait">
+          <div>
+            <img v-if="form.portrait[0]" :src="form.portrait[0]" width="60" height="60" />
+          </div>
+          <myUpload @complate="oddUploadComplates" tips accept="image/*"></myUpload>
+        </FormItem>
+        <FormItem v-if="this.currLevel>1 && form.kind<4" label="负责讲师姓名:" prop='lecturerName'>
+          <Input
+            v-model="form.lecturerName"
+            placeholder="负责讲师姓名"
+             ></Input>
+        </FormItem>
       </Form>
     </Modal>
   <!-- 推荐课程-list -->
@@ -700,6 +720,7 @@ export default {
       courses_datas: [],
       flag: 1,
       form: {
+        listImg: [], //列表图
         headImg: [], //头图
         subjectName: "", //课程名称
         subTitle1: "", //副标题1
@@ -1011,11 +1032,19 @@ export default {
       this.form.headImg = urls;
     },
 
+    //列表图 
+    listUploadComplate(urls) {
+      this.form.listImg = urls;
+    },
+
     /**
      * 讲师头像上传完成
      */
     handleUploadComplates(urls) {
       this.form.portrait = urls;
+    },
+    oddUploadComplates(urls) {
+      this.form.portrait = [urls];
     },
 
     cancel() {
@@ -1039,6 +1068,9 @@ export default {
         this.form.tagId = res.get("tag") ? res.get("tag").id : "";
         this.form.order = res.get("order");
         this.form.portrait = res.get("portrait");
+        if (res.get("listImg")) {
+          this.form.listImg = res.get("listImg");
+        }
         if (res.get("headImg")) {
           this.form.headImg = res.get("headImg");
         }
@@ -1207,6 +1239,7 @@ export default {
               course.set("tag", myObject);
             }
             course.set("flag", this.flag);
+            course.set("listImg", this.form.listImg);
             course.set("headImg", this.form.headImg);
             course.set("putaway", this.form.putaway);
             course.set("hide", this.form.hide);
@@ -1324,6 +1357,7 @@ export default {
           item.set("tag", myObject);
         }
         item.set("flag", this.flag);
+        item.set("listImg", this.form.listImg);
         item.set("headImg", this.form.headImg);
         item.set("putaway", this.form.putaway);
         item.set("hide", this.form.hide);
@@ -1402,6 +1436,7 @@ export default {
           item.set("tag", myObject);
         }
         item.set("flag", this.flag);
+        item.set("listImg", this.form.listImg);
         item.set("headImg", this.form.headImg);
         item.set("putaway", this.form.putaway);
         item.set("hide", this.form.hide);
@@ -1640,6 +1675,7 @@ export default {
                     course.set("tag", myObject);
                   }
                   course.set("flag", this.flag);
+                  course.set("listImg", this.form.listImg);
                   course.set("headImg", this.form.headImg);
                   course.set("subjectName", this.form.subjectName);
                   course.set("vip", this.form.vip);
@@ -1709,6 +1745,7 @@ export default {
           item.set("tag", myObject);
         }
         item.set("flag", this.flag);
+        item.set("listImg", this.form.listImg);
         item.set("headImg", this.form.headImg);
         item.set("subjectName", this.form.subjectName);
         item.set("vip", this.form.vip);

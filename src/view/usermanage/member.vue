@@ -98,7 +98,7 @@
 import { tool } from "@/api/tool";
 import excelUtil from "../../utils/dealwithExcelUtil";
 export default {
-  name: "studentindex",
+  name: "memberindex",
   data() {
     return {
       page: 1,
@@ -124,7 +124,7 @@ export default {
         { title: "昵称", key: "nickName" },
         { title: "姓名", key: "realName" },
         { title: "手机号", key: "phone" },
-        { title: "会员类型", key: "memberType" ,slot: "memberType",},
+        { title: "会员类型", key: "memberType", slot: "memberType" },
         {
           title: "注册时间",
           key: "createdAt",
@@ -155,7 +155,7 @@ export default {
                   },
                   on: {
                     click: () => {
-                      this.delete(params.row.id);
+                      this.delete(params.row);
                     }
                   }
                 },
@@ -186,23 +186,6 @@ export default {
     this.page_list2();
   },
   methods: {
-    edit() {
-      var query = new this.ParseServer.Query("MemberList");
-      query.get(this.user_id).then(item => {
-        item.set("label", this.user_forms.label);
-        item.save().then(
-          () => {
-            this.page_list();
-            this.$Message.success("编辑成功");
-            this.isShowEdit = false;
-            // this.cancel();
-          },
-          error => {
-            this.$Message.error("编辑失败");
-          }
-        );
-      });
-    },
     /*
      *取消操作
      *作者：gzt
@@ -287,6 +270,7 @@ export default {
             this.users_datas = list.map(item => {
               var account = {
                 id: item.id,
+                openId: item.get("openId"),
                 nickName: item.get("nickName"),
                 realName: item.get("realName"),
                 phone: item.get("phone"),
@@ -298,7 +282,6 @@ export default {
               };
               return account;
             });
-            console.log(this.users_datas, "this.users_datas");
           }
           this.loading = false;
         },
@@ -370,43 +353,76 @@ export default {
      *作者：gzt
      *时间：2020-11-25 23:17:56
      */
-    delete(user_id) {
-      this.$Modal.confirm({
-        title: "删除提示",
-        content: "<p>删除用户后，用户将无法使用系统，确定要删除吗？</p>",
-        onOk: () => {
-          var query = new this.ParseServer.Query("MemberList");
-          query.get(user_id).then(
-            response => {
-              // 删除用户
-              response.destroy().then(
-                delete_result => {
-                  this.$Message.success("删除成功");
-                  this.page = 1;
-                  this.page_list(this.page);
-                },
-                error => {
-                  this.$Message.error("删除失败");
-                }
-              );
-            },
-            error => {
-              this.$Message.error("删除的用户不存在");
-            }
-          );
-        },
-        onCancel: () => {
-          this.$Message.info("取消了操作");
-        }
+    delete(rowDate) {
+      let user_id = rowDate.id;
+      let openId = rowDate.openId;
+      var query1 = new this.ParseServer.Query(this.ParseServer.User);
+       query1.get("mIre98w2yb").then((item) => {
+         console.log(item)
+        // item.set("label", this.user_forms.label);
       });
+
+      let query = new this.ParseServer.Query(this.ParseServer.User);
+      query.equalTo("openid", openId);
+      query.find().then(item => {
+      console.log(item)
+      return
+
+      // item=JSON.stringify(item)
+      console.log(item.objectId)
+        item[0].set("memberType", 0);
+        item.save().then(
+          item => {
+            this.$Message.success("删除成功");
+            this.page = 1;
+            this.page_list(this.page);
+          },
+          error => {
+            this.$Message.error("修改失败");
+          }
+        );
+      });
+
+      // this.$Modal.confirm({
+      //   title: "删除提示",
+      //   content: "<p>删除用户后，用户将取消会员身份，确定要删除吗？</p>",
+      //   onOk: () => {
+      //     var query = new this.ParseServer.Query("MemberList");
+      //     query.get(user_id).then(
+      //       response => {
+      //         // 删除用户
+      //         response.destroy().then(
+      //           delete_result => {
+      //             // 刪除成功后，user表里相应的id memberType改为空
+
+      //           },
+      //           error => {
+      //             this.$Message.error("删除失败");
+      //           }
+      //         );
+      //       },
+      //       error => {
+      //         this.$Message.error("删除的用户不存在");
+      //       }
+      //     );
+      //   },
+      //   onCancel: () => {
+      //     this.$Message.info("取消了操作");
+      //   }
+      // });
     },
 
     // 全部导出
     async exports() {
       var format_data = this.users_datas2;
-      format_data.forEach(item=>{
-        item.memberType=item.memberType=='0'?'黑金':(item.memberType=='0'?'铂金':'白银')
-      })
+      format_data.forEach(item => {
+        item.memberType =
+          item.memberType == "0"
+            ? "黑金"
+            : item.memberType == "0"
+            ? "铂金"
+            : "白银";
+      });
       setTimeout(() => {
         const initColumn = [
           {
@@ -440,11 +456,7 @@ export default {
             key: "createdAt"
           }
         ];
-        excelUtil.exportExcel(
-          initColumn,
-          format_data,
-          "学生管理数据记录.xlsx"
-        );
+        excelUtil.exportExcel(initColumn, format_data, "学生管理数据记录.xlsx");
       }, 3000);
     }
   }
@@ -523,7 +535,7 @@ export default {
 .form .myFormShow:first-child .head {
   line-height: 50px;
 }
-.search-wrap .search-btn{
+.search-wrap .search-btn {
   width: unset;
 }
 </style>
