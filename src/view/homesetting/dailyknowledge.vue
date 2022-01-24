@@ -51,7 +51,7 @@
           </template>
         </Table>
         <div class="page-wrap">
-          <Page :total="total" @on-change="pagechange" v-if="total != 0" />
+          <Page :total="total" @on-change="pagechange" :current="page" v-if="total != 0" />
         </div>
       </div>
 
@@ -74,7 +74,7 @@
           </template>
         </Table>
         <div class="page-wrap">
-          <Page :total="tchtotal" @on-change="pagechange" v-if="total != 0" />
+          <Page :total="tchtotal" @on-change="pagechangetch" :current="page" v-if="total != 0" />
         </div>
       </div>
     </Row>
@@ -363,7 +363,7 @@ export default {
         { title: "副标题", key: "subTitle" },
         { title: "基数", key: "baseNum" },
         { title: "N值", key: "N" },
-        { title: "更新时间", key: "updatedAt" },
+        { title: "创建时间", key: "createdAt" },
         { title: "更新人", key: "updatedBy" },
         { title: "操作", key: "action", width: 200, slot: "action" }
       ],
@@ -372,7 +372,7 @@ export default {
         { title: "ID", key: "id" },
         { title: "头像", key: "portrait", slot: "portrait" },
         { title: "姓名", key: "name" },
-        { title: "更新时间", key: "updatedAt" },
+        { title: "创建时间", key: "createdAt" },
         { title: "更新人", key: "updatedBy" },
         { title: "操作", key: "action", width: 200, slot: "action" }
       ],
@@ -503,8 +503,8 @@ export default {
       this.course_form.surface = [urls];
     },
     tchUploadComplate(urls) {
-
-      this.form.portrait = [urls];
+      
+         this.form.portrait = [urls];
     },
 
     search() {
@@ -519,6 +519,9 @@ export default {
     pagechange(e) {
       this.page = e;
       this.page_list();
+    },
+    pagechangetch(e) {
+      this.page = e;
       this.page_tchlist();
     },
 
@@ -534,7 +537,7 @@ export default {
         query3.contains("subTitle", this.search_keyword);
         query = new this.ParseServer.Query.or(query1, query2, query3);
       }
-      query.descending("updatedAt");
+      query.descending("createdAt");
       query.count().then(count => {
         _this.total = count;
       });
@@ -555,8 +558,8 @@ export default {
                 N: item.get("N"),
                 rawCourseId: item.get("course").id,
                 baseNum: item.get("baseNum"),
-                updatedAt: tool.dateFormat(
-                  item.get("updatedAt"),
+                createdAt: tool.dateFormat(
+                  item.get("createdAt"),
                   "yyyy-MM-dd HH:mm:ss"
                 )
               });
@@ -577,7 +580,7 @@ export default {
         query2.contains("objectId", this.search_keywordtch);
         query = new this.ParseServer.Query.or(query1, query2);
       }
-      query.descending("updatedAt");
+      query.descending("createdAt");
       query.count().then(count => {
         _this.tchtotal = count;
       });
@@ -593,8 +596,8 @@ export default {
                 portrait: item.get("portrait"),
                 name: item.get("name"),
                 updatedBy: item.get("updatedBy"),
-                updatedAt: tool.dateFormat(
-                  item.get("updatedAt"),
+                createdAt: tool.dateFormat(
+                  item.get("createdAt"),
                   "yyyy-MM-dd HH:mm:ss"
                 )
               });
