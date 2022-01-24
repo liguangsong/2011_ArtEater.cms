@@ -119,6 +119,13 @@
             style="width:400px"
           ></Input>
         </FormItem>
+        <FormItem label="副标题">
+          <Input
+            v-model="form.subtitle"
+            placeholder="请输入副标题"
+            style="width:400px"
+          ></Input>
+        </FormItem>
         <FormItem label="推荐套课" prop="courseId">
           <selectTree
             v-if="show_window"
@@ -183,6 +190,9 @@
         <FormItem label="标题" prop="title">
           {{ form.title }}
         </FormItem>
+        <FormItem label="副标题">
+          {{ form.subtitle }}
+        </FormItem>
         <FormItem label="推荐套课" prop="courseId">
           {{ getCourseName(form.courseId) }}
         </FormItem>
@@ -231,6 +241,7 @@ export default {
         { title: "ID", key: "id", width: 120 },
         { title: "图片", key: "headImg", slot: "headImg" },
         { title: "标题", key: "title" },
+        { title: "副标题", key: "subtitle" },
         { title: "推荐套课名称", key: "courseName", slot: "courseId" },
         { title: "推荐课程名称", key: "videoName" },
         { title: "链接", key: "href" },
@@ -248,6 +259,7 @@ export default {
       form: {
         id: "",
         title: "",
+        subtitle: "",
         courseId: "",
         videoId: "",
         videoName: "",
@@ -291,6 +303,7 @@ export default {
       query.get(this.form.id).then(res => {
         this.form.id = res.id;
         this.form.title = res.get("title");
+        this.form.subtitle = res.get("subtitle");
         this.form.courseId = res.get("courseId");
         this.form.videoId = res.get("videoId");
         this.form.videoName = res.get("videoName");
@@ -323,6 +336,7 @@ export default {
       query.get(this.form.id).then(res => {
         this.form.id = res.id;
         this.form.title = res.get("title");
+        this.form.subtitle = res.get("subtitle");
         this.form.courseId = res.get("courseId");
         this.form.videoId = res.get("videoId");
         this.form.videoName = res.get("videoName");
@@ -352,6 +366,7 @@ export default {
       (this.form = {
         id: "",
         title: "",
+        subtitle: "",
         courseId: "",
         videoId: "",
         videoName: "",
@@ -454,6 +469,7 @@ export default {
           }
           let realName = self.ParseServer.User.current().get("realname");
           Recommend.set("title", self.form.title);
+          Recommend.set("subtitle", self.form.subtitle);
           Recommend.set("headImg", self.form.headImg);
           Recommend.set("courseId", self.form.courseId);
           Recommend.set("videoId", self.form.videoId);
@@ -488,6 +504,7 @@ export default {
       query.get(this.form.id).then(res => {
         this.form.id = res.id;
         this.form.title = res.get("title");
+        this.form.subtitle = res.get("subtitle");
         this.form.courseId = res.get("courseId");
         this.form.videoSrc = res.get("videoSrc");
         this.form.href = res.get("href");
@@ -551,6 +568,7 @@ export default {
               var _data = {
                 id: item.id,
                 title: item.get("title"),
+                subtitle: item.get("subtitle"),
                 href: item.get("href"),
                 headImg: item.get("headImg"),
                 courseId: item.get("courseId"),
@@ -602,7 +620,7 @@ export default {
               );
             },
             error => {
-              this.$Message.error("清确保删除的数据真实存在");
+              this.$Message.error("请确保删除的数据真实存在");
             }
           );
         },

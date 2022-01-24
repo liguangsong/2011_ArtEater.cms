@@ -122,6 +122,25 @@ const modules = [{
           "children": null,
           "href": "usermanage/customerorders.vue",
           "level": 1
+        // },
+        // {
+        //   "Id": "1312-sdfs-w3rwe-xgsdfs-2342432",
+        //   "path": "memberindex",
+        //   "name": "memberindex",
+        //   "redirect": null,
+        //   "meta": {
+        //     "icon": "ios-list-box-outline",
+        //     "title": "会员管理",
+        //     "hideInMenu": false,
+        //     "showAlways": true
+        //   },
+        //   "component": "usermanage/member.vue",
+        //   "permissionInfos": [
+
+        //   ],
+        //   "children": null,
+        //   "href": "usermanage/member.vue",
+        //   "level": 1
         }
       ],
       "href": null,
@@ -159,6 +178,26 @@ const modules = [{
           ],
           "children": null,
           "href": "homesetting/homemodule.vue",
+          "level": 1
+        },
+        //每日新知
+        {
+          "Id": "1312-sdfs-w3rwe-xgsdfs-2342433",
+          "path": "dailyknowledge",
+          "name": "dailyknowledge",
+          "redirect": null,
+          "meta": {
+            "icon": "ios-list-box-outline",
+            "title": "每日新知",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "homesetting/dailyknowledge.vue",
+          "permissionInfos": [
+
+          ],
+          "children": null,
+          "href": "homesetting/dailyknowledge.vue",
           "level": 1
         },
         //课程试听
