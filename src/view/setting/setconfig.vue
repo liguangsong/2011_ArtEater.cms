@@ -137,7 +137,16 @@
             </div>
           </FormItem>
         </div>
-        <div class="formItem"></div>
+        <div class="formItem">
+          <FormItem label="是否展示每日新知">
+            <div class="inputDiv">
+              <div class="input">
+                <i-switch v-model="form.isShowDaily" size="large" />
+              </div>
+              <div class="comment"></div>
+            </div>
+          </FormItem>
+        </div>
         <div class="formItem">
           <FormItem label="分享拉新得" prop="shareScore">
             <div class="inputDiv">
@@ -220,6 +229,7 @@ export default {
         allErrorPercent: 0, // 全局错误率
         // isSubjectAllBuy: false, // 科目是否合并购买
         isShowVideo: false, // 推荐是否展示视频
+        isShowDaily:true,//是否展示每日新知
         isCoursesAllBuy: false, // 套课是否合并购买
         percentH: "", // 正确率高
         percentM: "", // 正确率高
@@ -307,6 +317,7 @@ export default {
     this.ParseServer.Config.get().then((config) => {
       // self.form.isSubjectAllBuy = config.get("isSubjectAllBuy");
       self.form.isShowVideo = config.get("isShowVideo");
+      self.form.isShowDaily = config.get("isShowDaily");
       self.form.isCoursesAllBuy = config.get("isCoursesAllBuy");
       self.form.signUpScore = parseInt(config.get("signUpScore"));
       self.form.firstExamScore = parseInt(config.get("firstExamScore"));
@@ -336,6 +347,7 @@ export default {
           this.ParseServer.Config.save({
             // isSubjectAllBuy: self.form.isSubjectAllBuy,
             isShowVideo: self.form.isShowVideo,
+            isShowDaily: self.form.isShowDaily,
             isCoursesAllBuy: self.form.isCoursesAllBuy,
             signUpScore: parseInt(self.form.signUpScore),
             firstExamScore: parseInt(self.form.firstExamScore),
@@ -350,6 +362,7 @@ export default {
           }).then(function (config) {
             // self.form.isSubjectAllBuy = config.get("isSubjectAllBuy");
             self.form.isShowVideo = config.get("isShowVideo");
+            self.form.isShowDaily = config.get("isShowDaily");
             self.form.isCoursesAllBuy = config.get("isCoursesAllBuy");
             self.form.signUpScore = parseInt(config.get("signUpScore"));
             self.form.firstExamScore = parseInt(config.get("firstExamScore"));
