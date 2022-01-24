@@ -356,31 +356,41 @@ export default {
     delete(rowDate) {
       let user_id = rowDate.id;
       let openId = rowDate.openId;
-      var query1 = new this.ParseServer.Query(this.ParseServer.User);
-       query1.get("mIre98w2yb").then((item) => {
-         console.log(item)
-        // item.set("label", this.user_forms.label);
-      });
 
       let query = new this.ParseServer.Query(this.ParseServer.User);
+      // query.get("mIre98w2yb").then(item => {
+      //   // item.set("memberType", 2);
+        
+      //   item.save().then(
+      //     item => {
+      //       this.$Message.success("删除成功");
+      //       this.page = 1;
+      //       this.page_list(this.page);
+      //     },
+      //     error => {
+      //       this.$Message.error("修改失败");
+      //     }
+      //   );
+      //   console.log(item);
+      // });
       query.equalTo("openid", openId);
-      query.find().then(item => {
-      console.log(item)
-      return
-
-      // item=JSON.stringify(item)
-      console.log(item.objectId)
-        item[0].set("memberType", 0);
-        item.save().then(
-          item => {
-            this.$Message.success("删除成功");
-            this.page = 1;
-            this.page_list(this.page);
-          },
-          error => {
-            this.$Message.error("修改失败");
-          }
-        );
+      query.find().then(items => {
+        let userId = items[0].id;
+        query.get(userId).then(item => {
+          item.set("memberType", 0);
+          item.set("nickName", "ceshi2");
+          console.log(item);
+          item.save().then(
+            item => {
+              this.$Message.success("删除成功");
+              this.page = 1;
+              this.page_list(this.page);
+            },
+            error => {
+              this.$Message.error("修改失败");
+            }
+          );
+        });
       });
 
       // this.$Modal.confirm({
