@@ -322,7 +322,7 @@ const modules = [{
           "redirect": null,
           "meta": {
             "icon": "ios-list-box-outline",
-            "title": "视频推荐",
+            "title": "推荐阅读",
             "hideInMenu": false,
             "showAlways": true
           },

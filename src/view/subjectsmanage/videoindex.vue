@@ -53,7 +53,17 @@
         <template slot-scope="{ row }" slot="videoId">
           <strong>{{ row.videoName }}</strong>
         </template>
+        <template slot-scope="{ row }" slot="hideCourse"> 
+          <i-switch  v-model="row.hideCourse" @on-change="hideClick(row)" size="large" />
+        </template>
         <template slot-scope="{ row }" slot="action">
+          <Button
+            type="info"
+            size="small"
+            style="margin-right:5px"
+            @click="handleShare(row)"
+            >预览</Button
+          >
           <Button
             type="info"
             size="small"
@@ -159,10 +169,18 @@
             style="width:400px"
           ></Input>
         </FormItem>
+        <FormItem label="是否隐藏课程:">
+          <i-switch v-model="form.hideCourse"  size="large" />
+        </FormItem>
         <!-- <FormItem label="视频介绍">
           <Input type="textarea" :rows="6" v-model="form.remark" placeholder="请输入视频介绍"  style="width:400px"></Input>
         </FormItem> -->
       </Form>
+    </Modal>
+    <Modal @on-visible-change="handleVChange" width="450" title="二维码" v-model="isShowQr">
+      <div style="margin:5px 0;text-align:center">
+          <div class="qrcode" ref="qrCodeUrl" ></div>
+      </div>
     </Modal>
     <Modal width="740" title="查看大图" v-model="isShowImg">
       <div style="margin:5px 0;text-align:center">
@@ -208,6 +226,7 @@
 </template>
 
 <script>
+import QRCode from "qrcodejs2";
 import { tool } from "@/api/tool";
 import { verification } from "@/api/verification";
 import selectTree from "@/components/iview-select-tree";
@@ -226,6 +245,7 @@ export default {
       loading: true,
       editLoading: true,
       isShowImg: false,
+      isShowQr: false,
       isShowDetail: false,
       currImg: "",
       message_id: "",
@@ -245,6 +265,7 @@ export default {
         { title: "推荐套课名称", key: "courseName", slot: "courseId" },
         { title: "推荐课程名称", key: "videoName" },
         { title: "链接", key: "href" },
+        { title: "隐藏课程", key: "hideCourse" , slot: "hideCourse" },
         { title: "更新时间", key: "updatedAt", width: 180 },
         { title: "更新人", key: "updatedBy", width: 100 },
         {
@@ -252,7 +273,7 @@ export default {
           key: "action",
           slot: "action",
           align: "center",
-          width: 200
+          width: 220
         }
       ],
       data: [],
@@ -266,7 +287,8 @@ export default {
         headImg: "",
         href: "",
         updatedBy: "",
-        remark: ""
+        remark: "",
+        hideCourse:""
       },
       ruleValidate: {
         title: [
@@ -311,6 +333,7 @@ export default {
         this.form.href = res.get("href");
         this.form.updatedBy = res.get("updatedBy");
         this.form.remark = res.get("remark");
+        this.form.hideCourse = res.get("hideCourse");
         var query1 = new self.ParseServer.Query("Video");
         query1.containsAll("courseIds", [this.form.courseId]);
         query1.limit(10000);
@@ -344,6 +367,7 @@ export default {
         this.form.href = res.get("href");
         this.form.updatedBy = res.get("updatedBy");
         this.form.remark = res.get("remark");
+        this.form.hideCourse = res.get("hideCourse");
         var query1 = new self.ParseServer.Query("Video");
         query1.containsAll("courseIds", [this.form.courseId]);
         query1.limit(10000);
@@ -373,7 +397,8 @@ export default {
         headImg: "",
         href: "",
         updatedBy: "",
-        remark: ""
+        remark: "",
+        hideCourse:""
       }),
         (this.window_title = "添加推荐");
       this.show_window = true;
@@ -480,6 +505,7 @@ export default {
           Recommend.set("href", self.form.href);
           Recommend.set("updatedBy", realName);
           Recommend.set("remark", self.form.remark);
+          Recommend.set("hideCourse", self.form.hideCourse);
           Recommend.save().then(
             response => {
               this.$Message.success("保存成功");
@@ -510,6 +536,7 @@ export default {
         this.form.href = res.get("href");
         this.form.updatedBy = res.get("updatedBy");
         this.form.remark = res.get("remark");
+        this.form.hideCourse = res.get("hideCourse");
       });
     },
 
@@ -575,6 +602,7 @@ export default {
                 videoId: item.get("videoId"),
                 videoName: item.get("videoName"),
                 remark: item.get("remark"),
+                hideCourse: item.get("hideCourse"),
                 updatedBy: item.get("updatedBy"),
                 createdAt: item.get("createdAt"),
                 updatedAt: tool.dateFormat(
@@ -628,7 +656,48 @@ export default {
           this.$Message.info("取消了操作");
         }
       });
-    }
+    },
+    handleShare(row) {
+      this.creatQrCode(row);
+      this.isShowQr = true;
+    },
+    //二维码
+    creatQrCode(row) {
+      console.log(row)
+      this.$refs.qrCodeUrl.innerHTML = "";
+      var qrcode = new QRCode(this.$refs.qrCodeUrl, {
+        // text: `https://www.arteater.cn/Ji2vVK7htw.txt/?id=${row.id}`, // 需要转换为二维码的内容
+        text: row.href,
+        width: 100,
+        height: 100,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.Q,//H 报错
+      });
+    },
+    //是否隐藏课程
+    hideClick(data) {
+      this.id = data.id;
+      this.form.hideCourse = data.hideCourse;
+      this.courseId = data.id;
+      var query = new this.ParseServer.Query("Recommend");
+      query.get(this.courseId).then((item) => {
+        item.set("hideCourse", this.form.hideCourse);
+        item.save().then(
+          () => {
+            this.$Message.success("修改成功");
+            this.isShowAddForm = false;
+            this.cancel();
+          },
+          (error) => {
+            this.$Message.error("修改失败");
+          }
+        );
+      });
+    },
+    handleVChange(r) {
+      this.isShowQr = r;
+    },
   }
 };
 </script>
@@ -694,5 +763,12 @@ export default {
   height: 100px;
   position: relative;
   border: 1px solid #eee;
+}
+.qrcode {
+  display: inline-block;
+  img {
+    width: 336px;
+    height: 220px;
+  }
 }
 </style>
