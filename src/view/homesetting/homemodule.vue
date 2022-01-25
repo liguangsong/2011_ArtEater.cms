@@ -227,7 +227,8 @@
                </Table>
 
                   <div style="margin-top: 20px;">
-                    <Page :total="totals" @on-change="pagechanges" v-if="totals != 0" />
+                    <Page :total="totals" @on-change="pagechanges" v-if="totals != 0&&status == 1" />
+                    <Page :total="editTotals" @on-change="editpagechanges" v-if="editTotals != 0&&status >1" />
                   </div>
                 </Row>   
         </Modal>
@@ -330,6 +331,7 @@ export default {
       pageSize: 10,
       total: 0,
       totals: 0,
+      editTotals:0,
       id: "",
       moduleId: "",
       currParent: {
@@ -750,6 +752,9 @@ export default {
     pagechanges(e) {
       this.pages = e;
       this.addCourseList();
+    },
+    editpagechanges(e) {
+      this.pages = e;
       this.editCourseList();
     },
 
@@ -795,7 +800,7 @@ export default {
       query.equalTo("module", moudleId);
       query.descending("createdAt");
       query.count().then((count) => {
-        _this.totals = count;
+        _this.editTotals = count;
       });
       query.skip((this.pages - 1) * this.pageSize);
       query.limit(this.pageSize);
