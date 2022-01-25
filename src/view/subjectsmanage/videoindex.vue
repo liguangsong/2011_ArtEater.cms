@@ -179,7 +179,7 @@
     </Modal>
     <Modal @on-visible-change="handleVChange" width="450" title="二维码" v-model="isShowQr">
       <div style="margin:5px 0;text-align:center">
-          <div class="qrcode" ref="qrCodeUrl" ></div>
+          <img src="../../assets/images/preview.jpg" width="200" height="200" />
       </div>
     </Modal>
     <Modal width="740" title="查看大图" v-model="isShowImg">
@@ -658,22 +658,7 @@ export default {
       });
     },
     handleShare(row) {
-      this.creatQrCode(row);
       this.isShowQr = true;
-    },
-    //二维码
-    creatQrCode(row) {
-      console.log(row)
-      this.$refs.qrCodeUrl.innerHTML = "";
-      var qrcode = new QRCode(this.$refs.qrCodeUrl, {
-        // text: `https://www.arteater.cn/Ji2vVK7htw.txt/?id=${row.id}`, // 需要转换为二维码的内容
-        text: row.href,
-        width: 100,
-        height: 100,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.Q,//H 报错
-      });
     },
     //是否隐藏课程
     hideClick(data) {

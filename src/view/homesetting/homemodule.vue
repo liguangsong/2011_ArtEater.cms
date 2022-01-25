@@ -331,6 +331,7 @@ export default {
       total: 0,
       totals: 0,
       id: "",
+      moduleId: "",
       currParent: {
         id: "0",
       },
@@ -749,6 +750,7 @@ export default {
     pagechanges(e) {
       this.pages = e;
       this.addCourseList();
+      this.editCourseList();
     },
 
     // 添加课程单击事件
@@ -776,14 +778,20 @@ export default {
 
     // 编辑课程单击事件
     editCourseClick(id) {
+      this.moduleId = id;
       this.isCourseCompile = 1;
       this.isCourseCompileAdd = 2;
       this.status = 2;
       this.search_keywords = "";
+      this.editCourseList()
+    },
+
+    //编辑课程list
+    editCourseList() {
       let _this = this;
       const query = new this.ParseServer.Query("ModuleAssociatedCourses");
       var ClassOfMyObject = this.ParseServer.Object.extend("Module");
-      var moudleId = ClassOfMyObject.createWithoutData(id);
+      var moudleId = ClassOfMyObject.createWithoutData(this.moduleId);
       query.equalTo("module", moudleId);
       query.descending("createdAt");
       query.count().then((count) => {
