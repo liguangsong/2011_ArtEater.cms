@@ -105,25 +105,6 @@ const modules = [{
           "level": 1
         },
         {
-          "Id": "1231231-1231zcsa-124dzcsdfvs-q342zxfczy",
-          "path": "customerorders",
-          "name": "customerorders",
-          "redirect": null,
-          "meta": {
-            "icon": "ios-list-box-outline",
-            "title": "用户订单",
-            "hideInMenu": false,
-            "showAlways": true
-          },
-          "component": "usermanage/customerorders.vue",
-          "permissionInfos": [
-
-          ],
-          "children": null,
-          "href": "usermanage/customerorders.vue",
-          "level": 1
-        },
-        {
           "Id": "1312-sdfs-w3rwe-xgsdfs-2342432",
           "path": "memberindex",
           "name": "memberindex",
@@ -322,7 +303,7 @@ const modules = [{
           "redirect": null,
           "meta": {
             "icon": "ios-list-box-outline",
-            "title": "视频推荐",
+            "title": "推荐阅读",
             "hideInMenu": false,
             "showAlways": true
           },
@@ -725,7 +706,64 @@ const modules = [{
       ],
       "href": null,
       "level": 1
-    }
+    },
+    {
+      "path": "/recordmanage",
+      "name": "recordmanage",
+      "redirect": "recordmanage/couponrecord",
+      "meta": {
+        "icon": "ios-apps",
+        "title": "记录",
+        "hideInMenu": false,
+        "showAlways": true
+      },
+      "component": "Main",
+      "permissionInfos": [
+
+      ],
+      "children": [
+        //记录管理
+        {
+          "path": "couponrecord",
+          "name": "couponrecord",
+          "redirect": null,
+          "meta": {
+            "icon": "ios-list-box-outline",
+            "title": "优惠券记录",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "recordmanage/couponrecord.vue",
+          "permissionInfos": [
+
+          ],
+          "children": null,
+          "href": "recordmanage/couponrecord.vue",
+          "level": 1
+        },
+        {
+          "Id": "1231231-1231zcsa-124dzcsdfvs-q342zxfczy",
+          "path": "customerorders",
+          "name": "customerorders",
+          "redirect": null,
+          "meta": {
+            "icon": "ios-list-box-outline",
+            "title": "用户订单",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "usermanage/customerorders.vue",
+          "permissionInfos": [
+
+          ],
+          "children": null,
+          "href": "usermanage/customerorders.vue",
+          "level": 1
+        },
+      ],
+      "href": null,
+      "level": 1
+    },
 
   ],
   "href": "",
