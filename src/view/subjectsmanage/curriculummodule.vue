@@ -57,8 +57,8 @@
         
         <!-- 右侧 -->
          <div class="addCourse" v-if="currLevel == 0">
-            <Button @click="addCourse(1)" >新增系列课程</Button>
-        <Button style="margin-left:10px" @click="addCourse(2)">新增单独课程</Button>
+            <Button v-if="flag==1" @click="addCourse(1)" >新增系列课程</Button>
+        <Button v-if="flag==2" style="margin-left:10px" @click="addCourse(2)">新增单独课程</Button>
          </div>
          
          <!-- xinzneg -->
@@ -168,21 +168,17 @@
         :label-width="100"
         :rules="ruleValidate"
       >
-        <FormItem label="列表图:" v-if="!showRadio">
-          <myUploadMuti
-            :images="form.listImg"
-            @complate="listUploadComplate"
-            :multiple="false"
-            accept=".*"
-          ></myUploadMuti>
+        <FormItem label="列表图:" prop="listImg">
+          <div>
+            <img v-if="form.listImg[0]" :src="form.listImg[0]" width="60" height="60" />
+          </div>
+          <myUpload @complate="listUploadComplate" tips accept="image/*"></myUpload>
         </FormItem>
         <FormItem label="头图:" v-if="!showRadio">
-          <myUploadMuti
-            :images="form.headImg"
-            @complate="handleUploadComplate"
-            :multiple="false"
-            accept=".*"
-          ></myUploadMuti>
+          <div>
+            <img v-if="form.headImg[0]" :src="form.headImg[0]" width="60" height="60" />
+          </div>
+          <myUpload @complate="handleUploadComplate" tips accept="image/*"></myUpload>
         </FormItem>
 
         <FormItem label="课程名称:" prop="subjectName">
@@ -262,13 +258,19 @@
             placeholder="请输入顺序"
           ></Input>
         </FormItem>
-    <FormItem label="负责讲师头像:" prop="portrait">
+    <FormItem v-if="flag==1" label="负责讲师头像:" prop="portrait">
           <myUploadMuti
             :images="form.portrait"
             @complate="handleUploadComplates"
             :multiple="false"
             accept=".*"
           ></myUploadMuti>
+        </FormItem>
+        <FormItem v-if="flag==2" label="负责讲师头像:" prop="portrait">
+          <div>
+            <img v-if="form.portrait[0]" :src="form.portrait[0]" width="60" height="60" />
+          </div>
+          <myUpload @complate="oddUploadComplates" tips accept="image/*"></myUpload>
         </FormItem>
     <FormItem label="负责讲师姓名:" prop='lecturerName'>
        <Input
@@ -553,6 +555,18 @@ export default {
   data() {
     return {
       ruleValidate: {
+        listImg: [
+          {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (value.length == 0) {
+                return callback(new Error("请上传图片"));
+              }
+              callback();
+            }
+          }
+        ],
         // 课程名称
         subjectName: [
           { required: true, message: "请填写课程名称", trigger: "blur" },
@@ -926,9 +940,11 @@ export default {
       if (data == 1) {
         this.flag = 1;
         this.isActive = 1;
+        this.window_title = "新增系列课程";
       } else {
         this.flag = 2;
         this.isActive = 2;
+        this.window_title = "新增单独课程";
       }
       this.page_list();
     },
@@ -1029,12 +1045,12 @@ export default {
      * 封面图上传完成
      */
     handleUploadComplate(urls) {
-      this.form.headImg = urls;
+      this.form.headImg = [urls];
     },
 
     //列表图 
     listUploadComplate(urls) {
-      this.form.listImg = urls;
+      this.form.listImg = [urls];
     },
 
     /**
