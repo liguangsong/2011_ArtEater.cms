@@ -288,7 +288,7 @@ export default {
         href: "",
         updatedBy: "",
         remark: "",
-        hideCourse:""
+        hideCourse:false
       },
       ruleValidate: {
         title: [
@@ -398,7 +398,7 @@ export default {
         href: "",
         updatedBy: "",
         remark: "",
-        hideCourse:""
+        hideCourse:false
       }),
         (this.window_title = "添加推荐");
       this.show_window = true;
