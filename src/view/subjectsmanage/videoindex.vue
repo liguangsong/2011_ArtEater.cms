@@ -169,7 +169,7 @@
             style="width:400px"
           ></Input>
         </FormItem>
-        <FormItem label="是否隐藏课程:">
+        <FormItem label="是否展示推荐:">
           <i-switch v-model="form.hideCourse"  size="large" />
         </FormItem>
         <!-- <FormItem label="视频介绍">
@@ -265,7 +265,7 @@ export default {
         { title: "推荐套课名称", key: "courseName", slot: "courseId" },
         { title: "推荐课程名称", key: "videoName" },
         { title: "链接", key: "href" },
-        { title: "隐藏课程", key: "hideCourse" , slot: "hideCourse" },
+        { title: "展示推荐", key: "hideCourse" , slot: "hideCourse" },
         { title: "更新时间", key: "updatedAt", width: 180 },
         { title: "更新人", key: "updatedBy", width: 100 },
         {
@@ -660,7 +660,7 @@ export default {
     handleShare(row) {
       this.isShowQr = true;
     },
-    //是否隐藏课程
+    //是否展示推荐
     hideClick(data) {
       this.id = data.id;
       this.form.hideCourse = data.hideCourse;
