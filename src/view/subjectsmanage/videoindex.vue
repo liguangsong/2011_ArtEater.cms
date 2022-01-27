@@ -184,7 +184,7 @@
     </Modal>
     <Modal width="740" title="查看大图" v-model="isShowImg">
       <div style="margin:5px 0;text-align:center">
-        <img :videoSrc="currImg" width="690" height="320" />
+        <img :src="currImg" width="690" height="320" />
       </div>
     </Modal>
     <Modal v-model="isShowDetail" title="查看详情" mask scrollable width="600">

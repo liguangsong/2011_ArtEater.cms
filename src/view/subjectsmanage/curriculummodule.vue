@@ -1491,6 +1491,7 @@ export default {
         course.set("tag", myObject);
       }
       course.set("flag", this.flag);
+      course.set("listImg", this.form.listImg);
       course.set("putaway", this.form.putaway);
       course.set("hide", this.form.hide);
       course.set("subjectName", this.form.subjectName);
@@ -1880,6 +1881,7 @@ export default {
               _this.courses_datas.push({
                 id: item.id,
                 flag: item.get("flag"),
+                listImg: item.get("listImg"),
                 subjectName: item.get("subjectName"),
                 realname: item.get("realname"),
                 subTitle1: item.get("subTitle1"),
@@ -2103,6 +2105,7 @@ export default {
               _this.recommend_courses_datas.push({
                 id: item.id,
                 flag: item.get("flag"),
+                listImg: item.get("listImg"),
                 subjectName: item.get("subjectName"),
                 realname: item.get("realname"),
                 subTitle1: item.get("subTitle1"),

@@ -196,21 +196,6 @@ export default {
     },
 
     /*
-     *获取用户
-     *作者：gzt
-     *时间：2020-11-22 09:21:48
-     */
-    get_entity() {
-      var self = this;
-      var query = new this.ParseServer.Query("MemberList");
-      query.get(self.user_id).then(response => {
-        Object.keys(self.user_forms).forEach(key => {
-          self.user_forms[key] = response.get(key);
-        });
-      });
-    },
-
-    /*
      *搜索数据
      *作者：gzt
      *时间：2020-11-21 23:30:19

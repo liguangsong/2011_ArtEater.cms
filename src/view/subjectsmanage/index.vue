@@ -15,7 +15,7 @@
         <Row class="table-wrap">
             <Table  :loading="loading" :columns="currLevel==0?columns:columns1" :data="subjects_datas">
                 <template slot-scope="{ row }" slot="img">
-                    <div style="margin:5px 0"><img v-if="row.backgroundImg" :src="row.backgroundImg" @click="handleShowImg(row)" width="84" height="38"></div>
+                    <div style="margin:5px 0"><img v-if="row.backgroundImg" :src="row.backgroundImg" @click="handleShowImg(row)" width="38" height="38"></div>
                 </template>
                 <template slot-scope="{ row }" slot="headimg">
                     <div style="margin:5px 0"><img v-if="row.headImg" :src="row.headImg" @click="handleShowHeadImg(row)" width="84" height="38"></div>
@@ -78,9 +78,9 @@
                 </FormItem>
                 <FormItem v-if="subject_form.level==0" label="按钮图">
                     <div>
-                        <img v-if="subject_form.backgroundImg" :src="subject_form.backgroundImg" width="168" height="76"/>
+                        <img v-if="subject_form.backgroundImg" :src="subject_form.backgroundImg" width="60" height="60"/>
                     </div>
-                    <myUpload @complate="handleUploadComplate" tips="（推荐尺寸504*228）"></myUpload>
+                    <myUpload @complate="handleUploadComplate" tips="（推荐尺寸46*46）"></myUpload>
                 </FormItem>
                 <FormItem v-if="subject_form.level==0" label="封面图">
                     <div>
@@ -97,7 +97,7 @@
             <Editor :value="subject_form.comments" @on-change="change_value1"></Editor>
          </Modal>
         <Modal @on-visible-change="handleVChange" width="450" title="查看大图" v-model="isShowImg">
-            <div style="margin:5px 0;text-align:center"><img :src="currBackgroundImg" width="336" height="152"></div>
+            <div style="margin:5px 0;text-align:center"><img :src="currBackgroundImg" width="152" height="152"></div>
         </Modal>
         <Modal @on-visible-change="handleVChange1" width="820" title="查看大图" v-model="isShowHeadImg">
             <div style="margin:5px 0;text-align:center"><img :src="currBackgroundImg" width="750" height="396"></div>

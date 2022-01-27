@@ -302,7 +302,7 @@
     </Modal>
     <Modal @on-visible-change="handleVChange" width="450" title="查看大图" v-model="isShowImg">
       <div style="margin:5px 0;text-align:center">
-        <img :src="currBackgroundImg" width="336" height="222" />
+        <img :src="currBackgroundImg" width="300" height="300" />
       </div>
     </Modal>
   </div>
