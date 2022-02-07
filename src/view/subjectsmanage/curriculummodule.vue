@@ -1706,7 +1706,7 @@ export default {
                   course.save().then(
                     (course) => {
                       this.updateParent(this.currParent.id);
-                      this.$Message.success("保存成功222222");
+                      this.$Message.success("保存成功");
                       this.cancel();
                       this.isShowChildCourse = false;
                       this.page_list();
