@@ -105,22 +105,22 @@ const modules = [{
           "level": 1
         },
         {
-          "Id": "1231231-1231zcsa-124dzcsdfvs-q342zxfczy",
-          "path": "customerorders",
-          "name": "customerorders",
+          "Id": "1312-sdfs-w3rwe-xgsdfs-2342432",
+          "path": "memberindex",
+          "name": "memberindex",
           "redirect": null,
           "meta": {
             "icon": "ios-list-box-outline",
-            "title": "用户订单",
+            "title": "会员管理",
             "hideInMenu": false,
             "showAlways": true
           },
-          "component": "usermanage/customerorders.vue",
+          "component": "usermanage/member.vue",
           "permissionInfos": [
 
           ],
           "children": null,
-          "href": "usermanage/customerorders.vue",
+          "href": "usermanage/member.vue",
           "level": 1
         // },
         // {
@@ -150,7 +150,7 @@ const modules = [{
       "Id": "1b9da043-6a2b-4531-123123-1231313131",
       "path": "/homesetting",
       "name": "homesetting",
-      "redirect": "homesetting/homemodule",
+      "redirect": "homesetting/setbanner",
       "meta": {
         "icon": "ios-people",
         "title": "首页设置",
@@ -162,6 +162,22 @@ const modules = [{
 
       ],
       "children": [{
+        "Id": "zfdwsrf-23423-sdfs-234d4",
+        "path": "setbanner",
+        "name": "setbanner",
+        "redirect": null,
+        "meta": {
+          "icon": "ios-browsers",
+          "title": "轮播图设置",
+          "hideInMenu": false,
+          "showAlways": true
+        },
+        "component": "setting/setbanner.vue",
+        "permissionInfos": [],
+        "children": null,
+        "href": "setting/setbanner.vue",
+        "level": 1
+      },{
           "Id": "1312-sdfs-w3rwe-xgsdfs-2342432",
           "path": "homemodule",
           "name": "homemodule",
@@ -260,6 +276,24 @@ const modules = [{
           "href": "homesetting/bulletinboard.vue",
           "level": 1
         },
+        {
+          "path": "videoindex",
+          "name": "videoindex",
+          "redirect": null,
+          "meta": {
+            "icon": "ios-list-box-outline",
+            "title": "推荐阅读",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "subjectsmanage/videoindex.vue",
+          "permissionInfos": [
+
+          ],
+          "children": null,
+          "href": "subjectsmanage/videoindex.vue",
+          "level": 1
+        }
       ],
       "href": null,
       "level": 1
@@ -297,41 +331,6 @@ const modules = [{
           ],
           "children": null,
           "href": "subjectsmanage/curriculummodule.vue",
-          "level": 1
-        },
-        {
-          "path": "subjectsmanageindex",
-          "name": "subjectsmanageindex",
-          "redirect": null,
-          "meta": {
-            "icon": "ios-list-box-outline",
-            "title": "科目管理",
-            "hideInMenu": false,
-            "showAlways": true
-          },
-          "component": "subjectsmanage/index.vue",
-          "permissionInfos": [
-
-          ],
-          "children": null,
-          "href": "subjectsmanage/index.vue",
-          "level": 1
-        }, {
-          "path": "videoindex",
-          "name": "videoindex",
-          "redirect": null,
-          "meta": {
-            "icon": "ios-list-box-outline",
-            "title": "推荐阅读",
-            "hideInMenu": false,
-            "showAlways": true
-          },
-          "component": "subjectsmanage/videoindex.vue",
-          "permissionInfos": [
-
-          ],
-          "children": null,
-          "href": "subjectsmanage/videoindex.vue",
           "level": 1
         },
         // 淘客管理
@@ -399,7 +398,7 @@ const modules = [{
       "Id": "1b9da043-6a2b-4531-a2b9-00b20ac953c8",
       "path": "/testquestions",
       "name": "testquestions",
-      "redirect": "testquestions/restquestionsindex",
+      "redirect": "testquestions/subjectsmanageindex",
       "meta": {
         "icon": "ios-paper",
         "title": "试题管理",
@@ -411,6 +410,23 @@ const modules = [{
 
       ],
       "children": [{
+        "path": "subjectsmanageindex",
+        "name": "subjectsmanageindex",
+        "redirect": null,
+        "meta": {
+          "icon": "ios-list-box-outline",
+          "title": "科目管理",
+          "hideInMenu": false,
+          "showAlways": true
+        },
+        "component": "subjectsmanage/index.vue",
+        "permissionInfos": [
+
+        ],
+        "children": null,
+        "href": "subjectsmanage/index.vue",
+        "level": 1
+      },{
         "Id": "6bf2e9c0-9e84-4eb0-9575-7968feb89afe",
         "path": "restquestionsindex",
         "name": "restquestionsindex",
@@ -533,23 +549,7 @@ const modules = [{
         //   "href": "setting/setprice.vue",
         //   "level": 1
         // },
-         {
-          "Id": "zfdwsrf-23423-sdfs-234d4",
-          "path": "setbanner",
-          "name": "setbanner",
-          "redirect": null,
-          "meta": {
-            "icon": "ios-browsers",
-            "title": "轮播图设置",
-            "hideInMenu": false,
-            "showAlways": true
-          },
-          "component": "setting/setbanner.vue",
-          "permissionInfos": [],
-          "children": null,
-          "href": "setting/setbanner.vue",
-          "level": 1
-        }, {
+        {
           "Id": "zfdwsrf-23423-sdfs-23424",
           "path": "setconfig",
           "name": "setconfig",
@@ -725,7 +725,64 @@ const modules = [{
       ],
       "href": null,
       "level": 1
-    }
+    },
+    {
+      "path": "/recordmanage",
+      "name": "recordmanage",
+      "redirect": "recordmanage/couponrecord",
+      "meta": {
+        "icon": "ios-apps",
+        "title": "记录",
+        "hideInMenu": false,
+        "showAlways": true
+      },
+      "component": "Main",
+      "permissionInfos": [
+
+      ],
+      "children": [
+        //记录管理
+        {
+          "path": "couponrecord",
+          "name": "couponrecord",
+          "redirect": null,
+          "meta": {
+            "icon": "ios-list-box-outline",
+            "title": "优惠券记录",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "recordmanage/couponrecord.vue",
+          "permissionInfos": [
+
+          ],
+          "children": null,
+          "href": "recordmanage/couponrecord.vue",
+          "level": 1
+        },
+        {
+          "Id": "1231231-1231zcsa-124dzcsdfvs-q342zxfczy",
+          "path": "customerorders",
+          "name": "customerorders",
+          "redirect": null,
+          "meta": {
+            "icon": "ios-list-box-outline",
+            "title": "用户订单",
+            "hideInMenu": false,
+            "showAlways": true
+          },
+          "component": "usermanage/customerorders.vue",
+          "permissionInfos": [
+
+          ],
+          "children": null,
+          "href": "usermanage/customerorders.vue",
+          "level": 1
+        },
+      ],
+      "href": null,
+      "level": 1
+    },
 
   ],
   "href": "",

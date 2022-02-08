@@ -57,8 +57,8 @@
         
         <!-- 右侧 -->
          <div class="addCourse" v-if="currLevel == 0">
-            <Button @click="addCourse(1)" >新增系列课程</Button>
-        <Button style="margin-left:10px" @click="addCourse(2)">新增单独课程</Button>
+            <Button v-if="flag==1" @click="addCourse(1)" >新增系列课程</Button>
+        <Button v-if="flag==2" style="margin-left:10px" @click="addCourse(2)">新增单独课程</Button>
          </div>
          
          <!-- xinzneg -->
@@ -147,7 +147,7 @@
         </template>
       </Table>
       <div class="page-wrap">
-        <Page :total="total" @on-change="pagechange" v-if="total != 0" />
+        <Page :total="total" :current="this.page" @on-change="pagechange" v-if="total != 0" />
       </div>
     </Row>    
     <Modal
@@ -158,6 +158,7 @@
       scrollable
       :loading="modalLoading"
       @on-ok="add_course"
+      @on-cancel="cancel"
     >
       <Form
         v-if="isShowAddForm"
@@ -167,13 +168,21 @@
         :label-width="100"
         :rules="ruleValidate"
       >
+        <FormItem label="列表图:" prop="listImg">
+          <div>
+            <img v-if="form.listImg[0]" :src="form.listImg[0]" width="60" height="60" />
+          </div>
+          <myUpload @complate="listUploadComplate" tips accept="image/*"></myUpload>
+        </FormItem>
         <FormItem label="头图:" v-if="!showRadio">
-          <myUploadMuti
-            :images="form.headImg"
-            @complate="handleUploadComplate"
-            :multiple="false"
-            accept=".*"
-          ></myUploadMuti>
+          <div v-if="form.headImg[0]" class="demo-upload-list">
+            <img :src="form.headImg[0]" width="60" height="60" />
+            <div class="demo-upload-list-cover">
+              <Icon type="ios-eye-outline" @click.native="handleView(form.headImg[0])"></Icon>
+              <Icon type="ios-trash-outline" @click.native="handleRemove()"></Icon>
+            </div>
+          </div>
+          <myUpload @complate="handleUploadComplate" tips accept="image/*"></myUpload>
         </FormItem>
 
         <FormItem label="课程名称:" prop="subjectName">
@@ -253,13 +262,19 @@
             placeholder="请输入顺序"
           ></Input>
         </FormItem>
-    <FormItem label="负责讲师头像:" prop="portrait">
+    <FormItem v-if="flag==1" label="负责讲师头像:" prop="portrait">
           <myUploadMuti
             :images="form.portrait"
             @complate="handleUploadComplates"
             :multiple="false"
             accept=".*"
           ></myUploadMuti>
+        </FormItem>
+        <FormItem v-if="flag==2" label="负责讲师头像:" prop="portrait">
+          <div>
+            <img v-if="form.portrait[0]" :src="form.portrait[0]" width="60" height="60" />
+          </div>
+          <myUpload @complate="oddUploadComplates" tips accept="image/*"></myUpload>
         </FormItem>
     <FormItem label="负责讲师姓名:" prop='lecturerName'>
        <Input
@@ -354,7 +369,7 @@
         ref="seriesCourseForm"
         :model="form"
         label-position="right"
-        :label-width="90"
+        :label-width="100"
         :rules="ruleValidate"
       >
       <FormItem label="课程名称:" prop="subjectName">
@@ -380,7 +395,7 @@
           <RadioGroup @on-change="handleChangeRadio"
             v-model="form.kind"
           >
-          {{this.form.kind}}
+          <!-- {{this.form.kind}} -->
             <span v-if="this.currLevel>1">
                <Radio
               :label="1"
@@ -423,7 +438,18 @@
             placeholder="请输入排序"
           ></Input>
         </FormItem>
- 
+        <FormItem v-if="this.currLevel>1 && form.kind<4" label="负责讲师头像:" prop="portrait">
+          <div>
+            <img v-if="form.portrait[0]" :src="form.portrait[0]" width="60" height="60" />
+          </div>
+          <myUpload @complate="oddUploadComplates" tips accept="image/*"></myUpload>
+        </FormItem>
+        <FormItem v-if="this.currLevel>1 && form.kind<4" label="负责讲师姓名:" prop='lecturerName'>
+          <Input
+            v-model="form.lecturerName"
+            placeholder="负责讲师姓名"
+             ></Input>
+        </FormItem>
       </Form>
     </Modal>
   <!-- 推荐课程-list -->
@@ -533,6 +559,18 @@ export default {
   data() {
     return {
       ruleValidate: {
+        listImg: [
+          {
+            required: true,
+            trigger: "blur",
+            validator: (rule, value, callback) => {
+              if (value.length == 0) {
+                return callback(new Error("请上传图片"));
+              }
+              callback();
+            }
+          }
+        ],
         // 课程名称
         subjectName: [
           { required: true, message: "请填写课程名称", trigger: "blur" },
@@ -700,6 +738,7 @@ export default {
       courses_datas: [],
       flag: 1,
       form: {
+        listImg: [], //列表图
         headImg: [], //头图
         subjectName: "", //课程名称
         subTitle1: "", //副标题1
@@ -905,9 +944,11 @@ export default {
       if (data == 1) {
         this.flag = 1;
         this.isActive = 1;
+        this.window_title = "新增系列课程";
       } else {
         this.flag = 2;
         this.isActive = 2;
+        this.window_title = "新增单独课程";
       }
       this.page_list();
     },
@@ -1008,7 +1049,29 @@ export default {
      * 封面图上传完成
      */
     handleUploadComplate(urls) {
-      this.form.headImg = urls;
+      this.form.headImg = [urls];
+    },
+
+    handleView(name) {
+      this.$Modal.info({
+        title: "查看图片",
+        width: 400,
+        content:
+          "<div style='width:100%;height:100%;text-align:center'>" +
+          "<img src='" +
+          name +
+          "'  style='max-width:100%;max-height:100%;padding-right:50px;display:inline-block;'>" +
+          "</div>",
+        okText: "关闭",
+      });
+    },
+    handleRemove() {
+      this.form.headImg.splice(0, 1);
+    },
+
+    //列表图 
+    listUploadComplate(urls) {
+      this.form.listImg = [urls];
     },
 
     /**
@@ -1016,6 +1079,9 @@ export default {
      */
     handleUploadComplates(urls) {
       this.form.portrait = urls;
+    },
+    oddUploadComplates(urls) {
+      this.form.portrait = [urls];
     },
 
     cancel() {
@@ -1039,6 +1105,9 @@ export default {
         this.form.tagId = res.get("tag") ? res.get("tag").id : "";
         this.form.order = res.get("order");
         this.form.portrait = res.get("portrait");
+        if (res.get("listImg")) {
+          this.form.listImg = res.get("listImg");
+        }
         if (res.get("headImg")) {
           this.form.headImg = res.get("headImg");
         }
@@ -1207,6 +1276,7 @@ export default {
               course.set("tag", myObject);
             }
             course.set("flag", this.flag);
+            course.set("listImg", this.form.listImg);
             course.set("headImg", this.form.headImg);
             course.set("putaway", this.form.putaway);
             course.set("hide", this.form.hide);
@@ -1324,6 +1394,7 @@ export default {
           item.set("tag", myObject);
         }
         item.set("flag", this.flag);
+        item.set("listImg", this.form.listImg);
         item.set("headImg", this.form.headImg);
         item.set("putaway", this.form.putaway);
         item.set("hide", this.form.hide);
@@ -1402,6 +1473,7 @@ export default {
           item.set("tag", myObject);
         }
         item.set("flag", this.flag);
+        item.set("listImg", this.form.listImg);
         item.set("headImg", this.form.headImg);
         item.set("putaway", this.form.putaway);
         item.set("hide", this.form.hide);
@@ -1440,6 +1512,7 @@ export default {
         course.set("tag", myObject);
       }
       course.set("flag", this.flag);
+      course.set("listImg", this.form.listImg);
       course.set("putaway", this.form.putaway);
       course.set("hide", this.form.hide);
       course.set("subjectName", this.form.subjectName);
@@ -1640,6 +1713,7 @@ export default {
                     course.set("tag", myObject);
                   }
                   course.set("flag", this.flag);
+                  course.set("listImg", this.form.listImg);
                   course.set("headImg", this.form.headImg);
                   course.set("subjectName", this.form.subjectName);
                   course.set("vip", this.form.vip);
@@ -1653,7 +1727,7 @@ export default {
                   course.save().then(
                     (course) => {
                       this.updateParent(this.currParent.id);
-                      this.$Message.success("保存成功222222");
+                      this.$Message.success("保存成功");
                       this.cancel();
                       this.isShowChildCourse = false;
                       this.page_list();
@@ -1709,6 +1783,7 @@ export default {
           item.set("tag", myObject);
         }
         item.set("flag", this.flag);
+        item.set("listImg", this.form.listImg);
         item.set("headImg", this.form.headImg);
         item.set("subjectName", this.form.subjectName);
         item.set("vip", this.form.vip);
@@ -1827,6 +1902,7 @@ export default {
               _this.courses_datas.push({
                 id: item.id,
                 flag: item.get("flag"),
+                listImg: item.get("listImg"),
                 subjectName: item.get("subjectName"),
                 realname: item.get("realname"),
                 subTitle1: item.get("subTitle1"),
@@ -2050,6 +2126,7 @@ export default {
               _this.recommend_courses_datas.push({
                 id: item.id,
                 flag: item.get("flag"),
+                listImg: item.get("listImg"),
                 subjectName: item.get("subjectName"),
                 realname: item.get("realname"),
                 subTitle1: item.get("subTitle1"),
@@ -2190,5 +2267,36 @@ export default {
     width: 336px;
     height: 220px;
   }
+}
+.demo-upload-list {
+  // display: inline-block;
+  margin-bottom: 8px;
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  line-height: 60px;
+  border: 1px solid transparent;
+  overflow: hidden;
+  background: #fff;
+  position: relative;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.demo-upload-list-cover {
+  display: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+.demo-upload-list:hover .demo-upload-list-cover {
+  display: block;
+}
+.demo-upload-list-cover i {
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  margin: 0 2px;
 }
 </style>

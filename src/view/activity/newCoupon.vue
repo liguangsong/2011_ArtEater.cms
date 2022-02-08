@@ -632,6 +632,7 @@ export default {
       let sendMode = 1;
       var self = this;
       var CouponRecords = self.ParseServer.Object.extend("NewCouponRecord");
+      var realname = self.ParseServer.User.current().get('realname')
       if (self.coupon_curr) {
         var list = [];
         if (self.sendMode == "all") {
@@ -642,6 +643,7 @@ export default {
           query.find().then((students) => {
             students.forEach((item) => {
               var couponRecord = new CouponRecords();
+              couponRecord.set("sendBy", realname);
               couponRecord.set("couponId", self.coupon_curr.id);
               couponRecord.set("couponName", self.coupon_curr.couponName);
               couponRecord.set("amount", parseFloat(self.coupon_curr.amount));
@@ -677,6 +679,7 @@ export default {
           // 发送给部分用户
           self.selectedStudent.forEach((item) => {
             var couponRecord = new CouponRecords();
+            couponRecord.set("sendBy", realname);
             couponRecord.set("couponId", self.coupon_curr.id);
             couponRecord.set("couponName", self.coupon_curr.couponName);
             couponRecord.set("amount", parseFloat(self.coupon_curr.amount));
