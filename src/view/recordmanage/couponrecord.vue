@@ -39,7 +39,7 @@
       <div class="search-btn" style="width: 80px; margin: 0">
         <Button type="primary" @click="search" size="large">查询</Button>
       </div>
-      <Button type="info" @click="exports">全部导出</Button>
+      <Button type="info" :loading="exportsLoading" @click="exports">全部导出</Button>
     </div>
     <Row class="table-wrap">
       <Table :loading="loading" :columns="columns" :data="couponData">
@@ -86,7 +86,7 @@ export default {
       search_end_date: "",
       loading: true,
       search_type: "",
-      openIdArr: [],
+      exportsLoading: false,
       columns: [
         { title: "序号", type: "index", key: "id", width: 60, align: "center" },
         { title: "优惠券名称", key: "couponName" },
@@ -179,7 +179,6 @@ export default {
     },
     page_list() {
       this.loading = true;
-      this.openIdArr = [];
       let query1 = new this.ParseServer.Query("NewCouponRecord");
       query1.contains("couponName", this.search_keyword);
       let query5 = new this.ParseServer.Query("NewCouponRecord");
@@ -208,14 +207,16 @@ export default {
       });
       query.skip((this.page - 1) * 10);
       query.limit(10);
+      query.include("user");
       query.find().then(
         list => {
           this.couponData = [];
           if (list && list.length > 0) {
             this.couponData = list.map(item => {
-              this.openIdArr.push(item.get("openid"));
               var message = {
                 id: item.id,
+                userId: item.get("user").id,
+                phone: item.get("user").attributes.phone,
                 openId: item.get("openid"),
                 couponName: item.get("couponName"),
                 amount: item.get("amount"),
@@ -228,9 +229,6 @@ export default {
               };
               return message;
             });
-            this.openIdArr = [...new Set(this.openIdArr)];
-            this.openIdArr = this.openIdArr.filter(item => item);
-            this.user_list();
           }
           this.loading = false;
         },
@@ -239,49 +237,9 @@ export default {
         }
       );
     },
-    user_list() {
-      let mergeArr = [];
-      this.user_datas = [];
-      let query = new this.ParseServer.Query(this.ParseServer.User);
-      query.containedIn("openid", this.openIdArr);
-      query.find().then(
-        list => {
-          if (list && list.length > 0) {
-            list.map(item => {
-              this.user_datas.push({
-                userId: item.id,
-                openId: item.get("openid"),
-                phone: item.get("phone")
-              });
-            });
-            for (const i in this.couponData) {
-              if (!this.couponData[i].openId) {
-                mergeArr.push({
-                  ...this.couponData[i]
-                });
-              } else {
-                for (const j in this.user_datas) {
-                  if (this.couponData[i].openId == this.user_datas[j].openId) {
-                    mergeArr.push({
-                      ...this.couponData[i],
-                      ...this.user_datas[j]
-                    });
-                  }
-                }
-              }
-            }
-            this.couponData = mergeArr;
-            this.user_datas = [];
-          }
-        },
-        error => {
-          this.$Message.error("列表获取失败");
-        }
-      );
-    },
     // 全部导出
     async exports() {
-      this.loading = true;
+      this.exportsLoading = true;
       let res = await Parse.Cloud.run("getNewCouponRecordList", {
         search_keyword: this.search_keyword,
         search_type: this.search_type,
@@ -292,7 +250,7 @@ export default {
       a.href = res.url;
       a.download = "优惠券记录.xlsx";
       a.click();
-      this.loading = false;
+      this.exportsLoading = false;
     }
   }
 };

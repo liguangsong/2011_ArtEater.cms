@@ -89,6 +89,9 @@
                     <template slot-scope="{ row }" slot="HideCourse"> 
                         <i-switch  v-model="row.hide" @on-change="hideClick(row)"   size="large" />
                    </template>
+                   <template slot-scope="{ row }" slot="dailyCourse"> 
+                      <i-switch  v-model="row.dailyCourse" @on-change="dailyCourse(row)" size="large" />
+                   </template>
 
         <template slot-scope="{ row }" slot="action">
             <Button v-if="flag == 1 && row.level == 0"
@@ -223,6 +226,14 @@
                     </FormItem>
                   </div>
                 </div>
+                <div style="display: flex;
+    align-items: center;">
+                  <div style="flex: 0.5;">
+                      <FormItem label="是否在课程列表隐藏:">
+                      <i-switch v-model="form.dailyCourse"  size="large" />
+                    </FormItem>
+                  </div>
+                  </div>
        <FormItem label="课程类别" prop="kind" v-if="showRadio">
           <RadioGroup 
              @on-change="handleChangeRadio"
@@ -390,6 +401,14 @@
                         <i-switch v-model="form.hide"  size="large" />
                     </FormItem>
                   </div>
+          </div>
+           <div style="display: flex;
+              align-items: center;">
+              <div style="flex: 0.5;">
+                  <FormItem label="是否在课程列表隐藏:">
+                  <i-switch v-model="form.dailyCourse"  size="large" />
+              </FormItem>
+              </div>
           </div>
        <FormItem label="课程类别" prop="kind" v-if="showRadio">
           <RadioGroup @on-change="handleChangeRadio"
@@ -703,6 +722,7 @@ export default {
         { title: "上架", key: "putaway", slot: "putaway" },
         // { title: "VIP可看", key: "isVipLook", slot: "isVipLook" },
         { title: "隐藏课程", key: "hide", slot: "HideCourse" },
+        { title: "是否在课程列表隐藏", key: "dailyCourse", slot: "dailyCourse" },
         { title: "更新时间", key: "updatedAt" },
         { title: "操作", key: "action", width: 330, slot: "action" },
       ],
@@ -716,6 +736,7 @@ export default {
         },
         { title: "隐藏课程", key: "hide", slot: "HideCourse" },
         { title: "上架", key: "putaway", slot: "putaway" },
+        { title: "是否在课程列表隐藏", key: "dailyCourse", slot: "dailyCourse" },
         { title: "排序", key: "innerOrder" },
         { title: "更新时间", key: "updatedAt" },
         { title: "操作", key: "action", width: 430, slot: "action" },
@@ -746,6 +767,7 @@ export default {
         vip: false, //是否是VIP课程
         // isVipLook: false, //是否需要VIP才能看到
         hide: false, //是否隐藏课程
+        dailyCourse: false, //选为每日新知后是否在课程隐藏
         putaway: true, //上架
         kind: 1, //课程类别
         tagId: "", //标签
@@ -993,6 +1015,25 @@ export default {
       this.courseId = data.id;
       this.updateds(2);
     },
+    //是否隐藏课程
+    dailyCourse(data) {
+      this.id = data.id;
+      this.form.dailyCourse = data.dailyCourse;
+      this.courseId = data.id;
+      var query = new this.ParseServer.Query("CoursesModule");
+      query.get(this.courseId).then((item) => {
+        item.set("dailyCourse", this.form.dailyCourse);
+        item.save().then(
+          () => {
+            this.$Message.success("修改成功");
+            this.cancel();
+          },
+          (error) => {
+            this.$Message.error("修改失败");
+          }
+        );
+      });
+    },
 
     // 修改隐藏课程 上架
     updateds(flag) {
@@ -1097,6 +1138,7 @@ export default {
         this.form.subTitle2 = res.get("subTitle2");
         this.form.vip = res.get("vip");
         this.form.hide = res.get("hide");
+        this.form.dailyCourse = res.get("dailyCourse");
         this.form.putaway = res.get("putaway");
         if (res.get("kind")) {
           this.form.kind = res.get("kind");
@@ -1286,6 +1328,7 @@ export default {
             course.set("headImg", this.form.headImg);
             course.set("putaway", this.form.putaway);
             course.set("hide", this.form.hide);
+            course.set("dailyCourse", this.form.dailyCourse);
             course.set("subjectName", this.form.subjectName);
             course.set("subTitle1", this.form.subTitle1);
             course.set("subTitle2", this.form.subTitle2);
@@ -1404,6 +1447,7 @@ export default {
         item.set("headImg", this.form.headImg);
         item.set("putaway", this.form.putaway);
         item.set("hide", this.form.hide);
+        item.set("dailyCourse", this.form.dailyCourse);
         item.set("subjectName", this.form.subjectName);
         item.set("subTitle1", this.form.subTitle1);
         item.set("subTitle2", this.form.subTitle2);
@@ -1483,6 +1527,7 @@ export default {
         item.set("headImg", this.form.headImg);
         item.set("putaway", this.form.putaway);
         item.set("hide", this.form.hide);
+        item.set("dailyCourse", this.form.dailyCourse);
         item.set("subjectName", this.form.subjectName);
         item.set("subTitle1", this.form.subTitle1);
         item.set("subTitle2", this.form.subTitle2);
@@ -1526,6 +1571,7 @@ export default {
       course.set("subTitle2", this.form.subTitle2);
       course.set("vip", this.form.vip);
       course.set("hide", this.form.hide);
+      course.set("dailyCourse", this.form.dailyCourse);
       // course.set("isVipLook", this.form.isVipLook);
       course.set("kind", this.form.kind);
       course.set("order", Number(this.form.order));
@@ -1725,6 +1771,7 @@ export default {
                   course.set("subjectName", this.form.subjectName);
                   course.set("vip", this.form.vip);
                   course.set("hide", this.form.hide);
+                  course.set("dailyCourse", this.form.dailyCourse);
                   course.set("innerOrder", Number(this.form.innerOrder));
                   course.set("kind", this.form.kind);
                   course.set("rootId", this.rootId);
@@ -1795,6 +1842,7 @@ export default {
         item.set("subjectName", this.form.subjectName);
         item.set("vip", this.form.vip);
         item.set("hide", this.form.hide);
+        item.set("dailyCourse", this.form.dailyCourse);
         item.set("kind", this.form.kind);
         item.set("innerOrder", Number(this.form.innerOrder));
         item.set("rootId", this.rootId);
@@ -1919,6 +1967,7 @@ export default {
                 vip: item.get("vip"),
                 kind: item.get("kind"),
                 hide: item.get("hide"),
+                dailyCourse: item.get("dailyCourse"),
                 tagName: item.get("tag")
                   ? item.get("tag").attributes.tagName
                   : "",
@@ -2143,6 +2192,7 @@ export default {
                 vip: item.get("vip"),
                 kind: item.get("kind"),
                 hide: item.get("hide"),
+                dailyCourse: item.get("dailyCourse"),
                 tagName: item.get("tag")
                   ? item.get("tag").attributes.tagName
                   : "",
