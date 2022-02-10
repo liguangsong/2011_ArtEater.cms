@@ -170,12 +170,12 @@
       >
         <FormItem label="列表图:" prop="listImg">
           <div>
-            <img v-if="form.listImg[0]" :src="form.listImg[0]" width="60" height="60" />
+            <img v-if="form.listImg && form.listImg[0]" :src="form.listImg[0]" width="60" height="60" />
           </div>
           <myUpload @complate="listUploadComplate" tips accept="image/*"></myUpload>
         </FormItem>
         <FormItem label="头图:" v-if="!showRadio">
-          <div v-if="form.headImg[0]" class="demo-upload-list">
+          <div v-if="form.headImg && form.headImg[0]" class="demo-upload-list">
             <img :src="form.headImg[0]" width="60" height="60" />
             <div class="demo-upload-list-cover">
               <Icon type="ios-eye-outline" @click.native="handleView(form.headImg[0])"></Icon>
@@ -272,7 +272,7 @@
         </FormItem>
         <FormItem v-if="flag==2" label="负责讲师头像:" prop="portrait">
           <div>
-            <img v-if="form.portrait[0]" :src="form.portrait[0]" width="60" height="60" />
+            <img v-if="form.portrait && form.portrait[0]" :src="form.portrait[0]" width="60" height="60" />
           </div>
           <myUpload @complate="oddUploadComplates" tips accept="image/*"></myUpload>
         </FormItem>
@@ -440,7 +440,7 @@
         </FormItem>
         <FormItem v-if="this.currLevel>1 && form.kind<4" label="负责讲师头像:" prop="portrait">
           <div>
-            <img v-if="form.portrait[0]" :src="form.portrait[0]" width="60" height="60" />
+            <img v-if="form.portrait && form.portrait[0]" :src="form.portrait[0]" width="60" height="60" />
           </div>
           <myUpload @complate="oddUploadComplates" tips accept="image/*"></myUpload>
         </FormItem>
@@ -1141,6 +1141,12 @@ export default {
      * 弹出编辑窗口 课程编辑
      */
     async editCourse(row) {
+      if (this.flag == 1 && row.level == 0) {
+        this.window_title = "编辑系列课程";
+      }else{
+        this.window_title = "编辑单独课程";
+        this.child_titleCourse="编辑系列课程-子课程";
+      }
       this.isAddCompile = 2;
       this.isExamineCompile = 1;
       this.courseId = row.id;
@@ -1596,6 +1602,7 @@ export default {
       this.isShowChildCourse = true;
       this.showRadio = true;
       this.flag = 1;
+      this.child_titleCourse="新增系列课程-子课程";
       if (this.flag == 1 && this.currLevel == 1) {
         this.form.kind = 4;
       }

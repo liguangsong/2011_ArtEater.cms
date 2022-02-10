@@ -74,6 +74,7 @@
 import { tool } from "@/api/tool";
 import { verification } from "@/api/verification";
 import excelUtil from "../../utils/dealwithExcelUtil";
+import Parse from "parse";
 export default {
   name: "couponrecord",
   data() {
@@ -83,12 +84,9 @@ export default {
       search_keyword: "",
       search_start_date: "",
       search_end_date: "",
-      sendMode: "all",
-      search_student_keyword: "",
-      studentPageIndex: 1,
       loading: true,
-      studentLoading: false,
       search_type: "",
+      openIdArr: [],
       columns: [
         { title: "序号", type: "index", key: "id", width: 60, align: "center" },
         { title: "优惠券名称", key: "couponName" },
@@ -114,6 +112,8 @@ export default {
             return h("div", { style: { color: color } }, txt);
           }
         },
+        { title: "使用人ID", key: "userId" },
+        { title: "使用人手机号", key: "phone" },
         { title: "使用情况", key: "state", slot: "state" },
         {
           title: "使用时间",
@@ -144,20 +144,8 @@ export default {
         { value: "silverPullNewUser", label: "白银拉新用户" },
         { value: "platinumPullNewUser", label: "铂金拉新用户" }
       ],
-      studentColmns: [
-        { title: "序号", type: "index", width: 60, align: "center" },
-        { title: "昵称", key: "nickName" },
-        { title: "学生姓名", key: "realname" },
-        { title: "手机号", key: "phone" },
-        { type: "selection", width: 60, align: "center", title: "全选" }
-      ],
       couponData: [],
       couponData2: [],
-      students: [],
-      couponRanges: [
-        { type: "manuallySend", title: "手动发送" },
-        { type: "automaticallySend", title: "自动发送" }
-      ],
       states: [
         { type: "all", title: "全部通用" },
         { type: "blackGold", title: "黑金" },
@@ -173,90 +161,17 @@ export default {
         { type: "blackGoldPullNewUser", title: "黑金拉新用户" },
         { type: "platinumPullNewUser", title: "铂金拉新用户" },
         { type: "silverPullNewUser", title: "白银拉新用户" }
-      ],
-      coupon_form: {
-        id: "",
-        couponName: "",
-        couponRange: "manuallySend",
-        state: "all",
-        amount: 0,
-        termValidity: 0,
-        updatedAt: ""
-      },
-      ruleValidate: {
-        couponName: [
-          { required: true, message: "请输入优惠券名称", trigger: "blur" }
-        ],
-        amount: [
-          {
-            required: true,
-            message: "请输入正确的优惠金额",
-            trigger: "blur",
-            validator: verification.validateFloat2
-          }
-        ],
-        couponRanges: [
-          {
-            trigger: "change",
-            validator: (rule, value, callback) => {
-              if (!value) {
-                callback(new Error("优惠券类型不能为空"));
-              }
-              callback();
-            }
-          }
-        ],
-        state: [
-          {
-            trigger: "change",
-            validator: (rule, value, callback) => {
-              if (!value) {
-                callback(new Error("优惠券使用情况不能为空"));
-              }
-              callback();
-            }
-          }
-        ],
-        updatedAt: [
-          {
-            trigger: "change",
-            validator: (rule, value, callback) => {
-              if (!value) {
-                callback(new Error("请输入使用时间"));
-              } else {
-                if (value < new Date()) {
-                  callback(new Error("截止时间必须是未来的某个时间"));
-                } else {
-                  callback();
-                }
-              }
-            }
-          }
-        ],
-        termValidity: [
-          {
-            required: true,
-            message: "请输入正确的有效期",
-            trigger: "blur",
-            validator: verification.validateFloat2
-          }
-        ]
-      },
-      init_data: ""
+      ]
     };
   },
   mounted() {
     var self = this;
-    this.init_data = JSON.stringify(this.message_form);
     this.page_list(this.page);
-    this.student_page_list();
-    this.page_list2();
   },
   methods: {
     search() {
       this.page = 1;
       this.page_list(this.page);
-      this.page_list2();
     },
     pagechange(e) {
       this.page = e;
@@ -264,6 +179,7 @@ export default {
     },
     page_list() {
       this.loading = true;
+      this.openIdArr = [];
       let query1 = new this.ParseServer.Query("NewCouponRecord");
       query1.contains("couponName", this.search_keyword);
       let query5 = new this.ParseServer.Query("NewCouponRecord");
@@ -292,14 +208,15 @@ export default {
       });
       query.skip((this.page - 1) * 10);
       query.limit(10);
-
       query.find().then(
         list => {
           this.couponData = [];
           if (list && list.length > 0) {
             this.couponData = list.map(item => {
+              this.openIdArr.push(item.get("openid"));
               var message = {
                 id: item.id,
+                openId: item.get("openid"),
                 couponName: item.get("couponName"),
                 amount: item.get("amount"),
                 couponRange: item.get("couponRange"),
@@ -311,6 +228,9 @@ export default {
               };
               return message;
             });
+            this.openIdArr = [...new Set(this.openIdArr)];
+            this.openIdArr = this.openIdArr.filter(item => item);
+            this.user_list();
           }
           this.loading = false;
         },
@@ -319,222 +239,60 @@ export default {
         }
       );
     },
-    async page_list2() {
-      let counts = 0;
-      let query1 = new this.ParseServer.Query("NewCouponRecord");
-      query1.contains("couponName", this.search_keyword);
-      let query5 = new this.ParseServer.Query("NewCouponRecord");
-      query5.contains("sendBy", this.search_keyword);
-      let query2 = new this.ParseServer.Query("NewCouponRecord");
-      if (this.search_start_date) {
-        query2.greaterThan("createdAt", this.search_start_date);
-      }
-      let query3 = new this.ParseServer.Query("NewCouponRecord");
-      if (this.search_end_date) {
-        query3.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
-      }
-      let query4 = new this.ParseServer.Query("NewCouponRecord");
-      if (this.search_type) {
-        query4.equalTo("couponRange", this.search_type);
-      }
-      var query = this.ParseServer.Query.and(
-        this.ParseServer.Query.or(query1, query5),
-        query2,
-        query3,
-        query4
-      );
-      query.descending("createdAt");
-      await query.count().then(count => {
-        counts = count;
-      });
-      query.limit(counts);
-      query.find().then(
-        list => {
-          this.couponData2 = [];
-          if (list && list.length > 0) {
-            this.couponData2 = list.map(item => {
-              var message = {
-                id: item.id,
-                couponName: item.get("couponName"),
-                amount: item.get("amount"),
-                couponRange: item.get("couponRange"),
-                state: item.get("state"),
-                sendBy: item.get("sendBy"),
-                updatedAt: tool.dateFormat(
-                  item.updatedAt,
-                  "yyyy-MM-dd HH:mm:ss"
-                ),
-                termValidity: item.get("termValidity"),
-                createdAt: tool.dateFormat(
-                  item.createdAt,
-                  "yyyy-MM-dd HH:mm:ss"
-                )
-              };
-              return message;
-            });
-          }
-        },
-        error => {
-          this.$Message.error("获取失败");
-        }
-      );
-    },
-    /** 分页加载学生信息 */
-    student_page_list() {
-      let query1;
-      let querya;
-      let queryc;
-      let openIds = [];
-      if (this.sendMode == "all" || this.sendMode == "part") {
-        query1 = new this.ParseServer.Query(this.ParseServer.User);
-        query1.equalTo("role", "student");
-        querya = new this.ParseServer.Query(this.ParseServer.User);
-        queryc = new this.ParseServer.Query(this.ParseServer.User);
-        this.generalUser(query1, querya, queryc);
-      }
-
-      if (this.sendMode == 0 || this.sendMode == 1 || this.sendMode == 2) {
-        query1 = new this.ParseServer.Query("MemberList");
-        query1.equalTo("memberType", this.sendMode);
-        querya = new this.ParseServer.Query("MemberList");
-        queryc = new this.ParseServer.Query("MemberList");
-        this.generalUser(query1, querya, queryc);
-      }
-
-      //个别学生
-      if (this.sendMode == "ordinary") {
-        let query = new this.ParseServer.Query("MemberList");
-        query1 = new this.ParseServer.Query(this.ParseServer.User);
-        querya = new this.ParseServer.Query(this.ParseServer.User);
-        queryc = new this.ParseServer.Query(this.ParseServer.User);
-        query.limit(10000);
-        query.find().then(
-          list => {
-            if (list && list.length > 0) {
-              list.forEach(item => {
-                openIds.push(item.get("openId"));
-              });
-              query1.notContainedIn("openid", openIds);
-              query1.equalTo("role", "student");
-              this.generalUser(query1, querya, queryc);
-            } else {
-              this.generalUser(query1, querya, queryc);
-            }
-          },
-          error => {}
-        );
-      }
-    },
-    //查询普通学生
-    generalUser(query1, querya, queryc) {
-      var self = this;
-      if (self.studentPageIndex <= 1) {
-        self.students = [];
-      }
-      let query2;
-      querya.contains("nickName", this.search_student_keyword);
-      queryc.contains("phone", this.search_student_keyword);
-      query2 = this.ParseServer.Query.or(querya, queryc);
-      let query = this.ParseServer.Query.and(query1, query2);
-      this.studentLoading = true;
-      query.ascending("createdAt");
-      query.skip((self.studentPageIndex - 1) * 10);
-      query.limit(10);
+    user_list() {
+      let mergeArr = [];
+      this.user_datas = [];
+      let query = new this.ParseServer.Query(this.ParseServer.User);
+      query.containedIn("openid", this.openIdArr);
       query.find().then(
         list => {
           if (list && list.length > 0) {
-            var _students = list.map(item => {
-              return {
-                id: item.id,
-                nickName: item.get("nickName"),
-                realname: item.get("realname"),
-                openid: item.get("openid"),
+            list.map(item => {
+              this.user_datas.push({
+                userId: item.id,
+                openId: item.get("openid"),
                 phone: item.get("phone")
-              };
+              });
             });
-            for (let i = 0; i < _students.length; i++) {
-              let student = _students[i];
-              self.students.push(student);
-            }
-            self.$nextTick(() => {
-              if (self.$refs.studentTable) {
-                var objData = self.$refs.studentTable.$refs.tbody.objData;
-                if (objData) {
-                  for (let i = 0; i < self.students.length; i++) {
-                    let item = objData[i];
-                    if (item) {
-                      var c = self.selectedStudent.find(t => {
-                        return t.id == item.id;
-                      });
-                      if (c) {
-                        item._isChecked = true;
-                      }
-                    }
+            for (const i in this.couponData) {
+              if (!this.couponData[i].openId) {
+                mergeArr.push({
+                  ...this.couponData[i]
+                });
+              } else {
+                for (const j in this.user_datas) {
+                  if (this.couponData[i].openId == this.user_datas[j].openId) {
+                    mergeArr.push({
+                      ...this.couponData[i],
+                      ...this.user_datas[j]
+                    });
                   }
                 }
               }
-            });
+            }
+            this.couponData = mergeArr;
+            this.user_datas = [];
           }
-          self.studentLoading = false;
         },
         error => {
-          self.$Message.error("获取失败");
+          this.$Message.error("列表获取失败");
         }
       );
     },
     // 全部导出
     async exports() {
-      var format_data = this.couponData2;
-      format_data.forEach((item, index) => {
-        item.id = index + 1;
-        item.sendBy = item.sendBy ? item.sendBy : "--";
-        item.updatedAt =
-          item.updatedAt && item.state == "2" ? item.updatedAt : "--";
-        item.state =
-          item.state == "0"
-            ? "未使用"
-            : item.state == "1"
-            ? "已过期"
-            : item.state == "2"
-            ? "已使用"
-            : "--";
-        if (item.couponRange == "all") {
-          item.couponRange = "全部通用";
-        }
-        if (item.couponRange == "blackGold") {
-          item.couponRange = "黑金";
-        }
-        if (item.couponRange == "platinum") {
-          item.couponRange = "铂金";
-        }
-        if (item.couponRange == "silver") {
-          item.couponRange = "白银";
-        }
-        if (item.couponRange == "blackGoldNew") {
-          item.couponRange = "黑金拉新";
-        }
-        if (item.couponRange == "platinumGoldNew") {
-          item.couponRange = "铂金拉新";
-        }
-        if (item.couponRange == "silverGoldNew") {
-          item.couponRange = "白银拉新";
-        }
-        if (item.couponRange == "newUser") {
-          item.couponRange = "注册新用户";
-        }
-        if (item.couponRange == "blackGoldPullNewUser") {
-          item.couponRange = "黑金拉新用户";
-        }
-        if (item.couponRange == "silverPullNewUser") {
-          item.couponRange = "白银拉新用户";
-        }
-        if (item.couponRange == "platinumPullNewUser") {
-          item.couponRange = "铂金拉新用户";
-        }
+      this.loading = true;
+      let res = await Parse.Cloud.run("getNewCouponRecordList", {
+        search_keyword: this.search_keyword,
+        search_type: this.search_type,
+        search_start_date: this.search_start_date,
+        search_end_date: this.search_end_date
       });
-      setTimeout(() => {
-        excelUtil.exportExcel(this.columns, format_data, "优惠券记录.xlsx");
-      }, 3000);
+      var a = document.createElement("a");
+      a.href = res.url;
+      a.download = "优惠券记录.xlsx";
+      a.click();
+      this.loading = false;
     }
   }
 };
@@ -576,14 +334,6 @@ export default {
     float: left;
     width: 18%;
     margin: 0 20px;
-  }
-}
-.operation-wrap {
-  float: right;
-  width: 40%;
-  .func {
-    float: right;
-    margin-left: 10px;
   }
 }
 </style>

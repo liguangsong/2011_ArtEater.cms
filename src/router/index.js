@@ -37,7 +37,7 @@ const modules = [{
       "Id": "1b9da043-6a2b-4531-123123-1231313131",
       "path": "/usermanage",
       "name": "usermanage",
-      "redirect": "usermanage/usermanageindex",
+      "redirect": "usermanage/studentindex",
       "meta": {
         "icon": "ios-people",
         "title": "用户管理",

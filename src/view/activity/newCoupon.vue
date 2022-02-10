@@ -632,6 +632,7 @@ export default {
       let sendMode = 1;
       var self = this;
       var CouponRecords = self.ParseServer.Object.extend("NewCouponRecord");
+      var User = self.ParseServer.Object.extend("_User");
       var realname = self.ParseServer.User.current().get('realname')
       if (self.coupon_curr) {
         var list = [];
@@ -653,6 +654,7 @@ export default {
                   ? self.coupon_form.useEndTime
                   : undefined
               );
+              couponRecord.set("user", User.createWithoutData(item.id));
               couponRecord.set("openid", item.get("openid"));
               couponRecord.set(
                 "mode",
@@ -689,6 +691,7 @@ export default {
                 ? self.coupon_form.useEndTime
                 : undefined
             );
+            couponRecord.set("user", User.createWithoutData(item.id));
             couponRecord.set("openid", item.openid);
             couponRecord.set(
               "mode",
