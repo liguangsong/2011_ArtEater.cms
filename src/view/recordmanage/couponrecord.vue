@@ -39,7 +39,7 @@
       <div class="search-btn" style="width: 80px; margin: 0">
         <Button type="primary" @click="search" size="large">查询</Button>
       </div>
-      <Button type="info" :loading="exportsLoading" @click="exports">全部导出</Button>
+      <Button type="info" @click="exports">全部导出</Button>
     </div>
     <Row class="table-wrap">
       <Table :loading="loading" :columns="columns" :data="couponData">
@@ -86,7 +86,6 @@ export default {
       search_end_date: "",
       loading: true,
       search_type: "",
-      exportsLoading: false,
       columns: [
         { title: "序号", type: "index", key: "id", width: 60, align: "center" },
         { title: "优惠券名称", key: "couponName" },
@@ -215,8 +214,10 @@ export default {
             this.couponData = list.map(item => {
               var message = {
                 id: item.id,
-                userId: item.get("user").id,
-                phone: item.get("user").attributes.phone,
+                userId: item.get("user") ? item.get("user").id : "",
+                phone: item.get("user")
+                  ? item.get("user").attributes.phone
+                  : "",
                 openId: item.get("openid"),
                 couponName: item.get("couponName"),
                 amount: item.get("amount"),
@@ -239,18 +240,31 @@ export default {
     },
     // 全部导出
     async exports() {
-      this.exportsLoading = true;
+      this.loading = true;
       let res = await Parse.Cloud.run("getNewCouponRecordList", {
         search_keyword: this.search_keyword,
         search_type: this.search_type,
         search_start_date: this.search_start_date,
         search_end_date: this.search_end_date
       });
+      let name = "优惠券记录.xlsx";
+      this.downloadClick(res.url, name);
+      this.loading = false;
+    },
+    async downloadClick(url, name) {
+      window.URL = window.URL || window.webkitURL;
+      var xhr = new XMLHttpRequest();
       var a = document.createElement("a");
-      a.href = res.url;
-      a.download = "优惠券记录.xlsx";
-      a.click();
-      this.exportsLoading = false;
+      var file;
+      xhr.open("GET", url, true);
+      xhr.responseType = "blob";
+      xhr.onload = function() {
+        file = new Blob([xhr.response], { type: "application/octet-stream" });
+        a.href = window.URL.createObjectURL(file);
+        a.download = name;
+        a.click();
+      };
+      xhr.send();
     }
   }
 };
