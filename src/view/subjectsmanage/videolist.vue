@@ -578,7 +578,6 @@ export default {
           this.loading = false;
         },
         error => {
-          console.log(error);
           this.$Message.error("获取失败");
         }
       );

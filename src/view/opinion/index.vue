@@ -158,14 +158,12 @@ export default {
 
  // 移入
     mouseOver(data) {
-      console.log(data)
       if(data.message.length>=36){
       data.messageLen = false
       }
     },
     // 移出
       mouseLeave(data) {
-     console.log(data)
       if(data.message.length>=36){
         data.messageLen = true
         }

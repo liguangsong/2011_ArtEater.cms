@@ -194,7 +194,6 @@ export default {
     })
     var query1 = new this.ParseServer.Query('Activity')
     query1.find().then(activitys=>{
-      // debugger
       activitys.forEach(t=>{
         self.productTypes.push({type:t.id,title:t.get('title')})
       })

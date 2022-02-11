@@ -344,7 +344,6 @@
         //el 被新创建的 vm.$el 替换，并挂载到实例上去之后调用该钩子。
         updated: function () {
             this.$nextTick(function () {
-                ////console.log(pageData);
                 //var files = this.$refs.feedbakcImg;
                 //for (var i = 0; i < files.length; i++) {
                 //    files[i].clearFiles();

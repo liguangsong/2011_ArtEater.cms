@@ -406,7 +406,6 @@ export default {
               }
             },
             (error) => {
-              console.log(error);
               self.$Message.error("保存失败");
             }
           );
@@ -465,7 +464,6 @@ export default {
           self.$Message.success("保存成功");
         },
         (error) => {
-          console.log(error);
           self.$Message.error("保存失败");
         }
       );
@@ -482,7 +480,6 @@ export default {
           self.$Message.success("保存成功");
         },
         (error) => {
-          console.log(error);
           self.$Message.error("保存失败");
         }
       );

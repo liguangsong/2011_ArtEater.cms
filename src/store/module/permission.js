@@ -24,7 +24,6 @@ function AddChildrenMenu (item, menu) {
   if (item.children && item.children.length) {
     menu.children = []
     item.children.filter(chd => {
-      // console.log(chd);
       if (chd) {
         var cMenu = {
           path: chd.path,
@@ -34,7 +33,6 @@ function AddChildrenMenu (item, menu) {
           meta: { title: chd.meta.title, icon: chd.meta.icon, hideInMenu: chd.meta.hideInMenu, permissionInfos: chd.permissionInfos }
         }
         AddChildrenMenu(chd, cMenu)
-        // console.log(cMenu)
         menu.children.push(cMenu)
       }
     })

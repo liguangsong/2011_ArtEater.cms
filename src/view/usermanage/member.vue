@@ -104,7 +104,6 @@ export default {
       page: 1,
       total: 0,
       loading: true,
-      isShowEdit: false,
       user_id: "",
       window_title: "用户信息",
       show_window: false,
@@ -271,7 +270,7 @@ export default {
           this.loading = false;
         },
         error => {
-          this.$Message.error("用户列表获取失败");
+          this.$Message.error("会员列表获取失败");
         }
       );
     },
@@ -328,7 +327,7 @@ export default {
           }
         },
         error => {
-          this.$Message.error("用户列表获取失败");
+          this.$Message.error("会员列表获取失败");
         }
       );
     },
@@ -432,7 +431,7 @@ export default {
             key: "createdAt"
           }
         ];
-        excelUtil.exportExcel(initColumn, format_data, "学生管理数据记录.xlsx");
+        excelUtil.exportExcel(initColumn, format_data, "会员管理数据记录.xlsx");
       }, 3000);
     }
   }

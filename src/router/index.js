@@ -804,7 +804,6 @@ router.beforeEach((to, from, next) => {
     if (to.meta.nologin) {
       next()
     } else {
-      console.log(1)
       next()
     }
   } else if (!token && to.name === LOGIN_PAGE_NAME) {

@@ -372,7 +372,6 @@ export default {
         this.loading = false;
       },
       error => {
-        console.log(error);
         this.$Message.error("保存失败");
       }
     );
@@ -402,7 +401,6 @@ export default {
                     this.page_list(this.page);
                   },
                   error => {
-                    console.log(error)
                     this.$Message.error("删除失败");
                   }
                 );

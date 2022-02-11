@@ -123,16 +123,13 @@ export default {
 
     page_list(page_index) {
       this.loading = true;
-      console.log(this.openIds);
       this.user_datas = [];
-      console.log(this.search_keyword);
       let query = new this.ParseServer.Query(this.ParseServer.User);
       query.containedIn("openid", this.openIds);
       query.descending("createdAt");
       query.limit(100000);
       query.find().then(
         (list) => {
-          console.log(list);
           if (list && list.length > 0) {
             list.map((item) => {
               this.user_datas.push({
@@ -143,21 +140,15 @@ export default {
                 phone: item.get("phone"),
               });
             });
-            console.log(this.user_datas);
             for (const i in this.orders) {
               for (const j in this.user_datas) {
                 if (this.orders[i].openId == this.user_datas[j].openId) {
-                  // console.log(this.orders[i]);
-                  // console.log(this.user_datas[j]);
                   if (this.flag == 1) {
-                    console.log("sdc");
                     this.datas.push({
                       ...this.orders[i],
                       ...this.user_datas[j],
                     });
                   } else {
-                    console.log("fdvever");
-                    console.log(this.datas2);
                     this.datas2.push({
                       ...this.orders[i],
                       ...this.user_datas[j],
@@ -177,7 +168,6 @@ export default {
 
     //查询用户消费订单
     customerOrders() {
-      console.log(this.flag);
       this.orders = [];
       this.openIds = [];
       let query1 = new this.ParseServer.Query("Order");
@@ -210,8 +200,6 @@ export default {
         (list) => {
           if (list && list.length > 0) {
             list.map((item) => {
-              console.log(item);
-              console.log(item.get("openId"));
               this.openIds.push(item.get("openId"));
               this.orders.push({
                 id: item.id,
@@ -244,7 +232,6 @@ export default {
     exports() {
       this.flag = 2;
       this.customerOrders();
-      console.log(this.datas2);
       setTimeout(() => {
         if (this.datas2.length <= 0) return;
         const initColumn = [
@@ -296,7 +283,6 @@ export default {
         ];
         excelUtil.exportExcel(initColumn, this.datas2, "用户订单数据.xlsx");
       }, 2000);
-      console.log("全部导出");
     },
   },
 };
