@@ -142,6 +142,7 @@
 <script>
 import { tool } from "@/api/tool";
 import excelUtil from "../../utils/dealwithExcelUtil";
+import Parse from "parse";
 export default {
   name: "studentindex",
   data() {
@@ -232,7 +233,6 @@ export default {
         },
       ],
       users_datas: [],
-      users_datas2: [],
       user_forms: {
         nickName: "",
         label: "",
@@ -251,7 +251,6 @@ export default {
   },
   mounted() {
     this.page_list(this.page);
-    this.page_list2();
   },
   methods: {
     edit() {
@@ -305,7 +304,6 @@ export default {
     search() {
       this.page = 1;
       this.page_list(this.page);
-      this.page_list2();
     },
 
     pagechange(e) {
@@ -403,11 +401,6 @@ export default {
           if (item.openid==formats.openId) {
           item.amount=formats.cash;
         }})
-        this.users_datas2.map(item=>{
-          if (item.openid==formats.openId) {
-          item.amount=formats.cash
-        }
-        })
       })
     },
     
@@ -432,73 +425,6 @@ export default {
         return newArr;
     },
 
-    async page_list2() {
-      let counts = 0;
-      let user1 = new this.ParseServer.Query(this.ParseServer.User);
-      user1.contains("realname", this.search_keyword);
-      user1.equalTo("role", "student");
-      let user6 = new this.ParseServer.Query(this.ParseServer.User);
-      if (this.label) {
-        user6.contains("label", this.label);
-        user6.equalTo("role", "student");
-      }
-      let user2 = new this.ParseServer.Query(this.ParseServer.User);
-      user2.contains("phone", this.search_keyword);
-      user2.equalTo("role", "student");
-      let user3 = new this.ParseServer.Query(this.ParseServer.User);
-      user3.contains("nickName", this.search_keyword);
-      user3.equalTo("role", "student");
-      let user4 = new this.ParseServer.Query(this.ParseServer.User);
-      if (this.search_start_date) {
-        user4.greaterThan("createdAt", this.search_start_date);
-      }
-      let user5 = new this.ParseServer.Query(this.ParseServer.User);
-      if (this.search_end_date) {
-        user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
-      }
-      var query = this.ParseServer.Query.and(
-        this.ParseServer.Query.or(user1, user2, user3),
-        user4,
-        user5,
-        user6
-      );
-      await query.count().then((count) => {
-        counts = count;
-      });
-      query.limit(counts);
-      query.descending("createdAt");
-      query.find().then(
-        (list) => {
-          this.users_datas2 = [];
-          let openIds = [];
-          if (list && list.length > 0) {
-            this.users_datas2 = list.map((item) => {
-              var account = {
-                id: item.id,
-                openid: item.get("openid"),
-                label: item.get("label"),
-                nickName: item.get("nickName"),
-                realname: item.get("realname"),
-                phone: item.get("phone"),
-                amount: item.get("amount"),
-                score: item.get("score"),
-                avatarUrl: item.get("avatarUrl"),
-                createdAt: tool.dateFormat(
-                  item.createdAt,
-                  "yyyy-MM-dd HH:mm:ss"
-                ),
-              };
-              openIds.push(item.get("openid"))
-              return account;
-            });
-            this.customerOrders(openIds);
-          }
-        },
-        (error) => {
-          this.$Message.error("用户列表获取失败");
-        }
-      );
-    },
 
     /*
      *删除用户
@@ -538,57 +464,32 @@ export default {
 
     // 全部导出
     async exports() {
-      setTimeout(() => {
-        const initColumn = [
-          {
-            title: "ID",
-            dataIndex: "id",
-            key: "id",
-          },
-          {
-            title: "昵称",
-            dataIndex: "nickName",
-            key: "nickName",
-          },
-          {
-            title: "姓名",
-            dataIndex: "realname",
-            key: "realname",
-          },
-          {
-            title: "标签",
-            dataIndex: "label",
-            key: "label",
-          },
-          {
-            title: "手机号",
-            dataIndex: "phone",
-            key: "phone",
-          },
-          {
-            title: "注册时间",
-            dataIndex: "createdAt",
-            key: "createdAt",
-          },
-          {
-            title: "消费金额",
-            dataIndex: "amount",
-            key: "amount",
-          },
-
-          {
-            title: "积分",
-            dataIndex: "score",
-            key: "score",
-          },
-        ];
-        excelUtil.exportExcel(
-          initColumn,
-          this.users_datas2,
-          "学生管理数据记录.xlsx"
-        );
-      }, 3000);
+      this.loading = true;
+      let res = await Parse.Cloud.run("getStudentList", {
+        search_keyword: this.search_keyword,
+        label: this.label,
+        search_start_date: this.search_start_date,
+        search_end_date: this.search_end_date
+      });
+      let name = "学生管理数据记录.xlsx";
+      this.downloadClick(res.url, name);
+      this.loading = false;
     },
+    async downloadClick(url, name) {
+      window.URL = window.URL || window.webkitURL;
+      var xhr = new XMLHttpRequest();
+      var a = document.createElement("a");
+      var file;
+      xhr.open("GET", url, true);
+      xhr.responseType = "blob";
+      xhr.onload = function() {
+        file = new Blob([xhr.response], { type: "application/octet-stream" });
+        a.href = window.URL.createObjectURL(file);
+        a.download = name;
+        a.click();
+      };
+      xhr.send();
+    }
   },
 };
 </script>
