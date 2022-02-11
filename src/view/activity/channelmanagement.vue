@@ -635,7 +635,6 @@ export default {
     },
     //导出账单
     exportBill() {
-      console.log(this.datas2)
       if(this.datas2.length<=0) return
       for (const key in this.datas2) {
         if (this.datas2[key].memberType == 1) {

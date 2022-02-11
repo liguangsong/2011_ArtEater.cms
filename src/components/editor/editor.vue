@@ -83,21 +83,17 @@ export default {
     //富文本 方法
     onEditorChange({ editor, html, text }) {
       //内容改变事件
-      // console.log("editor change!", editor, html, text);
       this.content = html;
       this.$emit("on-change", html);
     },
     onEditorBlur(editor) {
       //失去焦点事件
-      // console.log("editor blur!", editor);
     },
     onEditorFocus(editor) {
       //获得焦点事件
-      // console.log("editor focus!", editor);
     },
     onEditorReady(editor) {
       //准备编辑器
-      // console.log("editor ready!", editor);
       this.content = this.value;
     },
     //富文本 自定义图片上传

@@ -469,7 +469,6 @@ export default {
       this.page_list();
     },
     couponTypeChange() {
-      console.log("dsfdsv ");
     },
 
     /** 添加优惠券 */
@@ -502,7 +501,6 @@ export default {
     },
     /** 发送优惠券 */
     handleSend(row) {
-      console.log(row);
       var self = this;
       self.coupon_form.useEndTime = row.useEndTime;
       this.selectedStudent = [];
@@ -569,7 +567,6 @@ export default {
     },
     /** 选择发送模式 */
     handleChangeStuMode(mode) {
-      console.log(this.sendMode);
       this.studentPageIndex = 1;
       this.selectedStudent = [];
       this.student_page_list();
@@ -578,13 +575,11 @@ export default {
     handleSaveCoupon() {
       var self = this;
       if (this.coupon_form.couponType == "automaticallySend") {
-        // console.log(this.coupon_form.useEndTime.getTime()+ 1000 * 60 * 60 * 24 * 365)
         // this.coupon_form.useEndTime = new Date(new Date().getTime()+ 1000 * 60 * 60 * 24 * 365)
       }
       if (this.coupon_form.couponType == "manuallySend") {
         this.coupon_form.termValidity = 0;
       }
-      console.log(self.coupon_form.termValidity);
       this.$refs["form"].validate((valid) => {
         if (!valid) {
           self.$Message.error("请检查表单项");
@@ -619,8 +614,6 @@ export default {
               self.page_list();
             },
             (error) => {
-              // debugger;
-              console.log(error);
               this.$Message.error("保存失败");
             }
           );
@@ -794,7 +787,6 @@ export default {
     },
     /** 分页加载学生信息 */
     student_page_list() {
-      console.log(this.sendMode);
       let query1;
       let querya;
       let queryc;
@@ -829,7 +821,6 @@ export default {
               list.forEach((item) => {
                 openIds.push(item.get("openId"));
               });
-              console.log(openIds);
               query1.notContainedIn("openid", openIds);
               query1.equalTo("role", "student");
               this.generalUser(query1, querya, queryc);
@@ -892,11 +883,9 @@ export default {
               }
             });
           }
-          console.log(self.students);
           self.studentLoading = false;
         },
         (error) => {
-          console.log(error);
           self.$Message.error("获取失败");
         }
       );

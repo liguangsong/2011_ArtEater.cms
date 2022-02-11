@@ -22,7 +22,6 @@ const instance = axios.create()
 //         return null;
 // }
 // var csrftoken = getCookie('csrfToken');
-// console.log(csrftoken);
 // axios.defaults.headers.common['x-csrf-token'] = csrftoken;
 // axios.interceptors.request.use = instance.interceptors.request.use;
 // axios.interceptors.response.use = instance.interceptors.response.use;
@@ -53,7 +52,6 @@ instance.interceptors.response.use(
   },
   error => {
     // 默认除了2XX之外的都是错误的，就会走这里
-    console.log(error.response)
     if (error.response) {
       switch (error.response.status) {
         case 401:

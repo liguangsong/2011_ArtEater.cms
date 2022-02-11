@@ -12,7 +12,6 @@ var instance = axios.create()
 // 在实例已创建后修改默认值
 //   instance.defaults.headers.common['x-csrf-token'] = 6666;
 // axios.defaults.headers.common['x-csrf-token'] = csrftoken;
-// console.log(csrftoken)
 instance.interceptors.request.use(
   config => {
     config.headers.common['x-csrf-token'] = csrftoken

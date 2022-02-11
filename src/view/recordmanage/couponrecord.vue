@@ -144,7 +144,6 @@ export default {
         { value: "platinumPullNewUser", label: "铂金拉新用户" }
       ],
       couponData: [],
-      couponData2: [],
       states: [
         { type: "all", title: "全部通用" },
         { type: "blackGold", title: "黑金" },

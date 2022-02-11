@@ -18,7 +18,6 @@ export default {
   },
   methods:{
     goBack () {
-        // console.log("点击了浏览器的返回按钮");
         sessionStorage.clear();
         if(this.$router.history){
           // this.$router.go(-1)

@@ -383,6 +383,12 @@
         :label-width="100"
         :rules="ruleValidate"
       >
+      <FormItem v-if="this.currLevel>1 && form.kind<4" label="列表图:" prop="listImg">
+        <div>
+          <img v-if="form.listImg && form.listImg[0]" :src="form.listImg[0]" width="60" height="60" />
+        </div>
+        <myUpload @complate="listUploadComplate" tips accept="image/*"></myUpload>
+      </FormItem>
       <FormItem label="课程名称:" prop="subjectName">
           <Input
             v-model="form.subjectName"
@@ -1001,8 +1007,6 @@ export default {
 
     // //是否vip可看
     // isVipLookClick(data) {
-    //   console.log(this.form.isVipLook);
-    //   console.log(data.isVipLook);
     //   this.id = data.id;
     //   // this.form.isVipLook = data.isVipLook;
     //   this.updated_course();
@@ -1352,7 +1356,6 @@ export default {
                 this.page_list();
               },
               (error) => {
-                console.log(error);
                 this.$Message.error("保存失败");
               }
             );
@@ -1476,7 +1479,6 @@ export default {
             this.page_list();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
@@ -1546,7 +1548,6 @@ export default {
             this.page_list();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
@@ -1604,7 +1605,6 @@ export default {
           }
         },
         (error) => {
-          console.log(error);
           this.$Message.error("保存失败");
         }
       );
@@ -1787,7 +1787,6 @@ export default {
                       this.page_list();
                     },
                     (error) => {
-                      console.log(error);
                       this.$Message.error("保存失败");
                     }
                   );
@@ -1857,7 +1856,6 @@ export default {
             this.page_list();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
@@ -1886,7 +1884,6 @@ export default {
             this.isIntroduce = false;
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );
@@ -2229,7 +2226,6 @@ export default {
             this.cancel();
           },
           (error) => {
-            console.log(error);
             this.$Message.error("修改失败");
           }
         );

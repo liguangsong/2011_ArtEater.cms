@@ -24,8 +24,8 @@ function importExcel(file) {
           data = data.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]))
           break; // 如果只取第一张表，就取消注释这行
         }
-      }
-      console.log(data) // 这里拿到的是，导入的table里的数据，数组对象格式；[{姓名: "张三", 年级: "2017级", 部门: "前端部门", __rowNum__: 1},{姓名: "李四", 年级: "2017级", 部门: "程序部门", __rowNum__: 2}]
+      } 
+      // 这里拿到的是，导入的table里的数据，数组对象格式；[{姓名: "张三", 年级: "2017级", 部门: "前端部门", __rowNum__: 1},{姓名: "李四", 年级: "2017级", 部门: "程序部门", __rowNum__: 2}]
       return data
     } catch (e) {
       // 这里可以抛出文件类型错误不正确的相关提示
@@ -37,7 +37,6 @@ function importExcel(file) {
 }
 
 function exportExcel(headers, data, fileName = '导出结果.xlsx') {
-  console.log(data)
   const _headers = headers
     .map((item, i) => Object.assign({}, {
       key: item.key,
