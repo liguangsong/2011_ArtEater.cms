@@ -413,11 +413,15 @@ export default {
       });
     },
     /** 更新父级科目 */
-    updateParentPrice(parentId) {
+    async updateParentPrice(parentId) {
+      let counts = 0;
       var self = this;
       var query = new self.ParseServer.Query("Subjects");
       query.equalTo("parent_ID", parentId);
-      query.limit(10000);
+      await query.count().then(count => {
+        counts = count;
+      });
+      query.limit(counts);
       query.find().then((childrens) => {
         let hasChildren = false;
         let price = 0;
@@ -504,14 +508,10 @@ export default {
      */
     page_list(page_index) {
       let _this = this;
-      let query1 = new this.ParseServer.Query("Subjects");
-      query1.equalTo("parent_ID", this.currParent.id);
-      query1.contains("subject_name", this.subjectName);
-
-      let query2 = new this.ParseServer.Query("Subjects");
-      query2.equalTo("parent_ID", this.currParent.id);
-      query2.contains("objectId", this.subjectId);
-      var query = this.ParseServer.Query.and(query1, query2);
+      let query = new this.ParseServer.Query("Subjects");
+      query.equalTo("parent_ID", this.currParent.id);
+      query.contains("subject_name", this.subjectName);
+      query.contains("objectId", this.subjectId);
       query.ascending("createdAt");
       query.count().then((count) => {
         _this.total = count;

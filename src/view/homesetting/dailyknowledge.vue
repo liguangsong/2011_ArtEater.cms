@@ -29,8 +29,8 @@
           <Button :class="{'active':isActive==1}" @click="courseList(1)">展示课程</Button>
           <Button :class="{'active':isActive==2}" @click="courseList(2)">教师头像</Button>
         </div>
-        <Button v-if="isActive==1" type="primary" @click="addCourseClick">新增课程</Button>
-        <Button v-if="isActive==2" type="primary" @click="addCover">新增教师</Button>
+        <Button v-show="isActive==1" type="primary" @click="addCourseClick">新增课程</Button>
+        <Button v-show="isActive==2" type="primary" @click="addCover">新增教师</Button>
       </div>
       <!-- 课程表格 -->
       <div v-show="isActive==1">
@@ -310,15 +310,11 @@
 
 <script>
 import { tool } from "@/api/tool";
-import { verification } from "@/api/verification";
 import myUpload from "@/components/myUpload";
-import itemMixin from "../../components/main/components/side-menu/item-mixin";
-import myUploadMuti from "@/components/myUploadMuti";
 export default {
   name: "coursesmanageindex",
   components: {
     myUpload,
-    myUploadMuti
   },
   data() {
     return {
@@ -332,7 +328,6 @@ export default {
       isCourseCompileAdd: 1, //是添加模块添加课程还是模块编辑课程
       radioData: "",
       courses_datas: [],
-      courses_datas2: [],
       add_titleCourse: "添加课程",
       isShowAddCourse: false,
       isShowAddCourse2: false,
@@ -352,7 +347,6 @@ export default {
           id: "0"
         }
       ],
-      annotation: true,
       search_keyword: "",
       search_keywords: "",
       search_keywordtch: "",
@@ -438,24 +432,6 @@ export default {
         ]
       },
       ruleValidates: {
-        moduleName: [
-          { required: true, message: "请输入模块名称", trigger: "blur" }
-        ],
-
-        showAmount: [
-          {
-            trigger: "blur",
-            required: true,
-            validator: (rule, value, callback) => {
-              if (value == "") {
-                return callback(new Error("请输入展示数量"));
-              } else if (!/^[0-9]*$/.test(value)) {
-                return callback(new Error("首页展示数量只能输入数字！"));
-              }
-              callback();
-            }
-          }
-        ],
         title: [{ required: true, message: "请输入标题名称", trigger: "blur" }],
         N: [
           {
@@ -609,6 +585,7 @@ export default {
       );
     },
 
+    // 删除课程
     DelConfirmShow(row) {
       var id = row.id;
       let _this = this;
@@ -627,6 +604,8 @@ export default {
         }
       });
     },
+
+    // 删除教师
     DeltchShow(row) {
       var id = row.id;
       let _this = this;
@@ -858,10 +837,14 @@ export default {
     },
 
     //  修改课程
-    isUpdateCourse(id) {
+    async isUpdateCourse(id) {
+      let counts = 0;
       this.updatedBy = this.ParseServer.User.current().toJSON().realname;
       var query = new this.ParseServer.Query("DailyCourse");
-      query.limit(10000);
+      await query.count().then(count => {
+        counts = count;
+      });
+      query.limit(counts);
       query.find().then(response => {
         if (response && response.length > 0) {
           query.get(id).then(item => {
@@ -990,6 +973,8 @@ export default {
         }
       });
     },
+
+    // 修改教师
     updated() {
       var query = new this.ParseServer.Query("DailyTeacher");
       query.get(this.Id).then(item => {
@@ -1022,95 +1007,16 @@ export default {
 .search-wrap {
   float: left;
   width: 60%;
-  .label-split {
-    // margin: 0 10px;
-    padding: 0 10px;
-    width: 10%;
-    box-sizing: border-box;
-    display: block;
-    float: left;
-    text-align: center;
-  }
   .search-keyword {
     float: left;
     width: 40%;
   }
-  .select-choice {
-    float: left;
-    width: 35%;
-    span {
-      //   width: 20%;
-      display: inline-block;
-      box-sizing: border-box;
-      line-height: 36px;
-      padding: 0 10px;
-      text-align: right;
-    }
-    .choice {
-      width: 80%;
-      //   float: right;
-    }
-  }
   .search-btn {
     float: left;
-    // width: 20%;
     margin: 0 20px;
   }
 }
 
-.operation-wrap {
-  width: 40%;
-  text-align: right;
-  .func {
-    // float: right;
-    margin-left: 10px;
-  }
-}
-.comments {
-  overflow-y: auto;
-  width: 400px !important;
-}
-.demo-spin-icon-load {
-  animation: ani-demo-spin 1s linear infinite;
-}
-@keyframes ani-demo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(180deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-.demo-spin-col {
-  height: 100px;
-  position: relative;
-  border: 1px solid #eee;
-}
-.binding {
-  display: inline-block;
-  width: 100%;
-  height: 20px;
-  line-height: 20px;
-  font-size: 14px;
-  color: #17233d;
-  font-weight: bold;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin-bottom: 20px;
-}
-
-.overflow {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  overflow: hidden;
-  // height: 30px;
-  flex: 1;
-}
 .flag {
   margin-left: 20px;
 }

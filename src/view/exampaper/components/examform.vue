@@ -366,11 +366,15 @@ export default {
      * 作者：gzt
      * 时间：2020-11-22 14:42:57
      */
-    bindSubjectTree() {
+    async bindSubjectTree() {
+      let counts = 0;
       var self = this
       var query = new this.ParseServer.Query("Subjects")
       query.ascending('createdAt')
-      query.limit(10000)
+      await query.count().then(count => {
+        counts = count;
+      });
+      query.limit(counts);
       query.find().then(res=>{
           this.subjects = res
           var tree = self.initSubjectTree(res,'0')

@@ -413,7 +413,7 @@ export default {
               if (self.currParent.id != "0" || self.currParent.id != 0) {
                 self.updateParentPrice(self.currParent.id);
               } else {
-                self.$Message.success("保存成功12");
+                self.$Message.success("保存成功");
                 self.page_list(1);
                 self.cancel();
               }
@@ -426,11 +426,15 @@ export default {
       });
     },
     /** 更新父级套课 */
-    updateParentPrice(parentId) {
+    async updateParentPrice(parentId) {
       var self = this;
+      let counts = 0;
       var query = new self.ParseServer.Query("Courses");
       query.equalTo("parent_ID", parentId);
-      query.limit(10000);
+      await query.count().then(count => {
+        counts = count;
+      });
+      query.limit(counts);
       query.find().then((childrens) => {
         let hasChildren = false;
         let price = 0;
@@ -446,7 +450,7 @@ export default {
             if (parent.get("parent_ID") != "0") {
               self.updateParentPrice(parent.get("parent_ID"));
             } else {
-              self.$Message.success("保存成功55");
+              self.$Message.success("保存成功");
               self.page_list(1);
               self.cancel();
             }
@@ -517,23 +521,20 @@ export default {
      */
     page_list(page_index) {
       let _this = this;
-      let query1 = new this.ParseServer.Query("Courses");
-      query1.equalTo("parent_ID", this.currParent.id);
-      query1.contains("courseName", this.search_keyword);
+      let query = new this.ParseServer.Query("Courses");
+      query.equalTo("parent_ID", this.currParent.id);
+      query.contains("courseName", this.search_keyword);
 
-      let query2 = new this.ParseServer.Query("Courses");
-      query2.equalTo("parent_ID", this.currParent.id);
+      query.equalTo("parent_ID", this.currParent.id);
 
-      let query3 = new this.ParseServer.Query("Courses");
       if (this.search_state == 1) {
         // 收费
-        query3.notEqualTo("price", 0);
+        query.notEqualTo("price", 0);
       } else if (this.search_state == 0) {
-        query3.equalTo("price", 0);
+        query.equalTo("price", 0);
       }
 
       // query2.contains("objectId", this.courseId);
-      var query = this.ParseServer.Query.and(query1, query2, query3);
       query.ascending("createdAt");
       query.count().then((count) => {
         _this.total = count;
@@ -579,10 +580,14 @@ export default {
      *作者：gzt
      *时间：2020-11-22 11:57:11
      */
-    recursive_delete(parent_id) {
+    async recursive_delete(parent_id) {
+      let rec_counts = 0;
       var query_deletes = new this.ParseServer.Query("Courses");
       query_deletes.equalTo("parent_ID", parent_id);
-      query_deletes.limit(10000);
+      await query_deletes.count().then(count => {
+        rec_counts = count;
+      });
+      query_deletes.limit(rec_counts);
       query_deletes.find().then((response) => {
         if (response && response.length > 0) {
           response.forEach((data) => {

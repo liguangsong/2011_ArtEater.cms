@@ -227,19 +227,15 @@ export default {
       if (this.search_start_date) {
         user4.greaterThan("createdAt", this.search_start_date);
       }
-      let user5 = new this.ParseServer.Query("MemberList");
       if (this.search_end_date) {
-        user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+        user4.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
-      let user6 = new this.ParseServer.Query("MemberList");
       if (this.search_type) {
-        user6.equalTo("memberType", this.search_type);
+        user4.equalTo("memberType", this.search_type);
       }
       var query = this.ParseServer.Query.and(
         this.ParseServer.Query.or(user1, user2, user3),
-        user4,
-        user5,
-        user6
+        user4
       );
       query.count().then(count => {
         this.total = count;
@@ -287,19 +283,15 @@ export default {
       if (this.search_start_date) {
         user4.greaterThan("createdAt", this.search_start_date);
       }
-      let user5 = new this.ParseServer.Query("MemberList");
       if (this.search_end_date) {
-        user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+        user4.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
-      let user6 = new this.ParseServer.Query("MemberList");
       if (this.search_type) {
-        user6.equalTo("memberType", this.search_type);
+        user4.equalTo("memberType", this.search_type);
       }
       var query = this.ParseServer.Query.and(
         this.ParseServer.Query.or(user1, user2, user3),
-        user4,
-        user5,
-        user6
+        user4
       );
       await query.count().then(count => {
         counts = count;
@@ -368,6 +360,7 @@ export default {
         }
       });
     },
+    // 修改user表的memberType
     removeMember(openId) {
       var query = new this.ParseServer.Query(this.ParseServer.User);
       query.equalTo("openid", openId);

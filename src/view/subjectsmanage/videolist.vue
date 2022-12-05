@@ -356,10 +356,14 @@ export default {
     },
 
     /** 加载树形科目 */
-    bindCourseTree() {
+    async bindCourseTree() {
+      let counts = 0;
       var self = this;
       var query = new this.ParseServer.Query("Courses");
-      query.limit(10000);
+      await query.count().then(count => {
+        counts = count;
+      });
+      query.limit(counts);
       query.ascending("createdAt");
       query.find().then(res => {
         this.courses = res;

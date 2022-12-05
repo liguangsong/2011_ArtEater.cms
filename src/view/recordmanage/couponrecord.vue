@@ -185,19 +185,15 @@ export default {
       if (this.search_start_date) {
         query2.greaterThan("createdAt", this.search_start_date);
       }
-      let query3 = new this.ParseServer.Query("NewCouponRecord");
       if (this.search_end_date) {
-        query3.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+        query2.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
-      let query4 = new this.ParseServer.Query("NewCouponRecord");
       if (this.search_type) {
-        query4.equalTo("couponRange", this.search_type);
+        query2.equalTo("couponRange", this.search_type);
       }
       var query = this.ParseServer.Query.and(
         this.ParseServer.Query.or(query1, query5),
-        query2,
-        query3,
-        query4
+        query2
       );
       query.descending("createdAt");
       query.count().then(count => {

@@ -6,18 +6,18 @@
           <Input
             v-model="search_keyword"
             size="large"
-            placeholder="优惠卷名称关键字搜索"
+            placeholder="优惠券名称关键字搜索"
             style="width: 200px"
           />
         </div>
         <div
           class="select-choice clear-fix"
           style="width: 500px; display: flex"
-        >
+          >
           <span>注册时间</span>
           <div
-            class="date-picker-wrap clear-fix"
-            style="width: 400px; display: flex"
+          class="date-picker-wrap clear-fix"
+          style="width: 400px; display: flex"
           >
             <div class="date-picker" style="width: 180px">
               <DatePicker
@@ -28,14 +28,14 @@
               ></DatePicker>
             </div>
             <div class="label-split" style="height: 36px; line-height: 36px">
-              -
+              - 
             </div>
             <div class="date-picker" style="width: 180px">
               <DatePicker
-                v-model="search_end_date"
-                size="large"
-                type="date"
-                placeholder="请输入结束时间"
+              v-model="search_end_date"
+              size="large"
+              type="date"
+              placeholder="请输入结束时间"
               ></DatePicker>
             </div>
           </div>
@@ -66,13 +66,13 @@
           <span v-if="row.couponRange == 'newUser'">注册新用户</span>
           <!-- <span v-if="row.couponRange =='pullNewUser'">拉新用户</span> -->
           <span v-if="row.couponRange == 'blackGoldPullNewUser'"
-            >黑金拉新用户</span
+          >黑金拉新用户</span
           >
           <span v-if="row.couponRange == 'silverPullNewUser'"
-            >白银拉新用户</span
+          >白银拉新用户</span
           >
           <span v-if="row.couponRange == 'platinumPullNewUser'"
-            >铂金拉新用户</span
+          >铂金拉新用户</span
           >
         </template>
         <template slot-scope="{ row }" slot="action">
@@ -82,17 +82,17 @@
             size="small"
             style="margin-right: 5px"
             @click="handleSend(row)"
-            >发送</Button
+          >发送</Button
           >
           <Button
-            type="warning"
-            size="small"
-            style="margin-right: 5px"
-            @click="handleEdit(row)"
-            >编辑</Button
-          >
+           type="warning"
+           size="small"
+           style="margin-right: 5px"
+           @click="handleEdit(row)"
+           >编辑</Button
+           >
           <Button type="error" size="small" @click="handleRemove(row)"
-            >删除</Button
+          >删除</Button
           >
         </template>
       </Table>
@@ -116,28 +116,28 @@
       >
         <FormItem label="优惠券名称" prop="couponName">
           <Input
-            v-model="coupon_form.couponName"
+           v-model="coupon_form.couponName"
             placeholder="请输入优惠券名称"
-          ></Input>
+            ></Input>
         </FormItem>
         <FormItem label="优惠券金额" prop="amount">
           <Input
-            v-model="coupon_form.amount"
+           v-model="coupon_form.amount"
             type="number"
             placeholder="请输入优惠金额"
-          ></Input>
+            ></Input>
         </FormItem>
         <FormItem label="优惠券类型" prop="couponType">
           <Select
-            v-model="coupon_form.couponType"
+           v-model="coupon_form.couponType"
             @on-change="couponTypeChange"
-          >
+            >
             <Option
-              v-for="item in couponTypes"
+             v-for="item in couponTypes"
               :value="item.type"
               :key="item.type"
               >{{ item.title }}</Option
-            >
+              >
           </Select>
         </FormItem>
         <FormItem label="优惠券使用范围" prop="couponRange">
@@ -148,15 +148,15 @@
                 : couponRanges2"
               :value="item.type"
               :key="item.type"
-              >{{ item.title }}</Option
+            >{{ item.title }}</Option
             >
           </Select>
         </FormItem>
         <FormItem
-          label="使用截止时间"
-          prop="useEndTime"
-          v-if="coupon_form.couponType == 'manuallySend'"
-        >
+         label="使用截止时间"
+         prop="useEndTime"
+         v-if="coupon_form.couponType == 'manuallySend'"
+         >
           <DatePicker
             type="datetime"
             v-model="coupon_form.useEndTime"
@@ -222,7 +222,7 @@
             </div>
             <div class="search-btn">
               <Button type="primary" @click="handleSearchstudent" size="large"
-                >查询</Button
+              >查询</Button
               >
             </div>
           </div>
@@ -244,7 +244,7 @@
               line-height: 50px;
             "
           >
-            点击加载更多
+          点击加载更多
           </div>
           <div
             v-else
@@ -290,8 +290,8 @@ export default {
       columns: [
         { title: "序号", type: "index", width: 60, align: "center" },
         { title: "优惠券名称", key: "couponName" },
-        { title: "优惠卷金额", key: "amount" },
-        { title: "优惠卷类型", key: "couponType", slot: "couponType" },
+        { title: "优惠券金额", key: "amount" },
+        { title: "优惠券类型", key: "couponType", slot: "couponType" },
         { title: "使用范围", key: "couponRange", slot: "couponRange" },
         {
           title: "使用截止时间",
@@ -392,7 +392,7 @@ export default {
             trigger: "change",
             validator: (rule, value, callback) => {
               if (!value) {
-                callback(new Error("优惠卷类型不能为空"));
+                callback(new Error("优惠券类型不能为空"));
               }
               callback();
             },
@@ -403,7 +403,7 @@ export default {
             trigger: "change",
             validator: (rule, value, callback) => {
               if (!value) {
-                callback(new Error("优惠卷使用范围不能为空"));
+                callback(new Error("优惠券使用范围不能为空"));
               }
               callback();
             },
@@ -621,8 +621,9 @@ export default {
       });
     },
     /** 发送优惠券 */
-    handleSendCoupon() {
+    async handleSendCoupon() {
       let sendMode = 1;
+      let counts = 0;
       var self = this;
       var CouponRecords = self.ParseServer.Object.extend("NewCouponRecord");
       var User = self.ParseServer.Object.extend("_User");
@@ -633,7 +634,10 @@ export default {
           // 发送给全部用户
           let query = new this.ParseServer.Query(this.ParseServer.User);
           query.equalTo("role", "student");
-          query.limit(1000000);
+          await query.count().then(count => {
+            counts = count;
+          });
+          query.limit(counts);
           query.find().then((students) => {
             students.forEach((item) => {
               var couponRecord = new CouponRecords();
@@ -738,14 +742,12 @@ export default {
       if (this.search_start_date) {
         query2.greaterThan("createdAt", this.search_start_date);
       }
-      let query3 = new this.ParseServer.Query("NewCouponInfo");
       if (this.search_end_date) {
-        query3.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+        query2.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
       var query = this.ParseServer.Query.and(
         this.ParseServer.Query.or(query1),
-        query2,
-        query3
+        query2
       );
       query.descending("createdAt");
       query.count().then((count) => {
@@ -786,11 +788,12 @@ export default {
       this.student_page_list();
     },
     /** 分页加载学生信息 */
-    student_page_list() {
+    async student_page_list() {
       let query1;
       let querya;
       let queryc;
       let openIds = [];
+      let counts = 0;
       if (this.sendMode == "all" || this.sendMode == "part") {
         query1 = new this.ParseServer.Query(this.ParseServer.User);
         query1.equalTo("role", "student");
@@ -806,7 +809,7 @@ export default {
         queryc = new this.ParseServer.Query("MemberList");
         this.generalUser(query1, querya, queryc);
       }
-      
+
       //个别学生
       if (this.sendMode == "ordinary") {
         let query = new this.ParseServer.Query("MemberList");
@@ -814,7 +817,10 @@ export default {
         querya = new this.ParseServer.Query(this.ParseServer.User);
         queryc = new this.ParseServer.Query(this.ParseServer.User);
         // query.count().then((count) => {});
-        query.limit(10000);
+        await query.count().then(count => {
+          counts = count;
+        });
+        query.limit(counts);
         query.find().then(
           (list) => {
             if (list && list.length > 0) {

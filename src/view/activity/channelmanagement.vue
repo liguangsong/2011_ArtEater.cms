@@ -87,7 +87,7 @@
         </template>
       </Table>
       <div class="page-wrap">
-        <Page :total="total" @on-change="pagechange" v-if="total != 0" />
+        <Page :current="page" :total="total" @on-change="pagechange" v-if="total != 0" />
       </div>
     </Row>
     
@@ -168,9 +168,9 @@
     >
       <Row class="table-wrap" v-if="isLookBill">
         <div style="width: 100px; margin-left: auto; margin-bottom: 20px">
-          <Button type="primary" @click="exportBill">导出账单</Button>
+          <Button type="primary" @click="billList(2)">导出账单</Button>
         </div>
-        <Table :loading="loading" :columns="columns2" :data="datas2">
+        <Table :loading="loading" :columns="columns2" :data="tableDatas">
           <template slot-scope="{ row }" slot="memberType">
             <span v-if="row.memberType == 1">黑金</span>
             <span v-if="row.memberType == 2">铂金</span>
@@ -178,7 +178,7 @@
           </template>
         </Table>
         <div class="page-wrap">
-          <Page :total="total2" @on-change="pagechange2" v-if="total2 != 0" />
+          <Page :current="page2" :total="total2" @on-change="pagechange2" v-if="total2 != 0" />
         </div>
       </Row>
       <div class="bottom">
@@ -237,7 +237,7 @@ export default {
         { title: "分成比例", key: "divideInto" },
         { title: "提成总金额", key: "TotalAmountCommission", width: 100 },
         { title: "二维码", key: "qsCode", slot: "qsCode" },
-        { title: "创建时间", key: "updatedAt" },
+        { title: "创建时间", key: "createdAt" },
         { title: "操作", key: "action", width: 200, slot: "action" },
       ],
       columns2: [
@@ -248,7 +248,8 @@ export default {
         { title: "创建时间", key: "createdAt" },
       ],
       datas: [],
-      datas2: [],
+      tableDatas: [],//查看展示的账单列表
+      datas2: [],//导出的账单列表
       loading: true,
       form: {
         channelName: "",
@@ -479,27 +480,20 @@ export default {
     pagechange2(e) {
       this.isall = false;
       this.page2 = e;
-      this.billList(this.page2);
+      this.billList();
     },
 
     page_list(page_index) {
       this.loading = true;
       let _this = this;
-      let query1 = new this.ParseServer.Query("ChannelManagement");
-      query1.contains("channelName", this.search_keyword);
-      let query2 = new this.ParseServer.Query("ChannelManagement");
+      let query = new this.ParseServer.Query("ChannelManagement");
+      query.contains("channelName", this.search_keyword);
       if (this.search_start_date) {
-        query2.greaterThan("createdAt", this.search_start_date);
+        query.greaterThan("createdAt", this.search_start_date);
       }
-      let query3 = new this.ParseServer.Query("ChannelManagement");
       if (this.search_end_date) {
-        query3.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+        query.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
-      var query = this.ParseServer.Query.and(
-        this.ParseServer.Query.or(query1),
-        query2,
-        query3
-      );
       query.descending("createdAt");
       query.count().then((count) => {
         _this.total = count;
@@ -524,8 +518,8 @@ export default {
                 PromotionTime: item.get("PromotionTime"),
                 // qsCode: item.get("qsCode"),
                 baseMap: item.get("baseMap"),
-                updatedAt: tool.dateFormat(
-                  item.get("updatedAt"),
+                createdAt: tool.dateFormat(
+                  item.get("createdAt"),
                   "yyyy-MM-dd HH:mm:ss"
                 ),
               });
@@ -546,16 +540,18 @@ export default {
       query.count().then((count) => {
         _this.total2 = count;
       });
-      if (!this.isall) {
+      if (page_index == 2) {
+        query.limit(_this.total2);
+      }else{
         query.skip((this.page2 - 1) * this.pageSize);
         query.limit(this.pageSize);
       }
       query.find().then(
         (list) => {
-          _this.datas2 = [];
+          let putData = [];
           if (list && list.length > 0) {
             list.forEach((item) => {
-              _this.datas2.push({
+              putData.push({
                 id: item.id,
                 memberType: item.get("memberType"),
                 price: item.get("price"),
@@ -567,6 +563,14 @@ export default {
                 ),
               });
             });
+            if (page_index == 2) {
+              _this.datas2 = [];
+              _this.datas2 = putData;
+              this.exportBill();
+            }else{
+              _this.tableDatas = [];
+              _this.tableDatas = putData;
+            }
           }
           this.loading = false;
         },
@@ -647,9 +651,7 @@ export default {
           this.datas2[key].memberTypeName = "白银";
         }
       }
-      this.isall = true;
       setTimeout(() => {
-        this.billList();
         const initColumn = [
           {
             title: "ID",

@@ -267,14 +267,12 @@ export default {
       if (this.search_start_date) {
         user2.greaterThan("createdAt", this.search_start_date);
       }
-      let user3 = new this.ParseServer.Query("LabelManagement");
       if (this.search_end_date) {
-        user3.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+        user2.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
       query = this.ParseServer.Query.and(
         this.ParseServer.Query.or(user1),
-        user2,
-        user3
+        user2
       );
       query.descending("createdAt");
       query.count().then((count) => {
