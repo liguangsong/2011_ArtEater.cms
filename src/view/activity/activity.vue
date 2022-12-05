@@ -346,15 +346,14 @@ export default {
     page_list (page_index) {
         var self = this
         this.loading = true;
-        let query1 = new this.ParseServer.Query("Activity");
-        query1.contains('title', this.search_keyword)
+        let query = new this.ParseServer.Query("Activity");
+        query.contains('title', this.search_keyword)
         // let query2 = new this.ParseServer.Query("Video");
         // if(this.search_state==-1){
         //     query2.notEqualTo('state', -1)
         // } else {
         //     query2.equalTo('state', this.search_state)
         // }
-        var query = this.ParseServer.Query.and(query1);
         query.descending("createdAt");
         query.count().then(count => {
             self.total = count;

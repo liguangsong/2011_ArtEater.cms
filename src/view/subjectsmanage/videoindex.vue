@@ -337,6 +337,7 @@ export default {
         var query1 = new self.ParseServer.Query("Video");
         query1.containsAll("courseIds", [this.form.courseId]);
         query1.limit(10000);
+        
         query1.find().then(videos => {
           self.videoList = JSON.parse(JSON.stringify(videos));
           self.form.videoId = res.get("videoId");
@@ -417,10 +418,14 @@ export default {
     },
 
     /** 加载树形科目 */
-    bindCourseTree() {
+    async bindCourseTree() {
+      let counts = 0;
       var self = this;
       var query = new this.ParseServer.Query("Courses");
-      query.limit(10000);
+      await query.count().then(count => {
+        counts = count;
+      });
+      query.limit(counts);
       query.ascending("createdAt");
       query.find().then(res => {
         this.courses = res;

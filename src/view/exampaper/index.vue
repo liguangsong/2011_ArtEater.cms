@@ -234,11 +234,15 @@ export default {
       return subject ? subject.get("subject_name") : "";
     },
     /** 加载树形科目 */
-    bindSubjectTree() {
+    async bindSubjectTree() {
       var self = this;
+      let counts = 0;
       var query = new this.ParseServer.Query("Subjects");
       query.ascending('createdAt')
-      query.limit(10000)
+      await query.count().then(count => {
+        counts = count;
+      });
+      query.limit(counts);
       query.find().then(res => {
         this.subjects = res;
         var tree = self.initSubjectTree(res, "0");
@@ -289,11 +293,10 @@ export default {
       var self = this
       this.loading = true;
       
-      let query1 = new this.ParseServer.Query("ExamPaper");
-      query1.contains("test_paper_name", this.search_paper_name);
+      let query = new this.ParseServer.Query("ExamPaper");
+      query.contains("test_paper_name", this.search_paper_name);
 
 
-      let query2 = new this.ParseServer.Query("ExamPaper");
       if(this.search_subject_name){
         let subjectIds = []
         this.subjects.forEach((sub,idx)=>{
@@ -301,10 +304,9 @@ export default {
             subjectIds.push(sub.id)
           }
         })
-        query2.containedIn("subjects", subjectIds); // 科目名称
+        query.containedIn("subjects", subjectIds); // 科目名称
       }
 
-      var query = this.ParseServer.Query.and(query1, query2);
       query.descending("createdAt");
       query.count().then(count => {
         this.total = count;

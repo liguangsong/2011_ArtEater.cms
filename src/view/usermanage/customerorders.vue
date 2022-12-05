@@ -121,13 +121,17 @@ export default {
       this.customerOrders();
     },
 
-    page_list(page_index) {
+    async page_list(page_index) {
+      let counts = 0;
       this.loading = true;
       this.user_datas = [];
       let query = new this.ParseServer.Query(this.ParseServer.User);
       query.containedIn("openid", this.openIds);
       query.descending("createdAt");
-      query.limit(100000);
+      await query.count().then((count) => {
+        counts = count;
+      });
+      query.limit(counts);
       query.find().then(
         (list) => {
           if (list && list.length > 0) {
@@ -170,18 +174,14 @@ export default {
     customerOrders() {
       this.orders = [];
       this.openIds = [];
-      let query1 = new this.ParseServer.Query("Order");
-      query1.contains("subjectName", this.search_keyword);
-      let query2 = new this.ParseServer.Query("Order");
+      let query = new this.ParseServer.Query("Order");
+      query.contains("subjectName", this.search_keyword);
       if (this.search_start_date) {
-        query2.greaterThan("createdAt", this.search_start_date);
+        query.greaterThan("createdAt", this.search_start_date);
       }
-      let query3 = new this.ParseServer.Query("Order");
       if (this.search_end_date) {
-        query3.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+        query.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
-
-      let query = this.ParseServer.Query.and(query1, query2, query3);
       query.count().then((count) => {
         if (this.flag == 1) {
           this.total = count;
@@ -194,7 +194,7 @@ export default {
         query.limit(10);
       } else {
         this.datas2 = [];
-        query.limit(1000000);
+        query.limit(this.total);
       }
       query.find().then(
         (list) => {

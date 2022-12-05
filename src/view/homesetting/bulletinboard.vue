@@ -527,7 +527,7 @@ export default {
       let _this = this;
       this.$Modal.confirm({
         title: "删除提示",
-        content: "<p>当前公告拦会被删除，确定要删除吗？</p>",
+        content: "<p>当前公告栏会被删除，确定要删除吗？</p>",
         onOk: () => {
           var query = new this.ParseServer.Query("BulletinBoard");
           query.get(id).then((response) => {

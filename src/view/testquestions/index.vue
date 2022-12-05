@@ -21,6 +21,7 @@
             id="mySelectTree1"
             v-model="search_subjects"
             :treeData="subjectTreeData"
+            :clearable="true"
           ></selectTree>
         </div>
         <div class="select-choice clear-fix" style="width: 140px; float: left">
@@ -1185,7 +1186,7 @@ export default {
           } else {
             if (self.question_form.tagId) {
               var ClassOfMyObject =
-                this.ParseServer.Object.extend("LabelManagement");
+              this.ParseServer.Object.extend("LabelManagement");
               var myObject = ClassOfMyObject.createWithoutData(
                 self.question_form.tagId
               );
@@ -1223,10 +1224,14 @@ export default {
       });
     },
     /** 加载树形科目 */
-    bindSubjectTree() {
+    async bindSubjectTree() {
       var self = this;
+      let countSub = 0;
       var query = new this.ParseServer.Query("Subjects");
-      query.limit(10000);
+      await query.count().then(count => {
+        countSub = count;
+      });
+      query.limit(countSub);
       query.ascending("createdAt");
       query.find().then((res) => {
         this.subjects = res;
@@ -2315,9 +2320,9 @@ export default {
           : (question_datas[key].isImportants = "否");
 
         if (question_datas[key].accuracy || question_datas[key].accuracy == 0) {
-          parseFloat((question_datas[key].accuracys * 100).toFixed(2)) + "%";
+          question_datas[key].accuracy = parseFloat((question_datas[key].accuracy * 100).toFixed(2)) + "%";
         } else {
-          question_datas[key].accuracys = "-";
+          question_datas[key].accuracy = "-";
         }
         question_datas[key].subjectName = "";
         question_datas[key].subjects.forEach((item, _idx) => {

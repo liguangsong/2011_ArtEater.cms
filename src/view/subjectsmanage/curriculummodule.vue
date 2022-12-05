@@ -811,10 +811,14 @@ export default {
   },
   methods: {
     /** 加载树形科目 */
-    bindSubjectTree() {
+    async bindSubjectTree() {
+      let counts = 0;
       var query = new this.ParseServer.Query("CoursesModule");
       query.equalTo("flag", 1);
-      query.limit(10000);
+      await query.count().then(count => {
+        counts = count;
+      });
+      query.limit(counts);
       query.descending("createdAt");
       query.find().then((res) => {
         var tree = this.initCoursetTree(res, "0");
@@ -1063,10 +1067,14 @@ export default {
       });
     },
     // 修改上架子级
-    updatedChildPutaway(id) {
+    async updatedChildPutaway(id) {
+      let counts = 0;
       var query = new this.ParseServer.Query("CoursesModule");
       query.equalTo("parent_ID", id);
-      query.limit(10000);
+      await query.count().then(count => {
+        counts = count;
+      });
+      query.limit(counts);
       query.find().then((response) => {
         if (response && response.length > 0) {
           response.forEach((data) => {
@@ -1684,20 +1692,11 @@ export default {
         } else {
           // 编辑
           if (this.courseId) {
-            let innerquery = new this.ParseServer.Query("CoursesModule");
-            innerquery.equalTo("level", this.currLevel);
-            let innerquery1 = new this.ParseServer.Query("CoursesModule");
-            innerquery1.equalTo("innerOrder", Number(this.form.innerOrder));
-            let innerquery2 = new this.ParseServer.Query("CoursesModule");
-            innerquery2.equalTo("rootId", this.rootId);
-            let innerquery3 = new this.ParseServer.Query("CoursesModule");
-            innerquery3.equalTo("parent_ID", this.currParent.id);
-            var query = this.ParseServer.Query.and(
-              innerquery,
-              innerquery1,
-              innerquery2,
-              innerquery3
-            );
+            let query = new this.ParseServer.Query("CoursesModule");
+            query.equalTo("level", this.currLevel);
+            query.equalTo("innerOrder", Number(this.form.innerOrder));
+            query.equalTo("rootId", this.rootId);
+            query.equalTo("parent_ID", this.currParent.id);
             query.find().then((response) => {
               if (response && response.length > 0) {
                 if (this.courseId == response[0].id) {
@@ -1727,20 +1726,11 @@ export default {
           } else {
             // var query1 = new this.ParseServer.Query("CoursesModule");
             // 保存 目录
-            let innerquery = new this.ParseServer.Query("CoursesModule");
-            innerquery.equalTo("level", this.currLevel);
-            let innerquery1 = new this.ParseServer.Query("CoursesModule");
-            innerquery1.equalTo("innerOrder", Number(this.form.innerOrder));
-            let innerquery2 = new this.ParseServer.Query("CoursesModule");
-            innerquery2.equalTo("rootId", this.rootId);
-            let innerquery3 = new this.ParseServer.Query("CoursesModule");
-            innerquery3.equalTo("parent_ID", this.currParent.id);
-            var query = this.ParseServer.Query.and(
-              innerquery,
-              innerquery1,
-              innerquery2,
-              innerquery3
-            );
+            let query = new this.ParseServer.Query("CoursesModule");
+            query.equalTo("level", this.currLevel);
+            query.equalTo("innerOrder", Number(this.form.innerOrder));
+            query.equalTo("rootId", this.rootId);
+            query.equalTo("parent_ID", this.currParent.id);
             query.find().then((response) => {
               if (response && response.length > 0) {
                 this.$Message.error("排序已存在");
@@ -1799,10 +1789,14 @@ export default {
     },
 
     /** 更新父级科目 */
-    updateParent(parentId) {
+    async updateParent(parentId) {
+      let counts = 0;
       var query = new this.ParseServer.Query("CoursesModule");
       query.equalTo("parent_ID", parentId);
-      query.limit(10000);
+      await query.count().then(count => {
+        counts = count;
+      });
+      query.limit(counts);
       query.find().then((childrens) => {
         let hasChildren = false;
         childrens.forEach((_item, _index) => {

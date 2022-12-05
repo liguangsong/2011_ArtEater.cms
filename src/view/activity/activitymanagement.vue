@@ -381,14 +381,12 @@ export default {
       if (this.search_start_date) {
         query2.greaterThan("createdAt", this.search_start_date);
       }
-      let query3 = new this.ParseServer.Query("ActiveManagement");
       if (this.search_end_date) {
-        query3.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
+        query2.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
       var query = this.ParseServer.Query.and(
         this.ParseServer.Query.or(query1),
-        query2,
-        query3
+        query2
       );
       // let query = new this.ParseServer.Query("ActiveManagement");
       query.descending("createdAt");

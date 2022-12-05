@@ -7,7 +7,7 @@
             v-model="search_keyword"
             size="large"
             style="width: 200px"
-            placeholder="请输入ID/昵称/姓名"
+            placeholder="请输入ID/昵称/姓名/手机号"
           />
         </div>
         <div class="select-choice clear-fix" style="width: 300px">
@@ -320,30 +320,25 @@ export default {
 
       let user1 = new this.ParseServer.Query(this.ParseServer.User);
       user1.contains("realname", this.search_keyword);
-      user1.equalTo("role", "student");
+      let user4 = new this.ParseServer.Query(this.ParseServer.User);
+      user4.contains("phone", this.search_keyword);
       let user6 = new this.ParseServer.Query(this.ParseServer.User);
       if (this.label) {
         user6.contains("label", this.label);
-        user6.equalTo("role", "student");
+      }
+      user6.equalTo("role", "student");
+      if (this.search_start_date) {
+        user6.greaterThan("createdAt", this.search_start_date);
+      }
+      if (this.search_end_date) {
+        user6.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
       }
       let user2 = new this.ParseServer.Query(this.ParseServer.User);
       user2.contains("objectId", this.search_keyword);
-      user2.equalTo("role", "student");
       let user3 = new this.ParseServer.Query(this.ParseServer.User);
       user3.contains("nickName", this.search_keyword);
-      user3.equalTo("role", "student");
-      let user4 = new this.ParseServer.Query(this.ParseServer.User);
-      if (this.search_start_date) {
-        user4.greaterThan("createdAt", this.search_start_date);
-      }
-      let user5 = new this.ParseServer.Query(this.ParseServer.User);
-      if (this.search_end_date) {
-        user5.lessThan("createdAt", tool.addDays(this.search_end_date, 1));
-      }
       var query = this.ParseServer.Query.and(
-        this.ParseServer.Query.or(user1, user2, user3),
-        user4,
-        user5,
+        this.ParseServer.Query.or(user1, user2, user3, user4),
         user6
       );
       query.count().then((count) => {
